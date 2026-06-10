@@ -1,0 +1,28 @@
+# macOS and IDE
+.DS_Store
+.idea/
+*.iml
+
+# Codex and local tooling
+.codex_read/
+.omc/
+vendor/anthropic-skills/
+
+# Backend build and local result files
+judicial-appraisal-backend/target/
+judicial-appraisal-backend/.codex-result*.txt
+
+# Frontend dependencies and build output
+judicial-appraisal-frontend/node_modules/
+judicial-appraisal-frontend/dist/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+

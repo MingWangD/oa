@@ -1,0 +1,46 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: judicial-appraisal-backend
+  datasource:
+    url: jdbc:mysql://localhost:3307/judicial_appraisal?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 100MB
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+app:
+  jwt:
+    secret: change-me-change-me-change-me-change-me
+    issuer: judicial-appraisal-backend
+    expiration-minutes: 720
+  minio:
+    endpoint: http://localhost:9000
+    access-key: minioadmin
+    secret-key: minioadmin
+    bucket: judicial-appraisal
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
