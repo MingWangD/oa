@@ -17,6 +17,7 @@ export interface UserInfo {
   postName: string | null;
   status: string;
   roles: UserRole[];
+  permissions: string[];
 }
 
 export interface LoginResponse {
@@ -224,14 +225,17 @@ export interface WorkflowActionResult {
   message: string;
 }
 
-export interface OaMenuItem {
-  code: string;
-  title: string;
+export interface MenuDto {
+  id: number;
+  parentId: number;
+  menuName: string;
+  menuCode: string;
   path: string;
-  module: string;
-  capabilityStatus: string;
+  component: string | null;
+  menuType: string;
+  icon: string;
   sortNo: number;
-  children: OaMenuItem[];
+  children: MenuDto[];
 }
 
 export interface OaModule {
@@ -360,8 +364,8 @@ export function submitWorkflowAction(
   return post<WorkflowActionResult>(`/cases/${caseId}/actions`, payload);
 }
 
-export function fetchPlatformMenus(): Promise<OaMenuItem[]> {
-  return get<OaMenuItem[]>('/platform/menus');
+export function fetchPlatformMenus(): Promise<MenuDto[]> {
+  return get<MenuDto[]>('/platform/menus');
 }
 
 export function fetchPlatformModules(): Promise<OaModule[]> {

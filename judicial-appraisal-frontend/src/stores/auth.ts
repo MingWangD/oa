@@ -10,9 +10,11 @@ import {
 import {
   changePassword,
   fetchCurrentUser,
+  fetchPlatformMenus,
   login,
   logout,
   type ChangePasswordPayload,
+  type MenuDto,
   type UserInfo
 } from '../api/judicial';
 
@@ -57,6 +59,7 @@ export const useAuthStore = defineStore('auth', {
   state: () => ({
     token: getAccessToken(),
     user: readStoredUser(),
+    menus: [] as MenuDto[],
     restoring: false
   }),
 
@@ -73,25 +76,33 @@ export const useAuthStore = defineStore('auth', {
         return '未登录';
       }
       return state.user.status === 'enabled' ? '启用' : state.user.status;
-    }
+    },
+    permissions: (state) => state.user?.permissions ?? []
   },
 
   actions: {
     async restoreSession(): Promise<void> {
       this.token = getAccessToken();
       this.user = readStoredUser();
-      if (!this.token || this.user) {
+      if (!this.token) {
         return;
       }
 
-      this.restoring = true;
-      try {
-        this.user = await fetchCurrentUser();
-        storeUser(this.user);
-      } catch {
-        this.clearSession();
-      } finally {
-        this.restoring = false;
+      if (!this.user) {
+        this.restoring = true;
+        try {
+          this.user = await fetchCurrentUser();
+          storeUser(this.user);
+        } catch {
+          this.clearSession();
+          return;
+        } finally {
+          this.restoring = false;
+        }
+      }
+
+      if (this.isAuthenticated) {
+        void this.fetchMenus();
       }
     },
 
@@ -101,6 +112,7 @@ export const useAuthStore = defineStore('auth', {
       this.user = response.user;
       setAccessToken(response.token);
       storeUser(response.user);
+      void this.fetchMenus();
       return response.user;
     },
 
@@ -109,6 +121,14 @@ export const useAuthStore = defineStore('auth', {
       this.user = user;
       storeUser(user);
       return user;
+    },
+
+    async fetchMenus(): Promise<void> {
+      try {
+        this.menus = await fetchPlatformMenus();
+      } catch (error) {
+        console.error('Failed to fetch menus', error);
+      }
     },
 
     async signOut(): Promise<void> {
@@ -128,6 +148,7 @@ export const useAuthStore = defineStore('auth', {
     clearSession(): void {
       this.token = '';
       this.user = null;
+      this.menus = [];
       clearAuthStorage();
     }
   }

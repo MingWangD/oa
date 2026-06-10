@@ -17,6 +17,7 @@ import java.util.List;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -39,66 +40,53 @@ public class UserController {
     }
 
     @GetMapping("/users")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<List<AdminUserDto>> listUsers(@RequestParam(required = false) String keyword,
                                                      Authentication authentication) {
-        requireAdmin(authentication);
         return ApiResponse.success(organizationService.listUsers(keyword));
     }
 
     @PostMapping("/users")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<AdminUserDto> createUser(@Valid @RequestBody AdminUserCreateRequest request,
                                                 Authentication authentication) {
-        Long operatorId = requireAdmin(authentication);
-        return ApiResponse.success(organizationService.createUser(request, operatorId));
+        CurrentUserInfo currentUser = (CurrentUserInfo) authentication.getPrincipal();
+        return ApiResponse.success(organizationService.createUser(request, currentUser.id()));
     }
 
     @PutMapping("/users/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<AdminUserDto> updateUser(@PathVariable Long userId,
                                                 @Valid @RequestBody AdminUserUpdateRequest request,
                                                 Authentication authentication) {
-        Long operatorId = requireAdmin(authentication);
-        return ApiResponse.success(organizationService.updateUser(userId, request, operatorId));
+        CurrentUserInfo currentUser = (CurrentUserInfo) authentication.getPrincipal();
+        return ApiResponse.success(organizationService.updateUser(userId, request, currentUser.id()));
     }
 
     @PutMapping("/users/{userId}/roles")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<AdminUserDto> assignUserRoles(@PathVariable Long userId,
                                                      @RequestBody UserRoleAssignRequest request,
                                                      Authentication authentication) {
-        requireAdmin(authentication);
         List<Long> roleIds = request == null ? List.of() : request.roleIds();
         return ApiResponse.success(organizationService.assignUserRoles(userId, roleIds));
     }
 
     @GetMapping("/roles")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<List<AdminRoleDto>> listRoles(Authentication authentication) {
-        requireAdmin(authentication);
         return ApiResponse.success(organizationService.listRoles());
     }
 
     @GetMapping("/depts")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<List<OrganizationDeptDto>> listDepts(Authentication authentication) {
-        requireAdmin(authentication);
         return ApiResponse.success(organizationService.listDepts());
     }
 
     @GetMapping("/posts")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<List<OrganizationPostDto>> listPosts(Authentication authentication) {
-        requireAdmin(authentication);
         return ApiResponse.success(organizationService.listPosts());
-    }
-
-    private Long requireAdmin(Authentication authentication) {
-        if (authentication == null || !(authentication.getPrincipal() instanceof CurrentUserInfo tokenUser)) {
-            throw new AuthenticationCredentialsNotFoundException("Unauthorized");
-        }
-
-        CurrentUserInfo currentUser = authService.getCurrentUser(tokenUser.id());
-        boolean admin = currentUser.roles().stream()
-                .map(CurrentUserRole::code)
-                .anyMatch(code -> "ADMIN".equalsIgnoreCase(code) || "ROLE_ADMIN".equalsIgnoreCase(code));
-        if (!admin) {
-            throw new AccessDeniedException("Admin role required");
-        }
-        return currentUser.id();
     }
 }

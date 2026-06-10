@@ -8,7 +8,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Collections;
+import java.util.List;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
@@ -57,10 +57,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             Authentication currentAuthentication = SecurityContextHolder.getContext().getAuthentication();
-            if (currentAuthentication == null) {
-                CurrentUserInfo userInfo = jwtTokenService.parseToken(token);
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userInfo, token, Collections.emptyList());
+                if (currentAuthentication == null) {
+                    CurrentUserInfo userInfo = jwtTokenService.parseToken(token);
+                    
+                    List<org.springframework.security.core.GrantedAuthority> authorities = new java.util.ArrayList<>();
+                    if (userInfo.roles() != null) {
+                        userInfo.roles().forEach(role -> {
+                            authorities.add(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + role.code().toUpperCase()));
+                        });
+                    }
+                    if (userInfo.permissions() != null) {
+                        userInfo.permissions().forEach(perm -> {
+                            authorities.add(new org.springframework.security.core.authority.SimpleGrantedAuthority(perm));
+                        });
+                    }
+
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(userInfo, token, authorities);
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContext context = SecurityContextHolder.createEmptyContext();
                 context.setAuthentication(authentication);

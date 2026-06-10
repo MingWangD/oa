@@ -23,6 +23,12 @@
 - 已确认并补齐本地构建环境
 - 已安装 `OpenJDK 17`
 - 已安装 `Maven`
+- 已配置终端默认使用 Java 17
+- 已安装并启动 `MySQL 8.0`、`Redis`、`MinIO`
+- 已创建数据库 `judicial_appraisal` 并导入基础 schema
+- 已导入 RBAC 二期迁移脚本 `migration_v2_rbac.sql`
+- 已创建本地管理员账号：`admin / Admin123`
+- 已创建 MinIO bucket：`judicial-appraisal`
 - 已完成前端依赖安装
 
 #### 文档与规范
@@ -35,6 +41,9 @@
 
 - 已补充认证相关 DTO 与查询接口
 - 已补充组织与管理员相关实体、DTO、Mapper
+- 已实现基于数据库的动态菜单与角色权限（RBAC）
+- 已通过 `@PreAuthorize` 保护 API 接口
+- 已搭建 MyBatis-Plus 的 `DataPermissionInterceptor` 与 `@DataScope` 底层机制
 - 已新增平台目录接口，提供：
   - OA 模块树
   - 重构阶段计划
@@ -48,6 +57,8 @@
 
 - 已补充登录、首页、个人信息、用户管理、案件详情等视图
 - 已扩展路由与主框架菜单
+- 已对接后端 `sys_menu` 实现侧边栏和权限控制的动态渲染
+- 已支持 Element Plus 图标的动态按需加载
 - 已补充平台目录相关 API
 - 已扩展样式，覆盖登录页、模块卡片、阶段视图、详情页等
 - 前端 `npm run build` 已通过
@@ -55,9 +66,8 @@
 ## 进行中
 
 - 完整 OA 公共平台能力继续补全
-- 动态表单设计器
-- 动态流程设计器
-- 权限与数据权限体系
+- 第二阶段：动态表单设计器与动态流程平台
+- 权限与数据权限体系（细化业务查询支持）
 - 文件、归档、审计能力完善
 - 司法鉴定 20 个流程、19 个表单的细化落地
 
@@ -70,8 +80,48 @@
 
 ## 已知验证
 
-- `JAVA_HOME=/opt/homebrew/opt/openjdk@17 PATH="/opt/homebrew/opt/openjdk@17/bin:$PATH" mvn test`
-- `npm run build`
+- 后端：`mvn test`
+- 前端：`npm run build`
+- 后端运行：`http://localhost:8080`
+- 前端运行：`http://127.0.0.1:5173`
+- MinIO API：`http://localhost:9000`
+- MinIO 控制台：`http://localhost:9001`
+
+## 本地运行
+
+当前本机环境已配置为：
+
+- Java：`17.0.19`
+- Maven：`3.9.16`
+- Node：`v26.0.0`
+- npm：`11.12.1`
+- MySQL：`localhost:3307`
+- Redis：`localhost:6379`
+- MinIO：`localhost:9000`
+
+启动后端：
+
+```bash
+cd judicial-appraisal-backend
+mvn spring-boot:run
+```
+
+启动前端：
+
+```bash
+cd judicial-appraisal-frontend
+npm run dev -- --host 127.0.0.1
+```
+
+依赖服务：
+
+```bash
+brew services start mysql@8.0
+brew services start redis
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.oa.minio.plist
+```
+
+MinIO 的 Homebrew 版本在当前机器上存在二进制崩溃问题，因此本机使用 `~/bin/minio` 官方二进制和 `com.oa.minio` LaunchAgent 启动。
 
 ## 参考文件
 

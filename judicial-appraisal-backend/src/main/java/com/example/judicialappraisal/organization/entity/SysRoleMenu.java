@@ -7,17 +7,11 @@ import java.time.LocalDateTime;
 import lombok.Data;
 
 @Data
-@TableName("sys_role")
-public class SysRole {
+@TableName("sys_role_menu")
+public class SysRoleMenu {
     @TableId(type = IdType.AUTO)
     private Long id;
-    private String roleName;
-    private String roleCode;
-    private String status;
-    private String dataScope;
-    private Long createdBy;
+    private Long roleId;
+    private Long menuId;
     private LocalDateTime createdTime;
-    private Long updatedBy;
-    private LocalDateTime updatedTime;
-    private Integer deleted;
 }

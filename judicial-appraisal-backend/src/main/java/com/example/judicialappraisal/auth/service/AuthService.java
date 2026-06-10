@@ -10,7 +10,9 @@ import com.example.judicialappraisal.auth.mapper.AuthQueryMapper;
 import com.example.judicialappraisal.common.exception.BusinessException;
 import com.example.judicialappraisal.organization.entity.SysUser;
 import com.example.judicialappraisal.organization.mapper.SysUserMapper;
+import com.example.judicialappraisal.organization.service.PermissionService;
 import java.util.List;
+import java.util.Set;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -25,15 +27,18 @@ public class AuthService {
     private final AuthQueryMapper authQueryMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenService jwtTokenService;
+    private final PermissionService permissionService;
 
     public AuthService(SysUserMapper sysUserMapper,
                        AuthQueryMapper authQueryMapper,
                        PasswordEncoder passwordEncoder,
-                       JwtTokenService jwtTokenService) {
+                       JwtTokenService jwtTokenService,
+                       PermissionService permissionService) {
         this.sysUserMapper = sysUserMapper;
         this.authQueryMapper = authQueryMapper;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenService = jwtTokenService;
+        this.permissionService = permissionService;
     }
 
     public LoginResponse login(LoginRequest request) {
@@ -57,6 +62,7 @@ public class AuthService {
         SysUser user = requireEnabledUser(userId);
         AuthQueryMapper.CurrentUserBaseRow row = authQueryMapper.selectCurrentUserBaseById(user.getId());
         List<CurrentUserRole> roles = authQueryMapper.selectRolesByUserId(user.getId());
+        Set<String> permissions = permissionService.getPermissionsByUserId(user.getId());
 
         if (row == null) {
             return new CurrentUserInfo(
@@ -70,7 +76,8 @@ public class AuthService {
                     user.getPostId(),
                     null,
                     user.getStatus(),
-                    roles
+                    roles,
+                    permissions
             );
         }
 
@@ -85,7 +92,8 @@ public class AuthService {
                 row.postId(),
                 row.postName(),
                 row.status(),
-                roles
+                roles,
+                permissions
         );
     }
 

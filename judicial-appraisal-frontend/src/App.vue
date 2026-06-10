@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { DocumentAdd, Files, FolderOpened, House, User } from '@element-plus/icons-vue';
+import * as ElementPlusIcons from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 
 import { useAuthStore } from './stores/auth';
@@ -34,109 +34,41 @@ const currentUserName = computed(() => authStore.displayName);
 const currentUserMeta = computed(() => authStore.roleNames.join(' / ') || authStore.statusLabel);
 const avatarText = computed(() => currentUserName.value.slice(0, 1) || '管');
 
+function getIcon(name: string): unknown {
+  if (!name || name === '#') {
+    return ElementPlusIcons.Files;
+  }
+  return (ElementPlusIcons as any)[name] || ElementPlusIcons.Files;
+}
+
 const menuGroups = computed<MenuGroup[]>(() => {
+  if (authStore.menus && authStore.menus.length > 0) {
+    return authStore.menus.map((m) => ({
+      title: m.menuName,
+      items: (m.children || []).map((c) => ({
+        title: c.menuName,
+        path: c.path,
+        icon: getIcon(c.icon)
+      }))
+    }));
+  }
+
+  // Fallback to hardcoded menus if dynamic ones are not yet loaded
   const groups: MenuGroup[] = [
-    {
-      title: '快捷菜单',
-      items: [
-        { title: '电子邮件', path: '/placeholder/quick/mail', icon: Files },
-        { title: '日程', path: '/placeholder/quick/calendar', icon: House },
-        { title: '知识库', path: '/knowledge', icon: FolderOpened }
-      ]
-    },
-    {
-      title: '个人事务',
-      items: [
-        { title: '消息', path: '/placeholder/personal/message', icon: Files },
-        { title: '任务', path: '/placeholder/personal/task', icon: Files },
-        { title: '工作日志', path: '/placeholder/personal/log', icon: Files },
-        { title: '通讯簿', path: '/placeholder/personal/address', icon: User }
-      ]
-    },
     {
       title: '流程中心',
       items: [
-        { title: '新建工作', path: '/case/new', icon: DocumentAdd },
-        { title: '我的工作', path: '/my-work', icon: House },
-        { title: '工作查询', path: '/work-query', icon: Files },
-        { title: '工作监控', path: '/placeholder/workflow/monitor', icon: Files },
-        { title: '超时统计分析', path: '/placeholder/workflow/timeout', icon: Files },
-        { title: '工作委托', path: '/placeholder/workflow/delegate', icon: Files },
-        { title: '工作销毁', path: '/placeholder/workflow/destroy', icon: Files },
-        { title: '流程日志查询', path: '/placeholder/workflow/log', icon: Files },
-        { title: '数据归档', path: '/placeholder/workflow/archive', icon: FolderOpened },
-        { title: '数据报表', path: '/placeholder/workflow/report', icon: Files },
-        { title: '设计表单', path: '/placeholder/workflow/forms', icon: Files },
-        { title: '设计流程', path: '/placeholder/workflow/processes', icon: Files },
-        { title: '报表设置', path: '/placeholder/workflow/report-setting', icon: Files },
-        { title: '数据源管理', path: '/placeholder/workflow/datasource', icon: Files }
+        { title: '新建工作', path: '/case/new', icon: ElementPlusIcons.DocumentAdd },
+        { title: '我的工作', path: '/my-work', icon: ElementPlusIcons.House },
+        { title: '工作查询', path: '/work-query', icon: ElementPlusIcons.Files }
       ]
-    },
-    {
-      title: '应用中心',
-      items: [
-        { title: '我的应用', path: '/placeholder/application/mine', icon: Files },
-        { title: '设计应用', path: '/placeholder/application/design', icon: Files },
-        { title: '基础代码', path: '/placeholder/application/code', icon: Files }
-      ]
-    },
-    {
-      title: '业务管理',
-      items: [
-        { title: 'CRM', path: '/placeholder/crm', icon: Files },
-        { title: '绩效', path: '/placeholder/performance', icon: Files },
-        { title: '合同', path: '/placeholder/contract', icon: Files },
-        { title: '项目', path: '/placeholder/project', icon: Files },
-        { title: '仓库', path: '/placeholder/warehouse', icon: Files },
-        { title: '安全风险', path: '/placeholder/risk', icon: Files }
-      ]
-    },
-    {
-      title: '行政与知识',
-      items: [
-        { title: '行政办公', path: '/placeholder/admin-office', icon: Files },
-        { title: '知识库', path: '/knowledge', icon: FolderOpened },
-        { title: '案件自动归档', path: '/placeholder/knowledge/archive', icon: FolderOpened },
-        { title: '网络硬盘', path: '/placeholder/knowledge/disk', icon: FolderOpened }
-      ]
-    },
-    {
-      title: '督查门户报表',
-      items: [
-        { title: '督查督办', path: '/placeholder/supervision', icon: Files },
-        { title: '智能门户', path: '/placeholder/portal', icon: House },
-        { title: '报表中心', path: '/placeholder/report-center', icon: Files }
-      ]
-    },
-    {
-      title: '人资公文档案',
-      items: [
-        { title: '人力资源', path: '/placeholder/hr', icon: User },
-        { title: '考勤', path: '/placeholder/attendance', icon: Files },
-        { title: '公文', path: '/placeholder/official-doc', icon: Files },
-        { title: '档案', path: '/placeholder/archive', icon: FolderOpened },
-        { title: '交流园地', path: '/placeholder/community', icon: Files }
-      ]
-    },
-    {
-      title: '开放与集成',
-      items: [
-        { title: '外部系统集成', path: '/placeholder/integration/open-api', icon: Files },
-        { title: 'SSO', path: '/placeholder/integration/sso', icon: Files },
-        { title: '统一待办', path: '/placeholder/integration/todo', icon: Files },
-        { title: '附件程序', path: '/placeholder/integration/tools', icon: Files }
-      ]
-    },
-    {
-      title: '知识管理',
-      items: [{ title: '知识库', path: '/knowledge', icon: FolderOpened }]
     }
   ];
 
   if (authStore.isAdmin) {
     groups.push({
       title: '系统管理',
-      items: [{ title: '用户管理', path: '/admin/users', icon: User }]
+      items: [{ title: '用户管理', path: '/admin/users', icon: ElementPlusIcons.User }]
     });
   }
 

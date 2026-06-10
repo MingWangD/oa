@@ -6,21 +6,22 @@
 Gemini CLI 当前作为**辅助协作**身份运行，负责协助 Codex 推进项目重构。
 
 ## 📊 当前项目状态摘要 (2026-06-10)
-- **阶段**：第一阶段（公共平台骨架）已基本收尾。
+- **阶段**：第二阶段（权限、动态表单与动态流程平台）进行中。
 - **核心成果**：
     - 已完成全案调研，梳理了 20 个流程和 19 个表单的元数据定义（详见 `PlatformCatalogService.java`）。
-    - 后端技术栈（Spring Boot 3 + MyBatis-Plus）及前端技术栈（Vue 3 + TS）已对齐。
-    - 数据库 Schema 已就绪，涵盖了 RBAC、流程实例、材料台账等核心模型。
+    - 数据库 Schema 已就绪，新增了 `sys_menu` 和 `sys_role_menu` 表以支持动态路由和菜单。
+    - 前端 `App.vue` 已对接后端提供的动态菜单接口 `PermissionService`，并支持图标动态解析。
+    - 后端 `UserController` 已接入 `@PreAuthorize` 注解以实现 API 级别控制。
+    - 引入了 MyBatis-Plus 的 `DataPermissionInterceptor` 与 `@DataScope` 接口进行数据权限控制的底层搭设。
 
 ## 📝 Gemini CLI 最新完成的工作
-1. **项目调研**：完成了对现有后端 `workflow`、`platform` 模块和前端 `views`、`api` 的深度阅读。
-2. **规范对齐**：确认了以 `AGENT.md` 为核心的需求优先级体系。
-3. **协作设置**：创建了本对齐文档，并更新了 `AGENT.md` 引导 Codex 进行跨 Agent 通讯。
+1. **RBAC 实施**：重构了系统的鉴权体系，在 `JwtTokenService` 注入角色与权限，由 `CustomDataPermissionHandler` 提供行级数据权限底层支撑。
+2. **菜单动态化**：将前端硬编码的菜单抽取到后端通过 `sys_menu` 管理，并提供树状数据结构供 Vue Router 和 Element Plus 渲染。
+3. **安全更新**：移除了手动的 `requireAdmin`，代之以更标准的 Spring Security 注解鉴权。
 
 ## 🎯 下一步对齐焦点 (供 Codex 参考)
-- **RBAC 强化**：目前系统权限较薄弱，需从硬编码的角色判断转向动态的菜单/按钮权限。
-- **流程动态化**：`WorkflowRuntimeService` 中存在大量硬编码的分支判断（如 `handleApprove`），建议后续通过 `wf_transition_def` 进行动态驱动。
-- **数据权限**：需在 Mapper 层或 Service 层引入基于部门树的数据过滤机制。
+- **动态表单与流程**：第二阶段仍需实现表单设计器和流程引擎（`wf_definition`、`wf_node_def` 等模型已具备）。建议接下来从流程定义的增删改查及发布入手。
+- **完整权限落地**：当前数据权限提供了基础的 handler，需要后续业务功能（如业务台账）查询时关联对应别名。
 
 ---
 *注：Codex 在接手任务后，请根据本文件了解 Gemini CLI 已完成的部分，避免重复劳动。*
