@@ -249,7 +249,11 @@ CREATE TABLE case_subflow_instance (
   id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '子流程实例ID',
   case_id BIGINT NOT NULL COMMENT '案件ID',
   parent_wf_instance_id BIGINT NOT NULL COMMENT '主流程实例ID',
+  parent_task_id BIGINT NULL COMMENT '触发子流程的父任务ID',
+  parent_node_code VARCHAR(64) NULL COMMENT '触发子流程的父节点编码',
   wf_id BIGINT NOT NULL COMMENT '子流程定义ID',
+  wf_code VARCHAR(64) NULL COMMENT '子流程编码',
+  wf_name VARCHAR(128) NULL COMMENT '子流程名称',
   subflow_type VARCHAR(64) NOT NULL COMMENT '子流程类型',
   status VARCHAR(64) NOT NULL DEFAULT 'running' COMMENT '子流程状态',
   started_by BIGINT NULL COMMENT '发起人ID',
@@ -261,6 +265,8 @@ CREATE TABLE case_subflow_instance (
   updated_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   KEY idx_case_subflow_case_id (case_id),
   KEY idx_case_subflow_parent (parent_wf_instance_id),
+  KEY idx_case_subflow_parent_task (parent_task_id),
+  KEY idx_case_subflow_wf_code (wf_code),
   KEY idx_case_subflow_type (subflow_type),
   KEY idx_case_subflow_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='案件子流程实例表';

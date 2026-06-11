@@ -12,6 +12,7 @@ import com.example.judicialappraisal.caseinfo.mapper.CaseInfoMapper;
 import com.example.judicialappraisal.common.enums.CaseStatus;
 import com.example.judicialappraisal.knowledge.service.KnowledgeService;
 import com.example.judicialappraisal.workflow.entity.CaseNodeInstance;
+import com.example.judicialappraisal.workflow.entity.CaseSubflowInstance;
 import com.example.judicialappraisal.workflow.entity.CaseTask;
 import com.example.judicialappraisal.workflow.entity.CaseWfInstance;
 import com.example.judicialappraisal.workflow.entity.WfDefinition;
@@ -20,6 +21,7 @@ import com.example.judicialappraisal.workflow.entity.WfTransitionDef;
 import com.example.judicialappraisal.workflow.dto.WorkflowActionRequest;
 import com.example.judicialappraisal.common.enums.ActionCode;
 import com.example.judicialappraisal.workflow.mapper.CaseNodeInstanceMapper;
+import com.example.judicialappraisal.workflow.mapper.CaseSubflowInstanceMapper;
 import com.example.judicialappraisal.workflow.mapper.CaseTaskCandidateMapper;
 import com.example.judicialappraisal.workflow.mapper.CaseTaskMapper;
 import com.example.judicialappraisal.workflow.mapper.CaseWfInstanceMapper;
@@ -28,6 +30,7 @@ import com.example.judicialappraisal.workflow.mapper.WfNodeDefMapper;
 import com.example.judicialappraisal.workflow.mapper.WfTransitionDefMapper;
 import com.example.judicialappraisal.organization.mapper.SysRoleMapper;
 import com.example.judicialappraisal.organization.mapper.SysUserRoleMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -36,6 +39,7 @@ class WorkflowRuntimeServiceTests {
 
     private final CaseInfoMapper caseInfoMapper = mock(CaseInfoMapper.class);
     private final CaseWfInstanceMapper caseWfInstanceMapper = mock(CaseWfInstanceMapper.class);
+    private final CaseSubflowInstanceMapper caseSubflowInstanceMapper = mock(CaseSubflowInstanceMapper.class);
     private final CaseNodeInstanceMapper caseNodeInstanceMapper = mock(CaseNodeInstanceMapper.class);
     private final CaseTaskMapper caseTaskMapper = mock(CaseTaskMapper.class);
     private final WfDefinitionMapper wfDefinitionMapper = mock(WfDefinitionMapper.class);
@@ -49,6 +53,7 @@ class WorkflowRuntimeServiceTests {
     private final WorkflowRuntimeService service = new WorkflowRuntimeService(
             caseInfoMapper,
             caseWfInstanceMapper,
+            caseSubflowInstanceMapper,
             caseNodeInstanceMapper,
             caseTaskMapper,
             wfDefinitionMapper,
@@ -57,7 +62,8 @@ class WorkflowRuntimeServiceTests {
             caseTaskCandidateMapper,
             sysRoleMapper,
             sysUserRoleMapper,
-            knowledgeService
+            knowledgeService,
+            new ObjectMapper()
     );
 
     @Test
@@ -250,5 +256,104 @@ class WorkflowRuntimeServiceTests {
         verify(caseTaskMapper).insert(taskCaptor.capture());
         assertThat(taskCaptor.getValue().getNodeCode()).isEqualTo("REJECT_ACCEPTANCE");
         assertThat(caseInfo.getCurrentNodeCode()).isEqualTo("REJECT_ACCEPTANCE");
+    }
+
+    @Test
+    void configuredTransitionCanLaunchSubflowAndAttachTaskToIt() {
+        CaseInfo caseInfo = new CaseInfo();
+        caseInfo.setId(88L);
+        caseInfo.setCaseTitle("收到委托书测试");
+        caseInfo.setCaseStatus(CaseStatus.PROCESSING.name());
+
+        CaseTask currentTask = new CaseTask();
+        currentTask.setId(701L);
+        currentTask.setCaseId(88L);
+        currentTask.setWfInstanceId(501L);
+        currentTask.setNodeInstanceId(601L);
+        currentTask.setNodeCode("PROJECT_DECISION");
+        currentTask.setNodeName("项目负责人决策");
+        currentTask.setAssigneeId(9L);
+        currentTask.setAssigneeName("管理员");
+        currentTask.setStatus("pending");
+
+        CaseNodeInstance currentNode = new CaseNodeInstance();
+        currentNode.setId(601L);
+        currentNode.setCaseId(88L);
+        currentNode.setStatus("running");
+
+        CaseWfInstance wfInstance = new CaseWfInstance();
+        wfInstance.setId(501L);
+        wfInstance.setCaseId(88L);
+        wfInstance.setWfId(77L);
+        wfInstance.setWfCode("received-entrust");
+        wfInstance.setWfName("收到委托书");
+        wfInstance.setStatus("running");
+
+        WfTransitionDef transition = new WfTransitionDef();
+        transition.setToNodeCode("PRELIMINARY_SURVEY");
+        transition.setActionCode("APPROVE");
+        transition.setActionName("进入初步勘验");
+        transition.setConditionExpression("form.preliminarySurveyRequired == true");
+        transition.setTransitionConfigJson("""
+                {"archiveOnLeave":1,"launchSubflow":true,"subflowCode":"preliminary-survey","reason":"需要初步勘验"}
+                """);
+
+        WfNodeDef targetNode = new WfNodeDef();
+        targetNode.setNodeCode("PRELIMINARY_SURVEY");
+        targetNode.setNodeName("进入初步勘验");
+        targetNode.setNodeType("task");
+        targetNode.setTaskType("single");
+        targetNode.setEnabled(1);
+
+        WfDefinition subflowDefinition = new WfDefinition();
+        subflowDefinition.setId(177L);
+        subflowDefinition.setWfCode("preliminary-survey");
+        subflowDefinition.setWfName("初步勘验");
+        subflowDefinition.setPublishStatus("published");
+
+        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+        when(caseTaskMapper.selectById(701L)).thenReturn(currentTask);
+        when(caseNodeInstanceMapper.selectById(601L)).thenReturn(currentNode);
+        when(caseWfInstanceMapper.selectOne(any())).thenReturn(wfInstance);
+        when(wfTransitionDefMapper.selectList(any())).thenReturn(java.util.List.of(transition));
+        when(wfNodeDefMapper.selectOne(any())).thenReturn(targetNode);
+        when(caseSubflowInstanceMapper.selectOne(any())).thenReturn(null);
+        when(wfDefinitionMapper.selectOne(any())).thenReturn(subflowDefinition);
+        doAnswer(invocation -> {
+            CaseSubflowInstance subflow = invocation.getArgument(0);
+            subflow.setId(801L);
+            return 1;
+        }).when(caseSubflowInstanceMapper).insert(any(CaseSubflowInstance.class));
+        doAnswer(invocation -> {
+            CaseNodeInstance node = invocation.getArgument(0);
+            node.setId(602L);
+            return 1;
+        }).when(caseNodeInstanceMapper).insert(any(CaseNodeInstance.class));
+        doAnswer(invocation -> {
+            CaseTask task = invocation.getArgument(0);
+            task.setId(702L);
+            return 1;
+        }).when(caseTaskMapper).insert(any(CaseTask.class));
+
+        service.completeTask(88L, new WorkflowActionRequest(
+                701L,
+                ActionCode.APPROVE,
+                "进入初勘",
+                null,
+                null,
+                null,
+                Map.of("preliminarySurveyRequired", true),
+                null));
+
+        ArgumentCaptor<CaseSubflowInstance> subflowCaptor = ArgumentCaptor.forClass(CaseSubflowInstance.class);
+        verify(caseSubflowInstanceMapper).insert(subflowCaptor.capture());
+        assertThat(subflowCaptor.getValue().getWfCode()).isEqualTo("preliminary-survey");
+        assertThat(subflowCaptor.getValue().getParentTaskId()).isEqualTo(701L);
+        assertThat(subflowCaptor.getValue().getParentNodeCode()).isEqualTo("PROJECT_DECISION");
+
+        ArgumentCaptor<CaseTask> taskCaptor = ArgumentCaptor.forClass(CaseTask.class);
+        verify(caseTaskMapper).insert(taskCaptor.capture());
+        assertThat(taskCaptor.getValue().getSubflowInstanceId()).isEqualTo(801L);
+        assertThat(taskCaptor.getValue().getNodeCode()).isEqualTo("PRELIMINARY_SURVEY");
     }
 }

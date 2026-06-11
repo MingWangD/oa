@@ -16,6 +16,7 @@ import com.example.judicialappraisal.organization.mapper.SysUserRoleMapper;
 import com.example.judicialappraisal.workflow.dto.WorkflowActionRequest;
 import com.example.judicialappraisal.workflow.dto.WorkflowActionResult;
 import com.example.judicialappraisal.workflow.entity.CaseNodeInstance;
+import com.example.judicialappraisal.workflow.entity.CaseSubflowInstance;
 import com.example.judicialappraisal.workflow.entity.CaseTask;
 import com.example.judicialappraisal.workflow.entity.CaseTaskCandidate;
 import com.example.judicialappraisal.workflow.entity.CaseWfInstance;
@@ -23,12 +24,16 @@ import com.example.judicialappraisal.workflow.entity.WfDefinition;
 import com.example.judicialappraisal.workflow.entity.WfNodeDef;
 import com.example.judicialappraisal.workflow.entity.WfTransitionDef;
 import com.example.judicialappraisal.workflow.mapper.CaseNodeInstanceMapper;
+import com.example.judicialappraisal.workflow.mapper.CaseSubflowInstanceMapper;
 import com.example.judicialappraisal.workflow.mapper.CaseTaskCandidateMapper;
 import com.example.judicialappraisal.workflow.mapper.CaseTaskMapper;
 import com.example.judicialappraisal.workflow.mapper.CaseWfInstanceMapper;
 import com.example.judicialappraisal.workflow.mapper.WfDefinitionMapper;
 import com.example.judicialappraisal.workflow.mapper.WfNodeDefMapper;
 import com.example.judicialappraisal.workflow.mapper.WfTransitionDefMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -73,6 +78,7 @@ public class WorkflowRuntimeService {
 
     private final CaseInfoMapper caseInfoMapper;
     private final CaseWfInstanceMapper caseWfInstanceMapper;
+    private final CaseSubflowInstanceMapper caseSubflowInstanceMapper;
     private final CaseNodeInstanceMapper caseNodeInstanceMapper;
     private final CaseTaskMapper caseTaskMapper;
     private final WfDefinitionMapper wfDefinitionMapper;
@@ -82,10 +88,12 @@ public class WorkflowRuntimeService {
     private final SysRoleMapper sysRoleMapper;
     private final SysUserRoleMapper sysUserRoleMapper;
     private final KnowledgeService knowledgeService;
+    private final ObjectMapper objectMapper;
 
     public WorkflowRuntimeService(
             CaseInfoMapper caseInfoMapper,
             CaseWfInstanceMapper caseWfInstanceMapper,
+            CaseSubflowInstanceMapper caseSubflowInstanceMapper,
             CaseNodeInstanceMapper caseNodeInstanceMapper,
             CaseTaskMapper caseTaskMapper,
             WfDefinitionMapper wfDefinitionMapper,
@@ -94,9 +102,11 @@ public class WorkflowRuntimeService {
             CaseTaskCandidateMapper caseTaskCandidateMapper,
             SysRoleMapper sysRoleMapper,
             SysUserRoleMapper sysUserRoleMapper,
-            KnowledgeService knowledgeService) {
+            KnowledgeService knowledgeService,
+            ObjectMapper objectMapper) {
         this.caseInfoMapper = caseInfoMapper;
         this.caseWfInstanceMapper = caseWfInstanceMapper;
+        this.caseSubflowInstanceMapper = caseSubflowInstanceMapper;
         this.caseNodeInstanceMapper = caseNodeInstanceMapper;
         this.caseTaskMapper = caseTaskMapper;
         this.wfDefinitionMapper = wfDefinitionMapper;
@@ -106,6 +116,7 @@ public class WorkflowRuntimeService {
         this.sysRoleMapper = sysRoleMapper;
         this.sysUserRoleMapper = sysUserRoleMapper;
         this.knowledgeService = knowledgeService;
+        this.objectMapper = objectMapper;
     }
 
     @Transactional
@@ -120,10 +131,11 @@ public class WorkflowRuntimeService {
 
         LocalDateTime now = LocalDateTime.now();
         CaseWfInstance wfInstance = createOrReuseWfInstance(caseInfo, operatorId, now);
-        CaseNodeInstance nodeInstance = createNodeInstance(caseId, wfInstance.getId(), ACCEPT_NODE_CODE, ACCEPT_NODE_NAME, now);
+        CaseNodeInstance nodeInstance = createNodeInstance(caseId, wfInstance.getId(), null, ACCEPT_NODE_CODE, ACCEPT_NODE_NAME, now);
         CaseTask task = createTask(
                 caseInfo,
                 wfInstance.getId(),
+                null,
                 nodeInstance.getId(),
                 ACCEPT_NODE_CODE,
                 ACCEPT_NODE_NAME,
@@ -302,6 +314,7 @@ public class WorkflowRuntimeService {
         CaseNodeInstance recreatedNode = createNodeInstance(
                 caseInfo.getId(),
                 wfInstance.getId(),
+                null,
                 previousCompletedNode.getNodeCode(),
                 previousCompletedNode.getNodeName(),
                 now);
@@ -312,6 +325,7 @@ public class WorkflowRuntimeService {
         CaseTask recreatedTask = createTask(
                 caseInfo,
                 wfInstance.getId(),
+                null,
                 recreatedNode.getId(),
                 previousCompletedNode.getNodeCode(),
                 previousCompletedNode.getNodeName(),
@@ -393,7 +407,7 @@ public class WorkflowRuntimeService {
                 task.getNodeName(),
                 task.getId(),
                 null,
-                task.getNodeCode() + "-" + request.actionCode().name(),
+                archiveArtifactCode(task, request),
                 request.formData(),
                 request.fileIds(),
                 summary
@@ -543,10 +557,11 @@ public class WorkflowRuntimeService {
             String nextAssigneeName,
             String message) {
         CaseWfInstance wfInstance = requireRunningInstance(caseInfo.getId());
-        CaseNodeInstance nextNode = createNodeInstance(caseInfo.getId(), wfInstance.getId(), nextNodeCode, nextNodeName, now);
+        CaseNodeInstance nextNode = createNodeInstance(caseInfo.getId(), wfInstance.getId(), null, nextNodeCode, nextNodeName, now);
         CaseTask nextTask = createNextNodeTask(
                 caseInfo,
                 wfInstance,
+                null,
                 nextNode.getId(),
                 nextNodeCode,
                 nextNodeName,
@@ -712,7 +727,10 @@ public class WorkflowRuntimeService {
             throw new BusinessException("流程定义缺少目标节点：" + transition.getToNodeCode());
         }
 
-        CaseNodeInstance nodeInstance = createNodeInstance(caseInfo.getId(), wfInstance.getId(), targetNode.getNodeCode(), targetNode.getNodeName(), now);
+        CaseSubflowInstance subflowInstance = maybeCreateSubflowInstance(caseInfo, wfInstance, completedTask, transition, request, now);
+        Long subflowInstanceId = subflowInstance == null ? null : subflowInstance.getId();
+        CaseNodeInstance nodeInstance = createNodeInstance(caseInfo.getId(), wfInstance.getId(), subflowInstanceId,
+                targetNode.getNodeCode(), targetNode.getNodeName(), now);
         if (NODE_END.equalsIgnoreCase(targetNode.getNodeType())) {
             caseInfo.setCaseStatus(CaseStatus.COMPLETED.name());
             caseInfo.setCurrentNodeCode(targetNode.getNodeCode());
@@ -728,6 +746,7 @@ public class WorkflowRuntimeService {
         CaseTask nextTask = createNextNodeTask(
                 caseInfo,
                 wfInstance,
+                subflowInstanceId,
                 nodeInstance.getId(),
                 targetNode.getNodeCode(),
                 targetNode.getNodeName(),
@@ -742,6 +761,77 @@ public class WorkflowRuntimeService {
         private TransitionAdvance {
             tasks = tasks == null ? List.of() : List.copyOf(tasks);
         }
+    }
+
+    private CaseSubflowInstance maybeCreateSubflowInstance(
+            CaseInfo caseInfo,
+            CaseWfInstance parentWfInstance,
+            CaseTask parentTask,
+            WfTransitionDef transition,
+            WorkflowActionRequest request,
+            LocalDateTime now) {
+        Map<String, Object> config = parseTransitionConfig(transition.getTransitionConfigJson());
+        if (!Boolean.TRUE.equals(toBoolean(config.get("launchSubflow")))) {
+            return null;
+        }
+
+        String subflowCode = stringValue(config.get("subflowCode"));
+        if (isBlank(subflowCode)) {
+            throw new BusinessException("子流程配置缺少 subflowCode：" + transition.getFromNodeCode() + " -> " + transition.getToNodeCode());
+        }
+        WfDefinition subflowDefinition = latestPublishedDefinition(subflowCode);
+        if (subflowDefinition == null) {
+            throw new BusinessException("未找到已发布的子流程定义：" + subflowCode);
+        }
+
+        CaseSubflowInstance existing = caseSubflowInstanceMapper.selectOne(new LambdaQueryWrapper<CaseSubflowInstance>()
+                .eq(CaseSubflowInstance::getCaseId, caseInfo.getId())
+                .eq(CaseSubflowInstance::getParentWfInstanceId, parentWfInstance.getId())
+                .eq(CaseSubflowInstance::getParentTaskId, parentTask.getId())
+                .eq(CaseSubflowInstance::getParentNodeCode, parentTask.getNodeCode())
+                .eq(CaseSubflowInstance::getSubflowType, subflowCode)
+                .eq(CaseSubflowInstance::getStatus, WORKFLOW_RUNNING)
+                .last("limit 1"));
+        if (existing != null) {
+            return existing;
+        }
+
+        CaseSubflowInstance subflowInstance = new CaseSubflowInstance();
+        subflowInstance.setCaseId(caseInfo.getId());
+        subflowInstance.setParentWfInstanceId(parentWfInstance.getId());
+        subflowInstance.setParentTaskId(parentTask.getId());
+        subflowInstance.setParentNodeCode(parentTask.getNodeCode());
+        subflowInstance.setWfId(subflowDefinition.getId());
+        subflowInstance.setWfCode(subflowDefinition.getWfCode());
+        subflowInstance.setWfName(subflowDefinition.getWfName());
+        subflowInstance.setSubflowType(subflowCode);
+        subflowInstance.setStatus(WORKFLOW_RUNNING);
+        subflowInstance.setStartedBy(resolveOperatorId(request, parentTask));
+        subflowInstance.setStartedTime(now);
+        subflowInstance.setReason(resolveSubflowReason(config, transition, request));
+        caseSubflowInstanceMapper.insert(subflowInstance);
+        return subflowInstance;
+    }
+
+    private Map<String, Object> parseTransitionConfig(String transitionConfigJson) {
+        if (isBlank(transitionConfigJson)) {
+            return Map.of();
+        }
+        try {
+            return objectMapper.readValue(transitionConfigJson, new TypeReference<>() {
+            });
+        } catch (JsonProcessingException ex) {
+            throw new BusinessException("流程流转配置不是合法 JSON");
+        }
+    }
+
+    private String resolveSubflowReason(Map<String, Object> config, WfTransitionDef transition, WorkflowActionRequest request) {
+        String configuredReason = stringValue(config.get("reason"));
+        if (!isBlank(configuredReason)) {
+            return configuredReason;
+        }
+        String outcome = resolveOutcomeOpinion(request);
+        return transition.getActionName() + (isBlank(outcome) ? "" : "：" + outcome);
     }
 
     private CaseInfo requireCase(Long caseId) {
@@ -873,10 +963,12 @@ public class WorkflowRuntimeService {
         return CaseStatus.PROCESSING;
     }
 
-    private CaseNodeInstance createNodeInstance(Long caseId, Long wfInstanceId, String nodeCode, String nodeName, LocalDateTime now) {
+    private CaseNodeInstance createNodeInstance(Long caseId, Long wfInstanceId, Long subflowInstanceId,
+                                                String nodeCode, String nodeName, LocalDateTime now) {
         CaseNodeInstance nodeInstance = new CaseNodeInstance();
         nodeInstance.setCaseId(caseId);
         nodeInstance.setWfInstanceId(wfInstanceId);
+        nodeInstance.setSubflowInstanceId(subflowInstanceId);
         nodeInstance.setNodeCode(nodeCode);
         nodeInstance.setNodeName(nodeName);
         nodeInstance.setStatus(NODE_RUNNING);
@@ -888,6 +980,7 @@ public class WorkflowRuntimeService {
     private CaseTask createNextNodeTask(
             CaseInfo caseInfo,
             CaseWfInstance wfInstance,
+            Long subflowInstanceId,
             Long nodeInstanceId,
             String nodeCode,
             String nodeName,
@@ -896,15 +989,15 @@ public class WorkflowRuntimeService {
             String inheritedAssigneeName,
             LocalDateTime now) {
         if (request.assigneeId() != null) {
-            return createTask(caseInfo, wfInstance.getId(), nodeInstanceId, nodeCode, nodeName, inheritedAssigneeId, inheritedAssigneeName, now);
+            return createTask(caseInfo, wfInstance.getId(), subflowInstanceId, nodeInstanceId, nodeCode, nodeName, inheritedAssigneeId, inheritedAssigneeName, now);
         }
 
         WfNodeDef nodeDef = findNodeDef(wfInstance.getWfId(), nodeCode);
         if (nodeDef != null && !isBlank(nodeDef.getHandlerRoleRule())) {
-            return createCandidateTask(caseInfo, wfInstance.getId(), nodeInstanceId, nodeCode, nodeName, nodeDef, now);
+            return createCandidateTask(caseInfo, wfInstance.getId(), subflowInstanceId, nodeInstanceId, nodeCode, nodeName, nodeDef, now);
         }
 
-        return createTask(caseInfo, wfInstance.getId(), nodeInstanceId, nodeCode, nodeName, inheritedAssigneeId, inheritedAssigneeName, now);
+        return createTask(caseInfo, wfInstance.getId(), subflowInstanceId, nodeInstanceId, nodeCode, nodeName, inheritedAssigneeId, inheritedAssigneeName, now);
     }
 
     private WfNodeDef findNodeDef(Long wfId, String nodeCode) {
@@ -921,6 +1014,7 @@ public class WorkflowRuntimeService {
     private CaseTask createCandidateTask(
             CaseInfo caseInfo,
             Long wfInstanceId,
+            Long subflowInstanceId,
             Long nodeInstanceId,
             String nodeCode,
             String nodeName,
@@ -934,6 +1028,7 @@ public class WorkflowRuntimeService {
         CaseTask task = new CaseTask();
         task.setCaseId(caseInfo.getId());
         task.setWfInstanceId(wfInstanceId);
+        task.setSubflowInstanceId(subflowInstanceId);
         task.setNodeInstanceId(nodeInstanceId);
         task.setTaskType(isBlank(nodeDef.getTaskType()) ? TASK_TYPE_CANDIDATE : nodeDef.getTaskType());
         task.setTaskTitle(caseInfo.getCaseTitle() + " - " + nodeName);
@@ -1050,6 +1145,7 @@ public class WorkflowRuntimeService {
     private CaseTask createTask(
             CaseInfo caseInfo,
             Long wfInstanceId,
+            Long subflowInstanceId,
             Long nodeInstanceId,
             String nodeCode,
             String nodeName,
@@ -1059,6 +1155,7 @@ public class WorkflowRuntimeService {
         CaseTask task = new CaseTask();
         task.setCaseId(caseInfo.getId());
         task.setWfInstanceId(wfInstanceId);
+        task.setSubflowInstanceId(subflowInstanceId);
         task.setNodeInstanceId(nodeInstanceId);
         task.setTaskType(TASK_TYPE_SINGLE);
         task.setTaskTitle(caseInfo.getCaseTitle() + " - " + nodeName);
@@ -1122,6 +1219,15 @@ public class WorkflowRuntimeService {
             return request.opinion();
         }
         return request.reason();
+    }
+
+    private String archiveArtifactCode(CaseTask task, WorkflowActionRequest request) {
+        String prefix = task.getSubflowInstanceId() == null ? "" : "SUBFLOW-" + task.getSubflowInstanceId() + "-";
+        return prefix + task.getNodeCode() + "-" + request.actionCode().name();
+    }
+
+    private String stringValue(Object value) {
+        return value == null ? null : String.valueOf(value);
     }
 
     private String defaultName(String name) {

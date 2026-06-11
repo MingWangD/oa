@@ -272,11 +272,14 @@ public class JudicialConfigImportService {
                 transition("INIT_FILL", "CLERK_REGISTER", "APPROVE", "转交收案员登记", null, 1, 20),
                 transition("CLERK_REGISTER", "DEPT_REVIEW", "APPROVE", "转交部门负责人审阅", null, 1, 30),
                 transition("DEPT_REVIEW", "PROJECT_DECISION", "APPROVE", "受理并指定项目负责人", "form.entrustAccepted == true", 1, 40),
-                transition("DEPT_REVIEW", "REJECT_ACCEPTANCE", "APPROVE", "不予受理", "form.entrustAccepted == false", 1, 41),
+                transition("DEPT_REVIEW", "REJECT_ACCEPTANCE", "APPROVE", "不予受理", "form.entrustAccepted == false", 1, 41,
+                        subflowConfig("reject-acceptance", "部门负责人确认委托审查不受理后自动关联发起")),
                 transition("PROJECT_DECISION", "ASSISTANT_NOTICE", "APPROVE", "告知项目辅助人", null, 0, 50),
                 transition("PROJECT_DECISION", "MATERIAL_RECEIVE", "APPROVE", "同步收案员材料接收", "form.materialReceiveRequired == true", 1, 51),
-                transition("PROJECT_DECISION", "PRELIMINARY_SURVEY", "APPROVE", "进入初步勘验", "form.preliminarySurveyRequired == true", 1, 52),
-                transition("PROJECT_DECISION", "PAYMENT_NOTICE", "APPROVE", "进入发交费通知", "form.preliminarySurveyRequired == false", 1, 53),
+                transition("PROJECT_DECISION", "PRELIMINARY_SURVEY", "APPROVE", "进入初步勘验", "form.preliminarySurveyRequired == true", 1, 52,
+                        subflowConfig("preliminary-survey", "项目负责人确认需要初步勘验后自动关联发起")),
+                transition("PROJECT_DECISION", "PAYMENT_NOTICE", "APPROVE", "进入发交费通知", "form.preliminarySurveyRequired == false", 1, 53,
+                        subflowConfig("payment-notice", "项目负责人确认无需初步勘验后自动关联发起")),
                 transition("CLERK_REGISTER", "INIT_FILL", "RETURN", "退回发起者补正", null, 1, 60),
                 transition("DEPT_REVIEW", "CLERK_REGISTER", "RETURN", "退回收案员登记", null, 1, 61),
                 transition("PROJECT_DECISION", "DEPT_REVIEW", "RETURN", "退回部门负责人审阅", null, 1, 62),
@@ -339,13 +342,29 @@ public class JudicialConfigImportService {
 
     private WorkflowTransitionRequest transition(String from, String to, String actionCode, String actionName,
                                                  String condition, Integer archiveOnLeave, int sortNo) {
+        return transition(from, to, actionCode, actionName, condition, archiveOnLeave, sortNo,
+                Map.of("archiveOnLeave", archiveOnLeave == null ? 0 : archiveOnLeave));
+    }
+
+    private WorkflowTransitionRequest transition(String from, String to, String actionCode, String actionName,
+                                                 String condition, Integer archiveOnLeave, int sortNo,
+                                                 Map<String, Object> transitionConfig) {
         return new WorkflowTransitionRequest(from, to, actionCode, actionName,
                 "RETURN".equals(actionCode) ? 1 : 0,
                 1,
                 condition,
-                toJson(Map.of("archiveOnLeave", archiveOnLeave == null ? 0 : archiveOnLeave)),
+                toJson(transitionConfig),
                 1,
                 sortNo);
+    }
+
+    private Map<String, Object> subflowConfig(String subflowCode, String reason) {
+        return Map.of(
+                "archiveOnLeave", 1,
+                "launchSubflow", true,
+                "subflowCode", subflowCode,
+                "reason", reason
+        );
     }
 
     private List<Map<String, Object>> toFileRules(List<String> names, String direction) {

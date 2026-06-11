@@ -71,5 +71,9 @@ class JudicialConfigImportServiceTests {
                 .contains("CLERK_REGISTER", "DEPT_REVIEW", "PROJECT_DECISION", "PRELIMINARY_SURVEY", "PAYMENT_NOTICE", "REJECT_ACCEPTANCE");
         assertThat(receivedEntrustWorkflow.transitions()).extracting("conditionExpression")
                 .contains("form.entrustAccepted == true", "form.entrustAccepted == false", "form.preliminarySurveyRequired == true");
+        assertThat(receivedEntrustWorkflow.transitions()).extracting("transitionConfigJson")
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "reject-acceptance"))
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "preliminary-survey"))
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "payment-notice"));
     }
 }
