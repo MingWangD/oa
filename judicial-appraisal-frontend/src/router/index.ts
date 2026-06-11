@@ -2,18 +2,19 @@ import { createRouter, createWebHistory, type Router, type RouteRecordRaw } from
 import type { Pinia } from 'pinia';
 
 import { useAuthStore } from '../stores/auth';
-import CaseDetailView from '../views/CaseDetailView.vue';
-import CaseListView from '../views/CaseListView.vue';
-import HomeView from '../views/HomeView.vue';
-import KnowledgeBaseView from '../views/KnowledgeBaseView.vue';
-import LoginView from '../views/LoginView.vue';
-import NewWorkView from '../views/NewWorkView.vue';
-import PlaceholderView from '../views/PlaceholderView.vue';
-import ProfileView from '../views/ProfileView.vue';
-import UserManagementView from '../views/UserManagementView.vue';
-import WorkbenchView from '../views/WorkbenchView.vue';
-import WorkflowFormDesignerView from '../views/WorkflowFormDesignerView.vue';
-import WorkflowProcessDesignerView from '../views/WorkflowProcessDesignerView.vue';
+
+const LoginView = () => import('../views/LoginView.vue');
+const HomeView = () => import('../views/HomeView.vue');
+const NewWorkView = () => import('../views/NewWorkView.vue');
+const CaseDetailView = () => import('../views/CaseDetailView.vue');
+const WorkbenchView = () => import('../views/WorkbenchView.vue');
+const CaseListView = () => import('../views/CaseListView.vue');
+const KnowledgeBaseView = () => import('../views/KnowledgeBaseView.vue');
+const WorkflowFormDesignerView = () => import('../views/WorkflowFormDesignerView.vue');
+const WorkflowProcessDesignerView = () => import('../views/WorkflowProcessDesignerView.vue');
+const UserManagementView = () => import('../views/UserManagementView.vue');
+const ProfileView = () => import('../views/ProfileView.vue');
+const PlaceholderView = () => import('../views/PlaceholderView.vue');
 
 export const routes: RouteRecordRaw[] = [
   {

@@ -380,9 +380,9 @@ class JudicialConfigImportServiceTests {
                 .findFirst()
                 .orElseThrow();
         assertThat(issueOpinionWorkflow.nodes()).extracting("nodeCode")
-                .contains("PROJECT_SUPPLEMENT", "PARALLEL_GATEWAY_SPLIT", "SEAL_APPLICATION", "SEALED_UPLOAD", "FINANCE_INVOICE", "PARALLEL_GATEWAY_JOIN", "DELIVERY_ARCHIVE", "ARCHIVE_SUBFLOW");
+                .contains("PROJECT_SUPPLEMENT", "SEAL_APPLICATION", "SEALED_UPLOAD", "FINANCE_INVOICE", "DELIVERY_ARCHIVE", "ARCHIVE_SUBFLOW");
         assertThat(issueOpinionWorkflow.transitions()).extracting("conditionExpression")
-                .contains("form.sealRequired == true", "form.invoiceRequired == true", "form.archiveConfirmed == true");
+                .contains("form.sealRequired == true", "form.sealRequired == false", "form.invoiceRequired == true", "form.invoiceRequired == false", "form.archiveConfirmed == true");
         assertThat(issueOpinionWorkflow.transitions()).extracting("transitionConfigJson")
                 .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "seal-application"))
                 .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "archive"));
@@ -402,9 +402,9 @@ class JudicialConfigImportServiceTests {
                 .findFirst()
                 .orElseThrow();
         assertThat(issueDraftOpinionForm.fieldSchemaJson())
-                .contains("explainLetterDrafted", "sealRequired", "sealedDraftOpinionUploaded", "feedbackReceived", "feedbackHasObjection", "objectionReason");
+                .contains("explainLetterDrafted", "sealRequired", "sealedDraftOpinionUploaded", "feedbackReceived", "feedbackHasObjection", "feedbackDecision", "objectionReason");
         assertThat(issueDraftOpinionForm.validationSchemaJson())
-                .contains("sealRequired == true", "feedbackReceived == true && feedbackHasObjection == true");
+                .contains("sealRequired == true", "feedbackDecision == '收到异议'", "objectionReason != null");
 
         ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
         verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
@@ -415,10 +415,292 @@ class JudicialConfigImportServiceTests {
         assertThat(issueDraftOpinionWorkflow.nodes()).extracting("nodeCode")
                 .contains("PROJECT_SUPPLEMENT", "SEAL_APPLICATION", "SEALED_UPLOAD", "DELIVERY", "WAIT_FEEDBACK", "COURT_LETTER", "FINAL_OPINION_REVIEW");
         assertThat(issueDraftOpinionWorkflow.transitions()).extracting("conditionExpression")
-                .contains("form.sealRequired == true", "form.feedbackReceived == true && form.feedbackHasObjection == true");
+                .contains("form.sealRequired == true", "form.feedbackDecision == '收到异议'", "form.feedbackDecision == '无异议或未反馈'");
         assertThat(issueDraftOpinionWorkflow.transitions()).extracting("transitionConfigJson")
                 .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "seal-application"))
                 .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "court-letter"))
                 .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "final-opinion-review"));
+    }
+
+    @Test
+    void courtLetterImportUsesHighFidelityFormAndWorkflowConfiguration() {
+        when(formDesignService.listVersions(any())).thenReturn(List.of());
+        when(workflowDesignService.listVersions(any())).thenReturn(List.of());
+
+        service.importCatalog(false);
+
+        ArgumentCaptor<FormDesignRequest> formCaptor = ArgumentCaptor.forClass(FormDesignRequest.class);
+        verify(formDesignService, times(19)).saveDraft(formCaptor.capture());
+        FormDesignRequest courtLetterForm = formCaptor.getAllValues().stream()
+                .filter(request -> "court-letter".equals(request.formCode()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(courtLetterForm.fieldSchemaJson())
+                .contains("linkedWorkflowCode", "letterType", "objectionAccepted", "replyDraftCompleted", "departmentDecision", "sealedReplyUploaded", "nextRecommendation");
+        assertThat(courtLetterForm.validationSchemaJson())
+                .contains("projectReviewPassed == true", "departmentDecision != null", "sealedReplyUploaded == true", "deliveryDate != null");
+
+        ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
+        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        WorkflowDesignRequest courtLetterWorkflow = workflowCaptor.getAllValues().stream()
+                .filter(request -> "court-letter".equals(request.wfCode()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(courtLetterWorkflow.nodes()).extracting("nodeCode")
+                .contains("PROJECT_REGISTER", "ASSISTANT_REPLY", "PROJECT_REVIEW", "DEPARTMENT_REVIEW", "SEAL_APPLICATION",
+                        "SEALED_REPLY_UPLOAD", "FINAL_OPINION_REVIEW", "ISSUE_OPINION", "ARCHIVE_SUBFLOW");
+        assertThat(courtLetterWorkflow.transitions()).extracting("conditionExpression")
+                .contains("form.projectReviewPassed == true", "form.projectReviewPassed == false",
+                        "form.departmentDecision == '进入用章'", "form.departmentDecision == '直接寄送回复函'",
+                        "form.departmentDecision == '退回项目负责人'", "form.nextRecommendation == '进入出具鉴定意见书'");
+        assertThat(courtLetterWorkflow.transitions()).extracting("transitionConfigJson")
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "seal-application"))
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "final-opinion-review"))
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "issue-opinion"))
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "archive"));
+    }
+
+    @Test
+    void courtAppearanceImportUsesHighFidelityFormAndWorkflowConfiguration() {
+        when(formDesignService.listVersions(any())).thenReturn(List.of());
+        when(workflowDesignService.listVersions(any())).thenReturn(List.of());
+
+        service.importCatalog(false);
+
+        ArgumentCaptor<FormDesignRequest> formCaptor = ArgumentCaptor.forClass(FormDesignRequest.class);
+        verify(formDesignService, times(19)).saveDraft(formCaptor.capture());
+        FormDesignRequest courtAppearanceForm = formCaptor.getAllValues().stream()
+                .filter(request -> "court-appearance".equals(request.formCode()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(courtAppearanceForm.fieldSchemaJson())
+                .contains("linkedWorkflowCode", "courtName", "appearanceFeeRequired", "feeNoticeIssued", "archiveRetrievalRequired",
+                        "archiveRetrieved", "appearancePlanPrepared", "appearanceCompleted", "postAppearanceMaterialsUploaded", "nextRecommendation");
+        assertThat(courtAppearanceForm.validationSchemaJson())
+                .contains("appearanceFeeRequired == true", "archiveRetrievalRequired == true", "appearanceCompleted == true", "archiveConfirmed == true");
+
+        ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
+        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        WorkflowDesignRequest courtAppearanceWorkflow = workflowCaptor.getAllValues().stream()
+                .filter(request -> "court-appearance".equals(request.wfCode()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(courtAppearanceWorkflow.nodes()).extracting("nodeCode")
+                .contains("PROJECT_REGISTER", "FINANCE_NOTICE", "ARCHIVE_RETRIEVAL", "APPEARANCE_PREPARE",
+                        "COURT_APPEARANCE", "POST_APPEARANCE", "NEXT_FLOW_DECISION", "FINAL_OPINION_REVIEW", "ISSUE_OPINION", "ARCHIVE_SUBFLOW");
+        assertThat(courtAppearanceWorkflow.transitions()).extracting("conditionExpression")
+                .contains("form.appearanceFeeRequired == true", "form.appearanceFeeRequired == false",
+                        "form.archiveRetrievalRequired == true", "form.archiveRetrievalRequired == false",
+                        "form.appearanceCompleted == true", "form.appearanceCompleted == false",
+                        "form.nextRecommendation == '进入出具鉴定意见书'");
+        assertThat(courtAppearanceWorkflow.transitions()).extracting("transitionConfigJson")
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "final-opinion-review"))
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "issue-opinion"))
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "archive"));
+    }
+
+    @Test
+    void withdrawCaseLetterImportUsesHighFidelityFormAndWorkflowConfiguration() {
+        when(formDesignService.listVersions(any())).thenReturn(List.of());
+        when(workflowDesignService.listVersions(any())).thenReturn(List.of());
+
+        service.importCatalog(false);
+
+        ArgumentCaptor<FormDesignRequest> formCaptor = ArgumentCaptor.forClass(FormDesignRequest.class);
+        verify(formDesignService, times(19)).saveDraft(formCaptor.capture());
+        FormDesignRequest withdrawForm = formCaptor.getAllValues().stream()
+                .filter(request -> "withdraw-case-letter".equals(request.formCode()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(withdrawForm.fieldSchemaJson())
+                .contains("linkedWorkflowCode", "withdrawLetterReceivedDate", "withdrawReason", "refundRequired");
+
+        ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
+        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        WorkflowDesignRequest withdrawWorkflow = workflowCaptor.getAllValues().stream()
+                .filter(request -> "withdraw-case-letter".equals(request.wfCode()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(withdrawWorkflow.nodes()).extracting("nodeCode")
+                .contains("LETTER_REGISTER", "PROJECT_DECISION", "REFUND", "TERMINATE_APPRAISAL");
+        assertThat(withdrawWorkflow.transitions()).extracting("conditionExpression")
+                .contains("form.refundRequired == true", "form.refundRequired == false");
+        assertThat(withdrawWorkflow.transitions()).extracting("transitionConfigJson")
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "refund"))
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "terminate-appraisal"));
+    }
+
+    @Test
+    void refundImportUsesHighFidelityFormAndWorkflowConfiguration() {
+        when(formDesignService.listVersions(any())).thenReturn(List.of());
+        when(workflowDesignService.listVersions(any())).thenReturn(List.of());
+
+        service.importCatalog(false);
+
+        ArgumentCaptor<FormDesignRequest> formCaptor = ArgumentCaptor.forClass(FormDesignRequest.class);
+        verify(formDesignService, times(19)).saveDraft(formCaptor.capture());
+        FormDesignRequest refundForm = formCaptor.getAllValues().stream()
+                .filter(request -> "refund".equals(request.formCode()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(refundForm.fieldSchemaJson())
+                .contains("contractChangeCompleted", "revenueConfirmed", "refundApplicationSubmitted", "paymentCompleted", "paymentVoucherUploaded");
+        assertThat(refundForm.validationSchemaJson())
+                .contains("paymentCompleted == true", "paymentDate != null");
+
+        ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
+        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        WorkflowDesignRequest refundWorkflow = workflowCaptor.getAllValues().stream()
+                .filter(request -> "refund".equals(request.wfCode()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(refundWorkflow.nodes()).extracting("nodeCode")
+                .contains("PROJECT_PREPARE", "ARCHIVIST_APPLY", "FINANCE_PAYMENT", "TERMINATE_APPRAISAL");
+        assertThat(refundWorkflow.transitions()).extracting("conditionExpression")
+                .contains("form.paymentCompleted == true", "form.paymentCompleted == false");
+        assertThat(refundWorkflow.transitions()).extracting("transitionConfigJson")
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "terminate-appraisal"));
+    }
+
+    @Test
+    void terminateAppraisalImportUsesHighFidelityFormAndWorkflowConfiguration() {
+        when(formDesignService.listVersions(any())).thenReturn(List.of());
+        when(workflowDesignService.listVersions(any())).thenReturn(List.of());
+
+        service.importCatalog(false);
+
+        ArgumentCaptor<FormDesignRequest> formCaptor = ArgumentCaptor.forClass(FormDesignRequest.class);
+        verify(formDesignService, times(19)).saveDraft(formCaptor.capture());
+        FormDesignRequest terminateForm = formCaptor.getAllValues().stream()
+                .filter(request -> "terminate-appraisal".equals(request.formCode()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(terminateForm.fieldSchemaJson())
+                .contains("terminationType", "terminationReason", "draftCompleted", "projectReviewPassed", "sealRequired", "sealedTerminationUploaded", "archiveConfirmed");
+
+        ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
+        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        WorkflowDesignRequest terminateWorkflow = workflowCaptor.getAllValues().stream()
+                .filter(request -> "terminate-appraisal".equals(request.wfCode()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(terminateWorkflow.nodes()).extracting("nodeCode")
+                .contains("ASSISTANT_DRAFT", "PROJECT_REVIEW", "SEAL_APPLICATION", "SEALED_UPLOAD", "ARCHIVE_SUBFLOW");
+        assertThat(terminateWorkflow.transitions()).extracting("conditionExpression")
+                .contains("form.projectReviewPassed == true", "form.projectReviewPassed == false", "form.archiveConfirmed == true");
+        assertThat(terminateWorkflow.transitions()).extracting("transitionConfigJson")
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "seal-application"))
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "archive"));
+    }
+
+    @Test
+    void archiveImportUsesHighFidelityFormAndWorkflowConfiguration() {
+        when(formDesignService.listVersions(any())).thenReturn(List.of());
+        when(workflowDesignService.listVersions(any())).thenReturn(List.of());
+
+        service.importCatalog(false);
+
+        ArgumentCaptor<FormDesignRequest> formCaptor = ArgumentCaptor.forClass(FormDesignRequest.class);
+        verify(formDesignService, times(19)).saveDraft(formCaptor.capture());
+        FormDesignRequest archiveForm = formCaptor.getAllValues().stream()
+                .filter(request -> "archive".equals(request.formCode()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(archiveForm.fieldSchemaJson())
+                .contains("projectArchiveUploaded", "paperScansUploaded", "electronicArchiveLocation", "deliveryRoute", "mailTrackingNo", "centralArchiveApproved", "archiveRoomLocation");
+        assertThat(archiveForm.validationSchemaJson())
+                .contains("deliveryRoute == '邮寄入库'", "centralArchiveApproved == true");
+
+        ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
+        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        WorkflowDesignRequest archiveWorkflow = workflowCaptor.getAllValues().stream()
+                .filter(request -> "archive".equals(request.wfCode()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(archiveWorkflow.nodes()).extracting("nodeCode")
+                .contains("ARCHIVIST_PREPARE", "MAIL_TRANSFER", "CENTRAL_REVIEW");
+        assertThat(archiveWorkflow.transitions()).extracting("conditionExpression")
+                .contains("form.deliveryRoute == '邮寄入库'", "form.deliveryRoute == '直接中心审核'",
+                        "form.centralArchiveApproved == true", "form.centralArchiveApproved == false");
+    }
+
+    @Test
+    void sealApplicationImportUsesHighFidelityFormAndWorkflowConfiguration() {
+        when(formDesignService.listVersions(any())).thenReturn(List.of());
+        when(workflowDesignService.listVersions(any())).thenReturn(List.of());
+
+        service.importCatalog(false);
+
+        ArgumentCaptor<FormDesignRequest> formCaptor = ArgumentCaptor.forClass(FormDesignRequest.class);
+        verify(formDesignService, times(19)).saveDraft(formCaptor.capture());
+        FormDesignRequest sealForm = formCaptor.getAllValues().stream()
+                .filter(request -> "seal-application".equals(request.formCode()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(sealForm.fieldSchemaJson())
+                .contains("applicationReason", "sealMode", "applicationFilesPrepared", "archivistReviewed", "sealCompleted", "sealedScanUploaded");
+
+        ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
+        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        WorkflowDesignRequest sealWorkflow = workflowCaptor.getAllValues().stream()
+                .filter(request -> "seal-application".equals(request.wfCode()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(sealWorkflow.nodes()).extracting("nodeCode")
+                .contains("APPLICANT_SUBMIT", "ARCHIVIST_REVIEW", "SEAL_OPERATOR", "ARCHIVIST_UPLOAD");
+        assertThat(sealWorkflow.transitions()).extracting("conditionExpression")
+                .contains("form.archivistReviewed == true", "form.archivistReviewed == false",
+                        "form.sealCompleted == true", "form.sealCompleted == false");
+    }
+
+    @Test
+    void expenseReimbursementImportUsesHighFidelityFormAndWorkflowConfiguration() {
+        when(formDesignService.listVersions(any())).thenReturn(List.of());
+        when(workflowDesignService.listVersions(any())).thenReturn(List.of());
+
+        service.importCatalog(false);
+
+        ArgumentCaptor<FormDesignRequest> formCaptor = ArgumentCaptor.forClass(FormDesignRequest.class);
+        verify(formDesignService, times(19)).saveDraft(formCaptor.capture());
+        FormDesignRequest reimbursementForm = formCaptor.getAllValues().stream()
+                .filter(request -> "expense-reimbursement".equals(request.formCode()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(reimbursementForm.fieldSchemaJson())
+                .contains("expenseSummary", "expenseAmount", "invoiceSummary", "financeProcessed", "financeResult", "paymentDate");
+        assertThat(reimbursementForm.validationSchemaJson())
+                .contains("financeResult == '已报销'");
+
+        ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
+        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        WorkflowDesignRequest reimbursementWorkflow = workflowCaptor.getAllValues().stream()
+                .filter(request -> "expense-reimbursement".equals(request.wfCode()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(reimbursementWorkflow.nodes()).extracting("nodeCode")
+                .contains("INITIATOR_SUBMIT", "FINANCE_PROCESS");
+        assertThat(reimbursementWorkflow.transitions()).extracting("conditionExpression")
+                .contains("form.financeResult == '已报销'", "form.financeResult == '退回补充'");
+    }
+
+    @Test
+    void caseSuspensionImportUsesHighFidelityWorkflowConfiguration() {
+        when(formDesignService.listVersions(any())).thenReturn(List.of());
+        when(workflowDesignService.listVersions(any())).thenReturn(List.of());
+
+        service.importCatalog(false);
+
+        ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
+        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        WorkflowDesignRequest suspensionWorkflow = workflowCaptor.getAllValues().stream()
+                .filter(request -> "case-suspension".equals(request.wfCode()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(suspensionWorkflow.nodes()).extracting("nodeCode")
+                .contains("PROJECT_APPLY", "AUTH_REVIEW", "RESUME", "TERMINATE_APPRAISAL");
+        assertThat(suspensionWorkflow.transitions()).extracting("conditionExpression")
+                .contains("form.suspensionDecision == '恢复办理'", "form.suspensionDecision == '终止鉴定'");
+        assertThat(suspensionWorkflow.transitions()).extracting("transitionConfigJson")
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "terminate-appraisal"));
     }
 }

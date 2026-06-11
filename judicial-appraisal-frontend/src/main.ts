@@ -1,11 +1,11 @@
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
-import ElementPlus from 'element-plus';
-import 'element-plus/dist/index.css';
 import App from './App.vue';
 import { createAppRouter } from './router';
 import { useAuthStore } from './stores/auth';
 import './style.css';
+import 'element-plus/es/components/message/style/css';
+import 'element-plus/es/components/message-box/style/css';
 
 async function bootstrap(): Promise<void> {
   const app = createApp(App);
@@ -17,7 +17,6 @@ async function bootstrap(): Promise<void> {
 
   app.use(pinia);
   app.use(router);
-  app.use(ElementPlus);
   app.mount('#app');
 }
 

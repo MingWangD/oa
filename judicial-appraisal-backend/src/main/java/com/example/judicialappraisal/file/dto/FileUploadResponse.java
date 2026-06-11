@@ -6,6 +6,11 @@ public record FileUploadResponse(
         String contentType,
         Long fileSize,
         String md5,
-        Integer versionNo
+        Integer versionNo,
+        boolean duplicate,
+        Long duplicateOfFileId,
+        Integer duplicateCount,
+        String virusScanStatus,
+        boolean previewWatermarkEnabled
 ) {
 }

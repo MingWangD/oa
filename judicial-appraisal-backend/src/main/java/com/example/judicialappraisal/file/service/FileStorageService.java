@@ -16,6 +16,7 @@ import io.minio.GetObjectArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.security.MessageDigest;
@@ -32,6 +33,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class FileStorageService {
+    private static final String VIRUS_SCAN_CLEAN = "clean";
+    private static final String VIRUS_SCAN_INFECTED = "infected";
+    private static final int SEARCH_TEXT_LIMIT = 64 * 1024;
 
     private final MinioClient minioClient;
     private final SysFileMapper sysFileMapper;
@@ -65,17 +69,23 @@ public class FileStorageService {
             throw new BusinessException("上传文件不能为空");
         }
         try {
-            ensureBucket();
             String originalName = multipartFile.getOriginalFilename() == null ? "unknown" : multipartFile.getOriginalFilename();
             String ext = fileExt(originalName);
-            String objectName = LocalDateTime.now().toLocalDate() + "/" + UUID.randomUUID() + (ext.isBlank() ? "" : "." + ext);
             byte[] bytes = multipartFile.getBytes();
+            String virusScanStatus = scanVirus(bytes, originalName, multipartFile.getContentType());
+            if (!VIRUS_SCAN_CLEAN.equals(virusScanStatus)) {
+                throw new BusinessException("文件病毒扫描未通过");
+            }
+            ensureBucket();
+            String objectName = LocalDateTime.now().toLocalDate() + "/" + UUID.randomUUID() + (ext.isBlank() ? "" : "." + ext);
             String md5 = md5(bytes);
+            List<SysFile> duplicates = findDuplicates(md5);
+            SysFile duplicateOf = duplicates.stream().findFirst().orElse(null);
             minioClient.putObject(PutObjectArgs.builder()
                     .bucket(bucket)
                     .object(objectName)
                     .contentType(multipartFile.getContentType())
-                    .stream(multipartFile.getInputStream(), multipartFile.getSize(), -1)
+                    .stream(new ByteArrayInputStream(bytes), bytes.length, -1)
                     .build());
 
             CurrentUserInfo user = currentUserOrNull();
@@ -100,7 +110,23 @@ public class FileStorageService {
             }
             auditLogService.record("FILE_UPLOAD", "文件上传", "file", file.getId(), caseId,
                     "{\"originalName\":\"" + escape(originalName) + "\",\"bizType\":\"" + escape(bizType) + "\"}");
-            return new FileUploadResponse(file.getId(), originalName, multipartFile.getContentType(), multipartFile.getSize(), md5, versionNo);
+            if (duplicateOf != null) {
+                auditLogService.record("FILE_DUPLICATE_DETECTED", "文件查重命中", "file", file.getId(), caseId,
+                        "{\"md5\":\"" + md5 + "\",\"duplicateOfFileId\":" + duplicateOf.getId() + "}");
+            }
+            return new FileUploadResponse(
+                    file.getId(),
+                    originalName,
+                    multipartFile.getContentType(),
+                    multipartFile.getSize(),
+                    md5,
+                    versionNo,
+                    duplicateOf != null,
+                    duplicateOf == null ? null : duplicateOf.getId(),
+                    duplicates.size(),
+                    virusScanStatus,
+                    supportsWatermark(multipartFile.getContentType(), originalName)
+            );
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
@@ -110,26 +136,40 @@ public class FileStorageService {
 
     public FileContent download(Long fileId) {
         SysFile file = requireFile(fileId);
+        FileContent content = loadContent(file, false, false);
+        auditLogService.record("FILE_DOWNLOAD", "文件下载", "file", fileId, null,
+                "{\"originalName\":\"" + escape(file.getOriginalName()) + "\"}");
+        return content;
+    }
+
+    public FileContent preview(Long fileId) {
+        SysFile file = requireFile(fileId);
+        FileContent content = loadContent(file, true, false);
+        auditLogService.record("FILE_PREVIEW", "文件预览", "file", fileId, null,
+                "{\"originalName\":\"" + escape(file.getOriginalName()) + "\"}");
+        return content;
+    }
+
+    public String extractText(Long fileId) {
+        SysFile file = requireFile(fileId);
+        return extractText(loadContent(file, false, true));
+    }
+
+    private FileContent loadContent(SysFile file, boolean watermark, boolean suppressAudit) {
         try (InputStream inputStream = minioClient.getObject(GetObjectArgs.builder()
                 .bucket(file.getStorageBucket())
                 .object(file.getStorageKey())
                 .build());
              ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             inputStream.transferTo(outputStream);
-            auditLogService.record("FILE_DOWNLOAD", "文件下载", "file", fileId, null,
-                    "{\"originalName\":\"" + escape(file.getOriginalName()) + "\"}");
-            return new FileContent(file.getOriginalName(), file.getContentType(), outputStream.toByteArray());
+            byte[] contentBytes = outputStream.toByteArray();
+            if (watermark && supportsWatermark(file.getContentType(), file.getOriginalName())) {
+                contentBytes = applyWatermark(contentBytes, file);
+            }
+            return new FileContent(file.getOriginalName(), file.getContentType(), contentBytes);
         } catch (Exception ex) {
             throw new BusinessException("文件下载失败：" + ex.getMessage());
         }
-    }
-
-    public FileContent preview(Long fileId) {
-        SysFile file = requireFile(fileId);
-        FileContent content = download(fileId);
-        auditLogService.record("FILE_PREVIEW", "文件预览", "file", fileId, null,
-                "{\"originalName\":\"" + escape(file.getOriginalName()) + "\"}");
-        return content;
     }
 
     public List<FileVersionDto> listVersions(String bizType, Long bizId, String artifactCode) {
@@ -193,6 +233,56 @@ public class FileStorageService {
         return HexFormat.of().formatHex(MessageDigest.getInstance("MD5").digest(bytes));
     }
 
+    private List<SysFile> findDuplicates(String md5) {
+        return sysFileMapper.selectList(new LambdaQueryWrapper<SysFile>()
+                .eq(SysFile::getMd5, md5)
+                .eq(SysFile::getDeleted, 0)
+                .orderByAsc(SysFile::getId));
+    }
+
+    private String scanVirus(byte[] bytes, String originalName, String contentType) {
+        String text = new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
+        String lowerName = originalName == null ? "" : originalName.toLowerCase(java.util.Locale.ROOT);
+        if (text.contains("X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*")) {
+            return VIRUS_SCAN_INFECTED;
+        }
+        if (lowerName.endsWith(".exe") || lowerName.endsWith(".bat") || lowerName.endsWith(".cmd") || lowerName.endsWith(".js")) {
+            return VIRUS_SCAN_INFECTED;
+        }
+        if (contentType != null && contentType.contains("x-msdownload")) {
+            return VIRUS_SCAN_INFECTED;
+        }
+        return VIRUS_SCAN_CLEAN;
+    }
+
+    private boolean supportsWatermark(String contentType, String originalName) {
+        if (contentType != null) {
+            return contentType.startsWith("text/")
+                    || contentType.contains("json")
+                    || contentType.contains("xml")
+                    || contentType.contains("csv");
+        }
+        String ext = fileExt(originalName == null ? "" : originalName);
+        return List.of("txt", "md", "csv", "json", "xml", "html", "log").contains(ext);
+    }
+
+    private byte[] applyWatermark(byte[] bytes, SysFile file) {
+        String body = new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
+        String watermark = "\n\n[Preview Watermark] " + valueOrDefault(file.getUploadUserName(), "system")
+                + " / " + valueOrDefault(file.getOriginalName(), "file")
+                + " / " + valueOrDefault(file.getCreatedTime() == null ? null : file.getCreatedTime().toString(), LocalDateTime.now().toString());
+        return (body + watermark).getBytes(java.nio.charset.StandardCharsets.UTF_8);
+    }
+
+    private String extractText(FileContent content) {
+        if (!supportsWatermark(content.contentType(), content.originalName())) {
+            return "";
+        }
+        byte[] bytes = content.bytes();
+        int length = Math.min(bytes.length, SEARCH_TEXT_LIMIT);
+        return new String(bytes, 0, length, java.nio.charset.StandardCharsets.UTF_8);
+    }
+
     private String fileExt(String originalName) {
         int index = originalName.lastIndexOf('.');
         return index < 0 || index == originalName.length() - 1 ? "" : originalName.substring(index + 1).toLowerCase();
@@ -223,5 +313,9 @@ public class FileStorageService {
 
     private String escape(String value) {
         return value == null ? "" : value.replace("\\", "\\\\").replace("\"", "\\\"");
+    }
+
+    private String valueOrDefault(String value, String defaultValue) {
+        return value == null || value.isBlank() ? defaultValue : value;
     }
 }

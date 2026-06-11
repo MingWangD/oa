@@ -17,6 +17,7 @@ import com.example.judicialappraisal.knowledge.entity.CaseArchiveRecord;
 import com.example.judicialappraisal.knowledge.entity.KnowledgeDirectory;
 import com.example.judicialappraisal.knowledge.entity.KnowledgeDocument;
 import com.example.judicialappraisal.knowledge.entity.KnowledgeDocumentVersion;
+import com.example.judicialappraisal.knowledge.entity.KnowledgePermission;
 import com.example.judicialappraisal.knowledge.mapper.CaseArchiveRecordMapper;
 import com.example.judicialappraisal.knowledge.mapper.KnowledgeDirectoryMapper;
 import com.example.judicialappraisal.knowledge.mapper.KnowledgeDocumentMapper;
@@ -89,5 +90,32 @@ class KnowledgeServiceTests {
         assertThat(versionCaptor.getValue().getFileId()).isEqualTo(3001L);
         verify(archiveRecordMapper).insert(any(CaseArchiveRecord.class));
         verify(auditLogService).record(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void documentsSupportFullTextSearchAcrossSnapshotsAndFileContent() {
+        KnowledgeDocument document = new KnowledgeDocument();
+        document.setId(9L);
+        document.setDirectoryId(1L);
+        document.setCaseId(88L);
+        document.setTitle("普通标题");
+        document.setArtifactCode("artifact-1");
+        document.setNodeName("送审节点");
+        document.setFormSnapshotJson("{\"remark\":\"关键字在表单快照里\"}");
+        document.setArchiveResultJson("{\"summary\":\"归档结果\"}");
+        document.setCurrentFileId(3001L);
+        KnowledgePermission permission = new KnowledgePermission();
+        permission.setSubjectType("all");
+        permission.setPermissionCode("read");
+        when(directoryMapper.selectList(any())).thenReturn(List.of());
+        when(documentMapper.selectList(any())).thenReturn(List.of(document));
+        when(permissionMapper.selectList(any())).thenReturn(List.of(permission));
+        when(fileStorageService.extractText(3001L)).thenReturn("文件全文里还有另一个关键短语");
+
+        List<KnowledgeDocumentDto> matchedBySnapshot = service.documents(null, 88L, "关键字在表单快照里");
+        List<KnowledgeDocumentDto> matchedByFile = service.documents(null, 88L, "关键短语");
+
+        assertThat(matchedBySnapshot).hasSize(1);
+        assertThat(matchedByFile).hasSize(1);
     }
 }

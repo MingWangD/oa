@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import * as ElementPlusIcons from '@element-plus/icons-vue';
+import { DocumentAdd, Files, FolderOpened, House, List, Setting, User } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 
 import { useAuthStore } from './stores/auth';
@@ -9,7 +9,7 @@ import { useAuthStore } from './stores/auth';
 interface MenuItem {
   title: string;
   path: string;
-  icon: unknown;
+  icon: object;
 }
 
 interface MenuGroup {
@@ -34,11 +34,21 @@ const currentUserName = computed(() => authStore.displayName);
 const currentUserMeta = computed(() => authStore.roleNames.join(' / ') || authStore.statusLabel);
 const avatarText = computed(() => currentUserName.value.slice(0, 1) || '管');
 
-function getIcon(name: string): unknown {
+const iconMap: Record<string, object> = {
+  DocumentAdd,
+  Files,
+  FolderOpened,
+  House,
+  List,
+  Setting,
+  User
+};
+
+function getIcon(name: string): object {
   if (!name || name === '#') {
-    return ElementPlusIcons.Files;
+    return Files;
   }
-  return (ElementPlusIcons as any)[name] || ElementPlusIcons.Files;
+  return iconMap[name] ?? Files;
 }
 
 function collectMenuItems(menus: typeof authStore.menus, depth = 0): MenuItem[] {
@@ -71,9 +81,9 @@ const menuGroups = computed<MenuGroup[]>(() => {
     {
       title: '流程中心',
       items: [
-        { title: '新建工作', path: '/case/new', icon: ElementPlusIcons.DocumentAdd },
-        { title: '我的工作', path: '/my-work', icon: ElementPlusIcons.House },
-        { title: '工作查询', path: '/work-query', icon: ElementPlusIcons.Files }
+        { title: '新建工作', path: '/case/new', icon: DocumentAdd },
+        { title: '我的工作', path: '/my-work', icon: House },
+        { title: '工作查询', path: '/work-query', icon: Files }
       ]
     }
   ];
@@ -81,7 +91,7 @@ const menuGroups = computed<MenuGroup[]>(() => {
   if (authStore.isAdmin) {
     groups.push({
       title: '系统管理',
-      items: [{ title: '用户管理', path: '/admin/users', icon: ElementPlusIcons.User }]
+      items: [{ title: '用户管理', path: '/admin/users', icon: User }]
     });
   }
 

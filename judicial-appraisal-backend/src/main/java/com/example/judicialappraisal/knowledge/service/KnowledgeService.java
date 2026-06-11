@@ -89,11 +89,11 @@ public class KnowledgeService {
                         .eq(KnowledgeDocument::getDeleted, 0)
                         .eq(directoryId != null, KnowledgeDocument::getDirectoryId, directoryId)
                         .eq(caseId != null, KnowledgeDocument::getCaseId, caseId)
-                        .like(keyword != null && !keyword.isBlank(), KnowledgeDocument::getTitle, keyword)
                         .orderByDesc(KnowledgeDocument::getUpdatedTime)
                         .orderByDesc(KnowledgeDocument::getId))
                 .stream()
                 .filter(document -> canAccessDocument(document, PERMISSION_READ))
+                .filter(document -> matchesKeyword(document, keyword))
                 .map(this::toDocumentDto)
                 .toList();
     }
@@ -230,6 +230,31 @@ public class KnowledgeService {
         String name = caseInfo.getCaseNo() == null || caseInfo.getCaseNo().isBlank() ? "案件-" + caseInfo.getId() : caseInfo.getCaseNo();
         return ensureDirectory(root.getId(), caseCode, name, "case", caseInfo.getId(), caseInfo.getAcceptDeptId(), null,
                 root.getPath() + "/" + name, 0);
+    }
+
+    private boolean matchesKeyword(KnowledgeDocument document, String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return true;
+        }
+        String normalizedKeyword = keyword.trim().toLowerCase(java.util.Locale.ROOT);
+        if (containsIgnoreCase(document.getTitle(), normalizedKeyword)
+                || containsIgnoreCase(document.getArtifactCode(), normalizedKeyword)
+                || containsIgnoreCase(document.getNodeName(), normalizedKeyword)
+                || containsIgnoreCase(document.getFormSnapshotJson(), normalizedKeyword)
+                || containsIgnoreCase(document.getArchiveResultJson(), normalizedKeyword)) {
+            return true;
+        }
+        if (document.getCurrentFileId() == null) {
+            return false;
+        }
+        return containsIgnoreCase(fileStorageService.extractText(document.getCurrentFileId()), normalizedKeyword);
+    }
+
+    private boolean containsIgnoreCase(String source, String normalizedKeyword) {
+        if (source == null || source.isBlank()) {
+            return false;
+        }
+        return source.toLowerCase(java.util.Locale.ROOT).contains(normalizedKeyword);
     }
 
     private KnowledgeDirectory ensureDirectory(Long parentId, String code, String name, String type, Long caseId,
