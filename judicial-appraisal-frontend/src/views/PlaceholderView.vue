@@ -31,6 +31,12 @@ interface MenuEntry {
   children: MenuEntry[];
 }
 
+interface QuickAction {
+  label: string;
+  type: 'route' | 'export' | 'copy';
+  path?: string;
+}
+
 const SECTION_DEFINITIONS: SectionDefinition[] = [
   {
     code: 'application-center',
@@ -271,6 +277,62 @@ const filterSummary = computed(() => {
   }
   return parts.length > 0 ? parts.join('，') : '全部数据';
 });
+const boardActions = computed<QuickAction[]>(() => {
+  const boardCode = currentBoardCode.value;
+  const map: Record<string, QuickAction[]> = {
+    crm: [
+      { label: '工作查询', type: 'route', path: '/work-query' },
+      { label: '新建工作', type: 'route', path: '/case/new' },
+      { label: '导出清单', type: 'export' }
+    ],
+    contract: [
+      { label: '工作查询', type: 'route', path: '/work-query' },
+      { label: '新建工作', type: 'route', path: '/case/new' },
+      { label: '导出清单', type: 'export' }
+    ],
+    project: [
+      { label: '我的工作', type: 'route', path: '/my-work' },
+      { label: '工作查询', type: 'route', path: '/work-query' },
+      { label: '导出清单', type: 'export' }
+    ],
+    'personal-task': [
+      { label: '我的工作', type: 'route', path: '/my-work' },
+      { label: '工作查询', type: 'route', path: '/work-query' },
+      { label: '复制摘要', type: 'copy' }
+    ],
+    'unified-todo': [
+      { label: '我的工作', type: 'route', path: '/my-work' },
+      { label: '工作查询', type: 'route', path: '/work-query' },
+      { label: '复制摘要', type: 'copy' }
+    ],
+    archive: [
+      { label: '知识库', type: 'route', path: '/knowledge' },
+      { label: '工作查询', type: 'route', path: '/work-query' },
+      { label: '导出清单', type: 'export' }
+    ],
+    hr: [
+      { label: '用户管理', type: 'route', path: '/admin/users' },
+      { label: '复制摘要', type: 'copy' }
+    ],
+    'system-permission': [
+      { label: '用户管理', type: 'route', path: '/admin/users' },
+      { label: '导出清单', type: 'export' }
+    ],
+    'system-log': [
+      { label: '导出清单', type: 'export' },
+      { label: '复制摘要', type: 'copy' }
+    ],
+    'system-datasource': [
+      { label: '刷新数据', type: 'copy' },
+      { label: '导出清单', type: 'export' }
+    ]
+  };
+  return map[boardCode] ?? [
+    { label: '工作查询', type: 'route', path: '/work-query' },
+    { label: '导出清单', type: 'export' },
+    { label: '复制摘要', type: 'copy' }
+  ];
+});
 
 const listMetricLabel = computed(() => {
   const labels: Record<string, string> = {
@@ -424,6 +486,31 @@ function exportBoard(): void {
   }
 }
 
+async function copyBoardSummary(): Promise<void> {
+  if (!ledgerBoard.value || typeof window === 'undefined' || !navigator.clipboard) {
+    return;
+  }
+  const summary = [
+    `${ledgerBoard.value.moduleName}`,
+    `条件：${filterSummary.value}`,
+    `记录数：${ledgerBoard.value.rows.length}`,
+    ...ledgerBoard.value.metrics.map((item) => `${item.label}：${item.value}`)
+  ].join('\n');
+  await navigator.clipboard.writeText(summary);
+}
+
+async function runQuickAction(action: QuickAction): Promise<void> {
+  if (action.type === 'route' && action.path) {
+    await router.push(action.path);
+    return;
+  }
+  if (action.type === 'export') {
+    exportBoard();
+    return;
+  }
+  await copyBoardSummary();
+}
+
 onMounted(() => {
   restoreFilters(currentBoardCode.value);
   void loadData();
@@ -553,6 +640,18 @@ watch([keyword, statusFilter], () => {
       <p class="query-summary-text">
         当前记录：<strong>{{ ledgerBoard.rows.length }}</strong> 条
       </p>
+    </div>
+
+    <div class="board-action-bar">
+      <el-button
+        v-for="action in boardActions"
+        :key="action.label"
+        :type="action.type === 'route' ? 'primary' : 'default'"
+        plain
+        @click="runQuickAction(action)"
+      >
+        {{ action.label }}
+      </el-button>
     </div>
 
     <div class="ledger-metric-grid">
@@ -712,6 +811,13 @@ watch([keyword, statusFilter], () => {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
   padding: 18px 20px 10px;
+}
+
+.board-action-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 0 20px 8px;
 }
 
 .ledger-metric-card {
