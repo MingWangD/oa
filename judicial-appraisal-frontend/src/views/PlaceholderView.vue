@@ -478,6 +478,46 @@ function relatedActionLabel(row: LedgerRow): string {
   return '继续办理';
 }
 
+function supportsWorkQueryDrilldown(): boolean {
+  return ['crm', 'contract', 'project'].includes(currentBoardCode.value);
+}
+
+function buildWorkQueryForRow(row: LedgerRow): { keyword?: string; caseStatus?: string } {
+  if (currentBoardCode.value === 'crm') {
+    return { keyword: row.primaryText || undefined };
+  }
+  if (currentBoardCode.value === 'contract') {
+    return { keyword: row.primaryText || row.secondaryText || undefined };
+  }
+  if (currentBoardCode.value === 'project') {
+    return { keyword: row.tertiaryText || row.primaryText || undefined };
+  }
+  return { keyword: row.primaryText || undefined };
+}
+
+async function openWorkQueryDrilldown(row: LedgerRow): Promise<void> {
+  const query = buildWorkQueryForRow(row);
+  detailVisible.value = false;
+  detailRow.value = null;
+  await router.push({
+    path: '/work-query',
+    query: {
+      ...query,
+      from: route.fullPath,
+      fromLabel: currentTitle.value
+    }
+  });
+}
+
+function workQueryActionLabel(): string {
+  const map: Record<string, string> = {
+    crm: '查看客户案件',
+    contract: '查看合同清单',
+    project: '查看项目清单'
+  };
+  return map[currentBoardCode.value] ?? '查看相关清单';
+}
+
 function exportBoard(): void {
   if (!ledgerBoard.value || typeof window === 'undefined') {
     return;
@@ -738,6 +778,7 @@ watch([keyword, statusFilter], () => {
             <div class="row-actions">
               <el-button link type="primary" @click="openRowDetail(scope.row)">查看详情</el-button>
               <el-button v-if="scope.row.relatedPath" link @click="openRelatedPath(scope.row)">{{ relatedActionLabel(scope.row) }}</el-button>
+              <el-button v-if="supportsWorkQueryDrilldown()" link @click="openWorkQueryDrilldown(scope.row)">{{ workQueryActionLabel() }}</el-button>
             </div>
           </template>
         </el-table-column>
@@ -828,6 +869,7 @@ watch([keyword, statusFilter], () => {
 
       <div v-if="detailRow.relatedPath" class="drawer-actions">
         <el-button type="primary" @click="openRelatedPath(detailRow)">{{ relatedActionLabel(detailRow) }}</el-button>
+        <el-button v-if="supportsWorkQueryDrilldown()" @click="openWorkQueryDrilldown(detailRow)">{{ workQueryActionLabel() }}</el-button>
       </div>
     </div>
   </el-drawer>
@@ -970,6 +1012,8 @@ watch([keyword, statusFilter], () => {
 .drawer-actions {
   display: flex;
   justify-content: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 @media (max-width: 960px) {
