@@ -22,9 +22,11 @@ const importResult = ref<JudicialConfigImportResult | null>(null);
 
 const priorityModules = computed(() => modules.value.filter((item) => item.priority === 'P0'));
 const workflowPreview = computed(() => judicialCatalog.value?.workflows.slice(0, 8) ?? []);
+const activePhase = computed(() => phases.value.find((item) => item.status === 'in_progress') ?? null);
 
 function statusText(status: string): string {
   const map: Record<string, string> = {
+    completed: '已完成',
     in_progress: '建设中',
     partial: '部分完成',
     cataloged: '已建目录',
@@ -87,7 +89,7 @@ onMounted(() => {
       </el-card>
       <el-card shadow="never" class="overview-card is-accent">
         <p class="overview-label">当前阶段</p>
-        <p class="overview-value">1</p>
+        <p class="overview-value">{{ activePhase?.phase.replace('第', '').replace('阶段', '') ?? '-' }}</p>
       </el-card>
     </div>
   </section>

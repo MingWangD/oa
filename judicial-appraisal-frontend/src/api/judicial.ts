@@ -285,6 +285,39 @@ export interface ReconstructionPhase {
   deliverables: string[];
 }
 
+export interface LedgerMetric {
+  label: string;
+  value: string;
+  accent: boolean;
+}
+
+export interface LedgerRow {
+  rowKey: string;
+  primaryText: string;
+  secondaryText: string;
+  tertiaryText: string;
+  ownerName: string;
+  statusLabel: string;
+  metricText: string;
+  progressLabel: string;
+  actionHint: string;
+  updatedTime: string | null;
+  deadlineTime: string | null;
+  tags: string[];
+  facts: string[];
+}
+
+export interface LedgerBoard {
+  moduleCode: string;
+  moduleName: string;
+  description: string;
+  sourceType: string;
+  statusOptions: string[];
+  metrics: LedgerMetric[];
+  rows: LedgerRow[];
+  nextActions: string[];
+}
+
 export interface JudicialWorkflowDefinition {
   code: string;
   name: string;
@@ -590,6 +623,13 @@ export function fetchPlatformModules(): Promise<OaModule[]> {
 
 export function fetchReconstructionPlan(): Promise<ReconstructionPhase[]> {
   return get<ReconstructionPhase[]>('/platform/reconstruction-plan');
+}
+
+export function fetchLedgerBoard(
+  moduleCode: string,
+  params?: { keyword?: string; status?: string; limit?: number }
+): Promise<LedgerBoard> {
+  return get<LedgerBoard>(`/ledger/modules/${moduleCode}`, params);
 }
 
 export function fetchJudicialCatalog(): Promise<JudicialCatalog> {

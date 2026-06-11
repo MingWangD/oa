@@ -51,6 +51,19 @@ function getIcon(name: string): object {
   return iconMap[name] ?? Files;
 }
 
+function findMenuTitleByPath(path: string, menus: typeof authStore.menus): string | null {
+  for (const menu of menus) {
+    if (menu.path === path && menu.menuType.toUpperCase() !== 'M') {
+      return menu.menuName;
+    }
+    const childTitle = findMenuTitleByPath(path, menu.children || []);
+    if (childTitle) {
+      return childTitle;
+    }
+  }
+  return null;
+}
+
 function collectMenuItems(menus: typeof authStore.menus, depth = 0): MenuItem[] {
   return menus.flatMap((menu) => {
     const children = collectMenuItems(menu.children || [], depth + 1);
@@ -100,6 +113,9 @@ const menuGroups = computed<MenuGroup[]>(() => {
 
 const openTabs = ref<TabItem[]>([{ title: '首页', path: homePath, closable: false }]);
 const activePath = computed(() => route.path);
+const currentPageTitle = computed(() => {
+  return findMenuTitleByPath(route.path, authStore.menus) ?? String(route.meta.title ?? '');
+});
 
 function ensureTab(path: string, title: string): void {
   if (!openTabs.value.some((item) => item.path === path)) {
@@ -162,7 +178,7 @@ async function handleLogout(): Promise<void> {
 watch(
   () => route.fullPath,
   () => {
-    const title = String(route.meta.title ?? '');
+    const title = currentPageTitle.value;
     if (title && route.path !== '/login') {
       ensureTab(route.path, title);
     }
@@ -218,7 +234,7 @@ watch(
       <el-main class="td-content">
         <el-breadcrumb class="td-breadcrumb" separator=">">
           <el-breadcrumb-item>当前位置</el-breadcrumb-item>
-          <el-breadcrumb-item>{{ String(route.meta.title ?? '') }}</el-breadcrumb-item>
+          <el-breadcrumb-item>{{ currentPageTitle }}</el-breadcrumb-item>
         </el-breadcrumb>
         <RouterView />
       </el-main>
