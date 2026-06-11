@@ -36,6 +36,8 @@ const statusOptions = [
 ];
 
 const hasFilters = computed(() => Boolean(filters.keyword.trim() || filters.caseStatus));
+const returnPath = computed(() => (typeof route.query.from === 'string' ? route.query.from : ''));
+const returnLabel = computed(() => (typeof route.query.fromLabel === 'string' ? route.query.fromLabel : '来源页面'));
 const querySummary = computed(() => {
   const parts: string[] = [];
   if (filters.keyword.trim()) {
@@ -128,6 +130,14 @@ function openCaseDetail(caseId: number): void {
   });
 }
 
+async function goBackToSource(): Promise<void> {
+  if (!returnPath.value) {
+    router.back();
+    return;
+  }
+  await router.push(returnPath.value);
+}
+
 function syncFiltersFromRoute(): void {
   filters.keyword = typeof route.query.keyword === 'string' ? route.query.keyword : '';
   filters.caseStatus = typeof route.query.caseStatus === 'string' ? route.query.caseStatus : '';
@@ -165,6 +175,11 @@ watch(
         <h3 class="panel-title">工作查询</h3>
         <p class="panel-subtitle">按关键字和状态筛选当前有权限查看的业务流程。</p>
       </div>
+      <el-button v-if="returnPath" @click="goBackToSource">返回{{ returnLabel }}</el-button>
+    </div>
+
+    <div v-if="returnPath" class="state-banner">
+      当前列表来自 <strong>{{ returnLabel }}</strong> 的钻取结果，可调整筛选后继续查看案件。
     </div>
 
     <el-form class="query-bar" :inline="true" @submit.prevent="search">

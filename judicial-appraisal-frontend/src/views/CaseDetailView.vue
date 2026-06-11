@@ -23,6 +23,8 @@ const caseId = computed(() => Number(route.params.id));
 const returnPath = computed(() => (typeof route.query.from === 'string' ? route.query.from : ''));
 const returnLabel = computed(() => (typeof route.query.fromLabel === 'string' ? route.query.fromLabel : '上一页'));
 const sourceBoard = computed(() => (typeof route.query.fromBoard === 'string' ? route.query.fromBoard : ''));
+const hasEntrustOrg = computed(() => Boolean(detail.value?.entrustOrgName));
+const hasStatus = computed(() => Boolean(detail.value?.caseStatus));
 
 function formatDateTime(value: string | null): string {
   if (!value) {
@@ -75,6 +77,34 @@ async function goBack(): Promise<void> {
   router.back();
 }
 
+async function openSiblingCasesByOrg(): Promise<void> {
+  if (!detail.value?.entrustOrgName) {
+    return;
+  }
+  await router.push({
+    path: '/work-query',
+    query: {
+      keyword: detail.value.entrustOrgName,
+      from: route.fullPath,
+      fromLabel: '案件详情'
+    }
+  });
+}
+
+async function openSiblingCasesByStatus(): Promise<void> {
+  if (!detail.value?.caseStatus) {
+    return;
+  }
+  await router.push({
+    path: '/work-query',
+    query: {
+      caseStatus: detail.value.caseStatus,
+      from: route.fullPath,
+      fromLabel: '案件详情'
+    }
+  });
+}
+
 onMounted(() => {
   void loadDetail();
 });
@@ -109,6 +139,15 @@ onMounted(() => {
         <el-descriptions-item label="委托单位">{{ detail.entrustOrgName || '-' }}</el-descriptions-item>
         <el-descriptions-item label="截止时间">{{ formatDateTime(detail.deadlineTime) }}</el-descriptions-item>
       </el-descriptions>
+
+      <div class="action-panel">
+        <h4>关联视图</h4>
+        <div class="query-actions">
+          <el-button v-if="hasEntrustOrg" @click="openSiblingCasesByOrg">查看同单位案件</el-button>
+          <el-button v-if="hasStatus" @click="openSiblingCasesByStatus">查看同状态案件</el-button>
+          <el-button v-if="returnPath" @click="goBack">返回{{ returnLabel }}</el-button>
+        </div>
+      </div>
 
       <div class="action-panel">
         <h4>办理意见</h4>
