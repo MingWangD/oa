@@ -26,7 +26,7 @@ class LedgerServiceTests {
 
     @BeforeEach
     void setUp() {
-        ledgerService = new LedgerService(caseInfoMapper);
+        ledgerService = new LedgerService(caseInfoMapper, null, null, null, null, null, null, null, null, null, null);
     }
 
     @Test

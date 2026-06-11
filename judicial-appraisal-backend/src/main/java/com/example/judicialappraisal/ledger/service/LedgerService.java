@@ -19,6 +19,9 @@ import com.example.judicialappraisal.organization.entity.SysUser;
 import com.example.judicialappraisal.organization.mapper.SysMenuMapper;
 import com.example.judicialappraisal.organization.mapper.SysRoleMapper;
 import com.example.judicialappraisal.organization.mapper.SysUserMapper;
+import io.minio.BucketExistsArgs;
+import io.minio.MinioClient;
+import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -28,6 +31,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import javax.sql.DataSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -42,18 +49,27 @@ public class LedgerService {
     private final AuditEventMapper auditEventMapper;
     private final CaseArchiveRecordMapper caseArchiveRecordMapper;
     private final KnowledgeDocumentMapper knowledgeDocumentMapper;
+    private final DataSource dataSource;
+    private final RedisConnectionFactory redisConnectionFactory;
+    private final MinioClient minioClient;
+    private final Environment environment;
 
     public LedgerService(CaseInfoMapper caseInfoMapper) {
-        this(caseInfoMapper, null, null, null, null, null, null);
+        this(caseInfoMapper, null, null, null, null, null, null, null, null, null, null);
     }
 
+    @Autowired
     public LedgerService(CaseInfoMapper caseInfoMapper,
                          SysUserMapper sysUserMapper,
                          SysRoleMapper sysRoleMapper,
                          SysMenuMapper sysMenuMapper,
                          AuditEventMapper auditEventMapper,
                          CaseArchiveRecordMapper caseArchiveRecordMapper,
-                         KnowledgeDocumentMapper knowledgeDocumentMapper) {
+                         KnowledgeDocumentMapper knowledgeDocumentMapper,
+                         DataSource dataSource,
+                         RedisConnectionFactory redisConnectionFactory,
+                         MinioClient minioClient,
+                         Environment environment) {
         this.caseInfoMapper = caseInfoMapper;
         this.sysUserMapper = sysUserMapper;
         this.sysRoleMapper = sysRoleMapper;
@@ -61,6 +77,10 @@ public class LedgerService {
         this.auditEventMapper = auditEventMapper;
         this.caseArchiveRecordMapper = caseArchiveRecordMapper;
         this.knowledgeDocumentMapper = knowledgeDocumentMapper;
+        this.dataSource = dataSource;
+        this.redisConnectionFactory = redisConnectionFactory;
+        this.minioClient = minioClient;
+        this.environment = environment;
     }
 
     public LedgerBoardDto board(String moduleCode, String keyword, String status, Integer limit) {
@@ -526,7 +546,47 @@ public class LedgerService {
     private LedgerBoardDto communityBoard() { return simpleOfficeBoard("community", "交流园地", "承接内部论坛、经验分享和通知互动。"); }
     private LedgerBoardDto openApiBoard() { return simpleOfficeBoard("open-api", "外部系统集成", "承接接口清单、认证方式和回调状态。"); }
     private LedgerBoardDto ssoBoard() { return simpleOfficeBoard("sso", "SSO", "承接单点登录接入、映射规则和回调验证。"); }
-    private LedgerBoardDto systemDatasourceBoard() { return simpleOfficeBoard("system-datasource", "系统数据源", "承接数据库、缓存、对象存储和外部源配置。"); }
+
+    private LedgerBoardDto systemDatasourceBoard() {
+        if (environment == null) {
+            return simpleOfficeBoard("system-datasource", "系统数据源", "承接数据库、缓存、对象存储和外部源配置。");
+        }
+        String mysqlUrl = fallback(environment.getProperty("spring.datasource.url"), "未配置");
+        String redisHost = fallback(environment.getProperty("spring.data.redis.host"), "未配置");
+        String redisPort = fallback(environment.getProperty("spring.data.redis.port"), "未配置");
+        String minioEndpoint = fallback(environment.getProperty("app.minio.endpoint"), "未配置");
+        String bucket = fallback(environment.getProperty("app.minio.bucket"), "未配置");
+
+        String mysqlStatus = checkMysqlStatus();
+        String redisStatus = checkRedisStatus();
+        String minioStatus = checkMinioStatus(bucket);
+
+        return new LedgerBoardDto(
+                "system-datasource",
+                "系统数据源",
+                "直接展示当前 MySQL、Redis、MinIO 配置摘要和连通性。",
+                "live",
+                List.of("all"),
+                List.of(
+                        new LedgerMetricDto("MySQL", mysqlStatus, !"可用".equals(mysqlStatus)),
+                        new LedgerMetricDto("Redis", redisStatus, !"可用".equals(redisStatus)),
+                        new LedgerMetricDto("MinIO", minioStatus, !"可用".equals(minioStatus)),
+                        new LedgerMetricDto("Bucket", bucket, false)
+                ),
+                List.of(
+                        row("datasource-mysql", "MySQL", mysqlUrl, fallback(environment.getProperty("spring.datasource.username"), "未配置用户"),
+                                "系统", mysqlStatus, "主业务数据库连接", mysqlStatus.equals("可用") ? "当前配置可正常访问" : "请检查数据库服务和账号配置",
+                                "后续可补慢查询和连接池指标", LocalDateTime.now(), null, List.of("数据库"), List.of("JDBC URL：" + mysqlUrl, "用户名：" + fallback(environment.getProperty("spring.datasource.username"), "未配置"), "状态：" + mysqlStatus)),
+                        row("datasource-redis", "Redis", redisHost + ":" + redisPort, fallback(environment.getProperty("spring.data.redis.database"), "0"),
+                                "系统", redisStatus, "缓存与会话存储", redisStatus.equals("可用") ? "当前连接正常" : "请检查 Redis 服务和端口",
+                                "后续可补 key 统计与延迟", LocalDateTime.now(), null, List.of("缓存"), List.of("主机：" + redisHost, "端口：" + redisPort, "状态：" + redisStatus)),
+                        row("datasource-minio", "MinIO", minioEndpoint, bucket,
+                                "系统", minioStatus, "对象存储与文件预览", minioStatus.equals("可用") ? "当前 Bucket 可访问" : "请检查 Endpoint、凭证和 Bucket",
+                                "后续可补容量与对象数量", LocalDateTime.now(), null, List.of("对象存储"), List.of("Endpoint：" + minioEndpoint, "Bucket：" + bucket, "状态：" + minioStatus))
+                ),
+                List.of("补连接池与容量指标", "补慢查询/延迟监控", "接入运维告警")
+        );
+    }
 
     private LedgerBoardDto hrBoard(int rowLimit) {
         if (sysUserMapper == null) {
@@ -767,6 +827,41 @@ public class LedgerService {
     private boolean isOverdue(CaseInfo item) {
         return item.getDeadlineTime() != null && item.getDeadlineTime().isBefore(LocalDateTime.now())
                 && !List.of("COMPLETED", "ARCHIVED", "TERMINATED").contains(item.getCaseStatus());
+    }
+
+    private String checkMysqlStatus() {
+        if (dataSource == null) {
+            return "未接入";
+        }
+        try (Connection connection = dataSource.getConnection()) {
+            return connection.isValid(2) ? "可用" : "异常";
+        } catch (Exception ex) {
+            return "异常";
+        }
+    }
+
+    private String checkRedisStatus() {
+        if (redisConnectionFactory == null) {
+            return "未接入";
+        }
+        try (var connection = redisConnectionFactory.getConnection()) {
+            String pong = connection.ping();
+            return "PONG".equalsIgnoreCase(pong) ? "可用" : "异常";
+        } catch (Exception ex) {
+            return "异常";
+        }
+    }
+
+    private String checkMinioStatus(String bucket) {
+        if (minioClient == null || !hasText(bucket)) {
+            return "未接入";
+        }
+        try {
+            boolean exists = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucket).build());
+            return exists ? "可用" : "异常";
+        } catch (Exception ex) {
+            return "异常";
+        }
     }
 
     private String normalizeModuleCode(String moduleCode) {
