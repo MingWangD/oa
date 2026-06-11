@@ -109,4 +109,38 @@ class JudicialConfigImportServiceTests {
                 .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "payment-notice"))
                 .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "terminate-appraisal"));
     }
+
+    @Test
+    void paymentNoticeImportUsesHighFidelityFormAndWorkflowConfiguration() {
+        when(formDesignService.listVersions(any())).thenReturn(List.of());
+        when(workflowDesignService.listVersions(any())).thenReturn(List.of());
+
+        service.importCatalog(false);
+
+        ArgumentCaptor<FormDesignRequest> formCaptor = ArgumentCaptor.forClass(FormDesignRequest.class);
+        verify(formDesignService, times(19)).saveDraft(formCaptor.capture());
+        FormDesignRequest paymentNoticeForm = formCaptor.getAllValues().stream()
+                .filter(request -> "payment-notice".equals(request.formCode()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(paymentNoticeForm.fieldSchemaJson())
+                .contains("letterDraftCompleted", "sealRequired", "sealedDocumentUploaded", "paymentReceived");
+        assertThat(paymentNoticeForm.validationSchemaJson())
+                .contains("crossFieldRules", "nextRecommendation", "sealedDocumentUploaded == true");
+
+        ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
+        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        WorkflowDesignRequest paymentNoticeWorkflow = workflowCaptor.getAllValues().stream()
+                .filter(request -> "payment-notice".equals(request.wfCode()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(paymentNoticeWorkflow.nodes()).extracting("nodeCode")
+                .contains("ASSISTANT_DRAFT", "PROJECT_REVIEW", "SEAL_APPLICATION", "ARCHIVE_UPLOAD", "PAYMENT_CONFIRM", "QUALITY_CONTROL", "TERMINATE_APPRAISAL");
+        assertThat(paymentNoticeWorkflow.transitions()).extracting("conditionExpression")
+                .contains("form.sealRequired == true", "form.sealRequired == false", "form.paymentReceived == true", "form.paymentReceived == false");
+        assertThat(paymentNoticeWorkflow.transitions()).extracting("transitionConfigJson")
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "seal-application"))
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "quality-control"))
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "terminate-appraisal"));
+    }
 }

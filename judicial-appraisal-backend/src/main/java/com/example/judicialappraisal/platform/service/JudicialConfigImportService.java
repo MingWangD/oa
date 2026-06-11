@@ -84,6 +84,9 @@ public class JudicialConfigImportService {
         if ("preliminary-survey".equals(form.code())) {
             return preliminarySurveyFormRequest(form);
         }
+        if ("payment-notice".equals(form.code())) {
+            return paymentNoticeFormRequest(form);
+        }
         return new FormDesignRequest(
                 form.code(),
                 form.name(),
@@ -116,6 +119,9 @@ public class JudicialConfigImportService {
         }
         if ("preliminary-survey".equals(workflow.code())) {
             return preliminarySurveyWorkflowRequest(workflow);
+        }
+        if ("payment-notice".equals(workflow.code())) {
+            return paymentNoticeWorkflowRequest(workflow);
         }
         List<WorkflowNodeRequest> nodes = new ArrayList<>();
         List<WorkflowTransitionRequest> transitions = new ArrayList<>();
@@ -411,6 +417,123 @@ public class JudicialConfigImportService {
                         "entryMode", workflow.entryMode(),
                         "highFidelity", true,
                         "flowNameTemplate", "${caseNo}-初步勘验",
+                        "keyRules", workflow.keyRules(),
+                        "nextFlows", workflow.nextFlows(),
+                        "autoArchive", true,
+                        "preserveVersions", true
+                )),
+                nodes,
+                transitions
+        );
+    }
+
+    private FormDesignRequest paymentNoticeFormRequest(JudicialFormDefinitionDto form) {
+        List<Map<String, Object>> fields = List.of(
+                field("caseNo", "案件号", "text", "流程基础", true, true),
+                field("flowName", "流程名称", "text", "流程基础", false, true),
+                field("projectLeaderId", "项目负责人", "user", "流程基础", true, true),
+                field("projectAssistantId", "项目辅助人", "user", "流程基础", true, true),
+                field("letterDraftCompleted", "缴费函件草稿已编制", "boolean", "函件编制", true, false),
+                field("letterType", "函件类型", "select", "函件编制", true, false,
+                        List.of("交费通知书", "补充函件", "情况说明函", "其他")),
+                field("letterSummary", "函件内容摘要", "textarea", "函件编制", true, false),
+                field("sealRequired", "是否需要用章", "boolean", "审核与用章", true, false),
+                field("sealedDocumentUploaded", "盖章函件已回传", "boolean", "审核与用章", true, false),
+                field("sendDate", "函件寄送日期", "date", "寄送与确认", false, false),
+                field("paymentReceived", "是否已缴费", "boolean", "寄送与确认", true, false),
+                field("paymentConfirmedDate", "缴费确认日期", "date", "寄送与确认", false, false),
+                field("nextRecommendation", "下一步建议", "select", "寄送与确认", true, false,
+                        List.of("编制内部质量控制文件", "终止鉴定")),
+                field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
+        );
+        return new FormDesignRequest(
+                form.code(),
+                form.name(),
+                "司法鉴定",
+                toJson(toFileRules(form.inputFiles(), "input")),
+                toJson(toFileRules(form.outputFiles(), "output")),
+                toJson(form.versionedArtifacts()),
+                toJson(fields),
+                toJson(Map.of(
+                        "layout", "grouped",
+                        "groups", List.of("流程基础", "函件编制", "审核与用章", "寄送与确认", "办理意见")
+                )),
+                toJson(Map.of(
+                        "requiredFields", fields.stream().filter(item -> Boolean.TRUE.equals(item.get("required"))).map(item -> item.get("field")).toList(),
+                        "requiredInputs", form.inputFiles(),
+                        "requiredOutputs", form.outputFiles(),
+                        "crossFieldRules", List.of(
+                                Map.of("if", "paymentReceived == true", "then", "nextRecommendation == '编制内部质量控制文件'"),
+                                Map.of("if", "paymentReceived == false", "then", "nextRecommendation == '终止鉴定'"),
+                                Map.of("if", "sealRequired == true", "then", "sealedDocumentUploaded == true")
+                        )
+                )),
+                toJson(Map.of(
+                        "groups", Map.of(
+                                "流程基础", Map.of("readOnly", true),
+                                "审核与用章", Map.of("roles", List.of("项目负责人", "档案管理员")),
+                                "寄送与确认", Map.of("roles", List.of("项目负责人"))
+                        )
+                )),
+                toJson(Map.of(
+                        "flowNameTemplate", "${caseNo}-发交费通知",
+                        "branchFields", List.of("sealRequired", "paymentReceived", "nextRecommendation")
+                )),
+                toJson(Map.of(
+                        "flowName", "concat(caseNo,'-发交费通知')",
+                        "autoArchiveTitle", "concat(caseNo,'/发交费通知/',nodeName)"
+                )),
+                toJson(Map.of("enabled", true, "inputFiles", form.inputFiles(), "outputFiles", form.outputFiles(), "duplicatePolicy", "warn")),
+                "[]",
+                toJson(List.of(
+                        Map.of("type", "business", "text", "项目辅助人编制缴费函件，项目负责人审核后进入用章及盖章件回传，再确认是否缴费"),
+                        Map.of("type", "validation", "text", "如选择需要用章，则提交缴费确认前必须回传盖章函件"),
+                        Map.of("type", "archive", "text", "缴费函件草稿、盖章件、缴费确认和寄送记录在各节点完成后自动归档")
+                ))
+        );
+    }
+
+    private WorkflowDesignRequest paymentNoticeWorkflowRequest(JudicialWorkflowDefinitionDto workflow) {
+        List<WorkflowNodeRequest> nodes = List.of(
+                node("START", "开始", "start", "single", null, 0, 0, false, null, 0),
+                node("ASSISTANT_DRAFT", "项目辅助人编制缴费函件", "task", "candidate", "项目辅助人", 1, 24, true, workflow.formCode(), 10),
+                node("PROJECT_REVIEW", "项目负责人审核函件", "task", "candidate", "项目负责人", 1, 48, true, workflow.formCode(), 20),
+                node("SEAL_APPLICATION", "进入用章流程", "task", "candidate", "项目负责人", 1, 24, true, "seal-application", 30),
+                node("ARCHIVE_UPLOAD", "档案管理员回传盖章件", "task", "candidate", "档案管理员", 1, 24, true, workflow.formCode(), 40),
+                node("PAYMENT_CONFIRM", "项目负责人确认是否缴费", "task", "candidate", "项目负责人", 1, 72, true, workflow.formCode(), 50),
+                node("QUALITY_CONTROL", "进入编制内部质量控制文件", "task", "candidate", "项目负责人", 1, 24, true, "quality-control", 60),
+                node("TERMINATE_APPRAISAL", "进入终止鉴定", "task", "candidate", "项目负责人", 1, 24, true, "terminate-appraisal", 70),
+                node("END", "流程结束", "end", "single", null, 0, 0, false, null, 80)
+        );
+
+        List<WorkflowTransitionRequest> transitions = List.of(
+                transition("START", "ASSISTANT_DRAFT", "APPROVE", "进入发交费通知", null, 0, 10),
+                transition("ASSISTANT_DRAFT", "PROJECT_REVIEW", "APPROVE", "转交项目负责人审核", null, 1, 20),
+                transition("PROJECT_REVIEW", "SEAL_APPLICATION", "APPROVE", "发起用章流程", "form.sealRequired == true", 1, 30,
+                        subflowConfig("seal-application", "缴费函件审核通过且需要用章后自动进入用章流程")),
+                transition("PROJECT_REVIEW", "ARCHIVE_UPLOAD", "APPROVE", "无需用章，直接回传函件", "form.sealRequired == false", 1, 31),
+                transition("PROJECT_REVIEW", "ASSISTANT_DRAFT", "RETURN", "退回项目辅助人修改函件", null, 1, 32),
+                transition("SEAL_APPLICATION", "ARCHIVE_UPLOAD", "COMPLETE", "用章流程完成", null, 1, 40),
+                transition("ARCHIVE_UPLOAD", "PAYMENT_CONFIRM", "APPROVE", "转交项目负责人确认缴费", null, 1, 50),
+                transition("PAYMENT_CONFIRM", "QUALITY_CONTROL", "APPROVE", "已缴费，进入编制内部质量控制文件", "form.paymentReceived == true", 1, 60,
+                        subflowConfig("quality-control", "项目负责人确认已缴费后自动进入编制内部质量控制文件")),
+                transition("PAYMENT_CONFIRM", "TERMINATE_APPRAISAL", "APPROVE", "未缴费，进入终止鉴定", "form.paymentReceived == false", 1, 61,
+                        subflowConfig("terminate-appraisal", "项目负责人确认未缴费后自动进入终止鉴定")),
+                transition("PAYMENT_CONFIRM", "ARCHIVE_UPLOAD", "RETURN", "退回档案管理员补充盖章件", null, 1, 62),
+                transition("QUALITY_CONTROL", "END", "COMPLETE", "内部质量控制子流程已触发", null, 1, 70),
+                transition("TERMINATE_APPRAISAL", "END", "COMPLETE", "终止鉴定子流程已触发", null, 1, 71)
+        );
+
+        return new WorkflowDesignRequest(
+                workflow.code(),
+                workflow.name(),
+                "judicial",
+                workflow.formCode(),
+                "由司法鉴定使用手册高保真校准：发交费通知书及相关函件",
+                toJson(Map.of(
+                        "entryMode", workflow.entryMode(),
+                        "highFidelity", true,
+                        "flowNameTemplate", "${caseNo}-发交费通知",
                         "keyRules", workflow.keyRules(),
                         "nextFlows", workflow.nextFlows(),
                         "autoArchive", true,
