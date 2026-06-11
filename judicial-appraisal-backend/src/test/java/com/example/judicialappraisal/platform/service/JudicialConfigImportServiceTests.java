@@ -354,4 +354,71 @@ class JudicialConfigImportServiceTests {
         assertThat(finalOpinionReviewWorkflow.transitions()).extracting("transitionConfigJson")
                 .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "issue-opinion"));
     }
+
+    @Test
+    void issueOpinionImportUsesHighFidelityFormAndWorkflowConfiguration() {
+        when(formDesignService.listVersions(any())).thenReturn(List.of());
+        when(workflowDesignService.listVersions(any())).thenReturn(List.of());
+
+        service.importCatalog(false);
+
+        ArgumentCaptor<FormDesignRequest> formCaptor = ArgumentCaptor.forClass(FormDesignRequest.class);
+        verify(formDesignService, times(19)).saveDraft(formCaptor.capture());
+        FormDesignRequest issueOpinionForm = formCaptor.getAllValues().stream()
+                .filter(request -> "issue-opinion".equals(request.formCode()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(issueOpinionForm.fieldSchemaJson())
+                .contains("commitmentDrafted", "reviewOpinionDrafted", "sealRequired", "sealedOpinionUploaded", "invoiceRequired", "invoiceIssued", "archiveConfirmed");
+        assertThat(issueOpinionForm.validationSchemaJson())
+                .contains("sealRequired == true", "invoiceRequired == true", "archiveConfirmed == true");
+
+        ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
+        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        WorkflowDesignRequest issueOpinionWorkflow = workflowCaptor.getAllValues().stream()
+                .filter(request -> "issue-opinion".equals(request.wfCode()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(issueOpinionWorkflow.nodes()).extracting("nodeCode")
+                .contains("PROJECT_SUPPLEMENT", "PARALLEL_GATEWAY_SPLIT", "SEAL_APPLICATION", "SEALED_UPLOAD", "FINANCE_INVOICE", "PARALLEL_GATEWAY_JOIN", "DELIVERY_ARCHIVE", "ARCHIVE_SUBFLOW");
+        assertThat(issueOpinionWorkflow.transitions()).extracting("conditionExpression")
+                .contains("form.sealRequired == true", "form.invoiceRequired == true", "form.archiveConfirmed == true");
+        assertThat(issueOpinionWorkflow.transitions()).extracting("transitionConfigJson")
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "seal-application"))
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "archive"));
+    }
+
+    @Test
+    void issueDraftOpinionImportUsesHighFidelityFormAndWorkflowConfiguration() {
+        when(formDesignService.listVersions(any())).thenReturn(List.of());
+        when(workflowDesignService.listVersions(any())).thenReturn(List.of());
+
+        service.importCatalog(false);
+
+        ArgumentCaptor<FormDesignRequest> formCaptor = ArgumentCaptor.forClass(FormDesignRequest.class);
+        verify(formDesignService, times(19)).saveDraft(formCaptor.capture());
+        FormDesignRequest issueDraftOpinionForm = formCaptor.getAllValues().stream()
+                .filter(request -> "issue-draft-opinion".equals(request.formCode()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(issueDraftOpinionForm.fieldSchemaJson())
+                .contains("explainLetterDrafted", "sealRequired", "sealedDraftOpinionUploaded", "feedbackReceived", "feedbackHasObjection", "objectionReason");
+        assertThat(issueDraftOpinionForm.validationSchemaJson())
+                .contains("sealRequired == true", "feedbackReceived == true && feedbackHasObjection == true");
+
+        ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
+        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        WorkflowDesignRequest issueDraftOpinionWorkflow = workflowCaptor.getAllValues().stream()
+                .filter(request -> "issue-draft-opinion".equals(request.wfCode()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(issueDraftOpinionWorkflow.nodes()).extracting("nodeCode")
+                .contains("PROJECT_SUPPLEMENT", "SEAL_APPLICATION", "SEALED_UPLOAD", "DELIVERY", "WAIT_FEEDBACK", "COURT_LETTER", "FINAL_OPINION_REVIEW");
+        assertThat(issueDraftOpinionWorkflow.transitions()).extracting("conditionExpression")
+                .contains("form.sealRequired == true", "form.feedbackReceived == true && form.feedbackHasObjection == true");
+        assertThat(issueDraftOpinionWorkflow.transitions()).extracting("transitionConfigJson")
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "seal-application"))
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "court-letter"))
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "final-opinion-review"));
+    }
 }

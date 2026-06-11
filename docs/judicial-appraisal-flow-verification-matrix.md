@@ -38,8 +38,8 @@
 | 6 | `material-receive-return` | 材料接收与返还 | `material-receive-return` | 子流程 | 已完成首轮高保真校准 | 准备真实案件联调，并推进后续鉴定意见书环节 |
 | 7 | `draft-opinion-review` | 鉴定意见书征求意见稿送审稿编制 | `draft-opinion-review` | 子流程 | 已完成首轮高保真校准 | 准备真实案件联调 |
 | 8 | `final-opinion-review` | 鉴定意见书送审稿编制 | `final-opinion-review` | 子流程 | 已完成首轮高保真校准 | 准备真实案件联调 |
-| 9 | `issue-opinion` | 出具鉴定意见书 | `issue-opinion` | 子流程 | 已导入配置，待高保真校准 | 补承诺书、复核意见、盖章、开票并行、扫描件归档 |
-| 10 | `issue-draft-opinion` | 出具征求意见稿 | `issue-draft-opinion` | 子流程 | 已导入配置，待高保真校准 | 补说明函、征求意见稿、寄送、等待反馈、异议判断 |
+| 9 | `issue-opinion` | 出具鉴定意见书 | `issue-opinion` | 子流程 | 已完成首轮高保真校准 | 准备真实案件联调 |
+| 10 | `issue-draft-opinion` | 出具征求意见稿 | `issue-draft-opinion` | 子流程 | 已完成首轮高保真校准 | 准备真实案件联调 |
 | 11 | `court-letter` | 收到法院其他函件（含异议函） | `court-letter` | 直接或关联发起 | 已导入配置，待高保真校准 | 补关联原流程、异议/非异议分支、回复函、用章、寄送 |
 | 12 | `court-appearance` | 收到出庭通知 | `court-appearance` | 直接或关联发起 | 已导入配置，待高保真校准 | 补关联原流程、出庭费通知、调档、出庭准备、出庭后材料整理 |
 | 13 | `reject-acceptance` | 不予受理 | `reject-acceptance` | 子流程 | 已完成首轮高保真校准 | 用真实案件跑通“不予受理通知编制 -> 项目负责人审核 -> 用章 -> 盖章件回传 -> 送达归档”路径，并补父流程回写 |
