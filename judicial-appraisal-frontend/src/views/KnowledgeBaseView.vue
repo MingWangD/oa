@@ -1,53 +1,132 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
+import { ElMessage } from 'element-plus';
 
-const knowledgeTree = [
-  {
-    label: '全部资料',
-    key: 'all',
-    children: [
-      { label: '受理规范', key: '受理规范' },
-      { label: '模板文件', key: '模板文件' },
-      { label: '业务知识', key: '业务知识' }
-    ]
-  }
-];
+import {
+  downloadKnowledgeDocument,
+  fetchKnowledgeDirectories,
+  fetchKnowledgeDocuments,
+  previewKnowledgeDocument,
+  type KnowledgeDirectory,
+  type KnowledgeDocument
+} from '../api/judicial';
 
-const activeCategory = ref('all');
-const knowledgeItems = [
-  {
-    id: 1,
-    title: '司法鉴定受理规范.docx',
-    category: '受理规范',
-    owner: '系统管理员',
-    updatedAt: '2026-05-20 09:30'
-  },
-  {
-    id: 2,
-    title: '文书模板汇编.zip',
-    category: '模板文件',
-    owner: '张主任',
-    updatedAt: '2026-05-18 16:10'
-  },
-  {
-    id: 3,
-    title: '鉴定流程常见问题.pdf',
-    category: '业务知识',
-    owner: '李法医',
-    updatedAt: '2026-05-15 11:45'
-  }
-];
+interface TreeNode {
+  label: string;
+  key: string;
+  directoryId?: number;
+  children?: TreeNode[];
+}
 
-const filteredKnowledgeItems = computed(() => {
-  if (activeCategory.value === 'all') {
-    return knowledgeItems;
-  }
-  return knowledgeItems.filter((item) => item.category === activeCategory.value);
+const loading = ref(false);
+const directories = ref<KnowledgeDirectory[]>([]);
+const documents = ref<KnowledgeDocument[]>([]);
+const activeDirectoryId = ref<number | undefined>();
+const keyword = ref('');
+
+const treeData = computed<TreeNode[]>(() => {
+  const nodeMap = new Map<number, TreeNode>();
+  const roots: TreeNode[] = [];
+  directories.value.forEach((directory) => {
+    nodeMap.set(directory.id, {
+      label: directory.directoryName,
+      key: String(directory.id),
+      directoryId: directory.id,
+      children: []
+    });
+  });
+  directories.value.forEach((directory) => {
+    const node = nodeMap.get(directory.id);
+    if (!node) {
+      return;
+    }
+    if (directory.parentId && nodeMap.has(directory.parentId)) {
+      nodeMap.get(directory.parentId)?.children?.push(node);
+    } else {
+      roots.push(node);
+    }
+  });
+  return [{ label: '全部资料', key: 'all', children: roots }];
 });
 
-function handleTreeSelect(_: unknown, node: { key: string }): void {
-  activeCategory.value = node.key;
+const activeDirectoryName = computed(() => {
+  if (!activeDirectoryId.value) {
+    return '全部资料';
+  }
+  return directories.value.find((item) => item.id === activeDirectoryId.value)?.directoryName || '全部资料';
+});
+
+async function loadDirectories(): Promise<void> {
+  directories.value = await fetchKnowledgeDirectories();
 }
+
+async function loadDocuments(): Promise<void> {
+  loading.value = true;
+  try {
+    documents.value = await fetchKnowledgeDocuments({
+      directoryId: activeDirectoryId.value,
+      keyword: keyword.value
+    });
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '加载知识文档失败');
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function refresh(): Promise<void> {
+  loading.value = true;
+  try {
+    await loadDirectories();
+    await loadDocuments();
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '加载知识库失败');
+  } finally {
+    loading.value = false;
+  }
+}
+
+function handleTreeSelect(_: unknown, node: TreeNode): void {
+  activeDirectoryId.value = node.key === 'all' ? undefined : node.directoryId;
+  void loadDocuments();
+}
+
+async function openPreview(row: KnowledgeDocument): Promise<void> {
+  if (!row.currentFileId) {
+    ElMessage.info('该记录是流程节点归档，暂无可预览文件');
+    return;
+  }
+  try {
+    const { blob } = await previewKnowledgeDocument(row.id);
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank', 'noopener,noreferrer');
+    window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '预览失败');
+  }
+}
+
+async function download(row: KnowledgeDocument): Promise<void> {
+  if (!row.currentFileId) {
+    ElMessage.info('该记录是流程节点归档，暂无可下载文件');
+    return;
+  }
+  try {
+    const { blob, filename } = await downloadKnowledgeDocument(row.id);
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '下载失败');
+  }
+}
+
+onMounted(() => {
+  void refresh();
+});
 </script>
 
 <template>
@@ -55,9 +134,20 @@ function handleTreeSelect(_: unknown, node: { key: string }): void {
     <div class="panel-heading panel-heading--warm">
       <div>
         <h3 class="panel-title">知识库</h3>
-        <p class="panel-subtitle">集中保存业务规范、模板文件和常见知识材料。</p>
+        <p class="panel-subtitle">集中保存业务规范、模板文件、案件自动归档和节点产物。</p>
       </div>
-      <p class="section-note">优先查看最新更新的制度文件和模板。</p>
+      <div class="inline-actions">
+        <el-input
+          v-model="keyword"
+          clearable
+          placeholder="搜索标题"
+          style="width: 220px"
+          @keyup.enter="loadDocuments"
+          @clear="loadDocuments"
+        />
+        <el-button type="primary" :loading="loading" @click="loadDocuments">查询</el-button>
+        <el-button :loading="loading" @click="refresh">刷新</el-button>
+      </div>
     </div>
 
     <div class="knowledge-layout">
@@ -65,7 +155,7 @@ function handleTreeSelect(_: unknown, node: { key: string }): void {
         <div class="knowledge-tree-header">分类目录</div>
         <el-tree
           class="knowledge-tree"
-          :data="knowledgeTree"
+          :data="treeData"
           node-key="key"
           default-expand-all
           highlight-current
@@ -76,27 +166,30 @@ function handleTreeSelect(_: unknown, node: { key: string }): void {
 
       <div class="knowledge-main">
         <div class="knowledge-toolbar">
-          <p class="knowledge-toolbar-text">当前收录 {{ filteredKnowledgeItems.length }} 份材料，支持查看与下载。</p>
-          <p class="knowledge-toolbar-text">当前分类：{{ activeCategory === 'all' ? '全部资料' : activeCategory }}</p>
+          <p class="knowledge-toolbar-text">当前收录 {{ documents.length }} 份材料，预览/下载都会写入审计日志。</p>
+          <p class="knowledge-toolbar-text">当前分类：{{ activeDirectoryName }}</p>
         </div>
 
         <div class="table-frame">
-          <el-table :data="filteredKnowledgeItems" border stripe>
+          <el-table v-loading="loading" :data="documents" border stripe>
             <el-table-column prop="title" label="标题" min-width="280">
               <template #default="scope">
                 <div class="knowledge-title">
                   <span class="primary-text">{{ scope.row.title }}</span>
-                  <span class="knowledge-category">{{ scope.row.category }}</span>
+                  <span class="knowledge-category">{{ scope.row.sourceType === 'archive' ? '自动归档' : '知识文档' }}</span>
                 </div>
               </template>
             </el-table-column>
-            <el-table-column prop="owner" label="上传人" width="140" />
-            <el-table-column prop="updatedAt" label="更新时间" width="180" />
+            <el-table-column prop="nodeName" label="流程节点" width="180" />
+            <el-table-column prop="currentVersionNo" label="版本" width="90">
+              <template #default="scope">v{{ scope.row.currentVersionNo }}</template>
+            </el-table-column>
+            <el-table-column prop="updatedTime" label="更新时间" width="180" />
             <el-table-column label="操作" width="170">
-              <template #default>
+              <template #default="scope">
                 <div class="inline-actions">
-                  <el-button link type="primary">查看</el-button>
-                  <el-button link type="primary">下载</el-button>
+                  <el-button link type="primary" @click="openPreview(scope.row)">查看</el-button>
+                  <el-button link type="primary" @click="download(scope.row)">下载</el-button>
                 </div>
               </template>
             </el-table-column>

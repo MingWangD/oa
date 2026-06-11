@@ -163,3 +163,24 @@ export function put<T>(path: string, body?: unknown): Promise<T> {
     body: body ? JSON.stringify(body) : undefined
   });
 }
+
+export async function getBlob(path: string, params?: QueryParams): Promise<{ blob: Blob; filename: string }> {
+  const token = getAccessToken();
+  const headers = new Headers();
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+  const response = await fetch(buildUrl(path, params), { method: 'GET', headers });
+  if (response.status === 401) {
+    clearAuthStorage();
+    redirectToLogin();
+    throw new Error('未登录或登录状态已失效，请重新登录');
+  }
+  if (!response.ok) {
+    throw new Error(`请求失败：${response.status}`);
+  }
+  const disposition = response.headers.get('content-disposition') || '';
+  const filenameMatch = disposition.match(/filename\*=UTF-8''([^;]+)|filename="([^"]+)"/i);
+  const filename = decodeURIComponent(filenameMatch?.[1] || filenameMatch?.[2] || 'download');
+  return { blob: await response.blob(), filename };
+}

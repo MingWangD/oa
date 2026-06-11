@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import com.example.judicialappraisal.caseinfo.entity.CaseInfo;
 import com.example.judicialappraisal.caseinfo.mapper.CaseInfoMapper;
 import com.example.judicialappraisal.common.enums.CaseStatus;
+import com.example.judicialappraisal.knowledge.service.KnowledgeService;
 import com.example.judicialappraisal.workflow.entity.CaseNodeInstance;
 import com.example.judicialappraisal.workflow.entity.CaseTask;
 import com.example.judicialappraisal.workflow.entity.CaseWfInstance;
@@ -42,6 +43,7 @@ class WorkflowRuntimeServiceTests {
     private final CaseTaskCandidateMapper caseTaskCandidateMapper = mock(CaseTaskCandidateMapper.class);
     private final SysRoleMapper sysRoleMapper = mock(SysRoleMapper.class);
     private final SysUserRoleMapper sysUserRoleMapper = mock(SysUserRoleMapper.class);
+    private final KnowledgeService knowledgeService = mock(KnowledgeService.class);
 
     private final WorkflowRuntimeService service = new WorkflowRuntimeService(
             caseInfoMapper,
@@ -53,7 +55,8 @@ class WorkflowRuntimeServiceTests {
             wfTransitionDefMapper,
             caseTaskCandidateMapper,
             sysRoleMapper,
-            sysUserRoleMapper
+            sysUserRoleMapper,
+            knowledgeService
     );
 
     @Test
@@ -157,7 +160,7 @@ class WorkflowRuntimeServiceTests {
             return 1;
         }).when(caseTaskMapper).insert(any(CaseTask.class));
 
-        service.completeTask(88L, new WorkflowActionRequest(701L, ActionCode.APPROVE, "通过", null, null, null));
+        service.completeTask(88L, new WorkflowActionRequest(701L, ActionCode.APPROVE, "通过", null, null, null, null, null));
 
         ArgumentCaptor<CaseTask> taskCaptor = ArgumentCaptor.forClass(CaseTask.class);
         verify(caseTaskMapper).insert(taskCaptor.capture());

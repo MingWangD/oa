@@ -8,6 +8,8 @@ import com.example.judicialappraisal.common.enums.CaseStatus;
 import com.example.judicialappraisal.common.enums.TaskStatus;
 import com.example.judicialappraisal.common.enums.WorkflowStatus;
 import com.example.judicialappraisal.common.exception.BusinessException;
+import com.example.judicialappraisal.knowledge.dto.ArchiveNodeRequest;
+import com.example.judicialappraisal.knowledge.service.KnowledgeService;
 import com.example.judicialappraisal.organization.entity.SysRole;
 import com.example.judicialappraisal.organization.mapper.SysRoleMapper;
 import com.example.judicialappraisal.organization.mapper.SysUserRoleMapper;
@@ -79,6 +81,7 @@ public class WorkflowRuntimeService {
     private final CaseTaskCandidateMapper caseTaskCandidateMapper;
     private final SysRoleMapper sysRoleMapper;
     private final SysUserRoleMapper sysUserRoleMapper;
+    private final KnowledgeService knowledgeService;
 
     public WorkflowRuntimeService(
             CaseInfoMapper caseInfoMapper,
@@ -90,7 +93,8 @@ public class WorkflowRuntimeService {
             WfTransitionDefMapper wfTransitionDefMapper,
             CaseTaskCandidateMapper caseTaskCandidateMapper,
             SysRoleMapper sysRoleMapper,
-            SysUserRoleMapper sysUserRoleMapper) {
+            SysUserRoleMapper sysUserRoleMapper,
+            KnowledgeService knowledgeService) {
         this.caseInfoMapper = caseInfoMapper;
         this.caseWfInstanceMapper = caseWfInstanceMapper;
         this.caseNodeInstanceMapper = caseNodeInstanceMapper;
@@ -101,6 +105,7 @@ public class WorkflowRuntimeService {
         this.caseTaskCandidateMapper = caseTaskCandidateMapper;
         this.sysRoleMapper = sysRoleMapper;
         this.sysUserRoleMapper = sysUserRoleMapper;
+        this.knowledgeService = knowledgeService;
     }
 
     @Transactional
@@ -375,7 +380,24 @@ public class WorkflowRuntimeService {
             nodeInstance.setResultAction(request.actionCode().name());
             nodeInstance.setResultOpinion(resolveOutcomeOpinion(request));
             caseNodeInstanceMapper.updateById(nodeInstance);
+            archiveCompletedNode(task, nodeInstance, request);
         }
+    }
+
+    private void archiveCompletedNode(CaseTask task, CaseNodeInstance nodeInstance, WorkflowActionRequest request) {
+        String summary = request.actionCode().name() + ": " + resolveOutcomeOpinion(request);
+        knowledgeService.archiveNode(new ArchiveNodeRequest(
+                task.getCaseId(),
+                task.getWfInstanceId(),
+                task.getNodeCode(),
+                task.getNodeName(),
+                task.getId(),
+                null,
+                task.getNodeCode() + "-" + request.actionCode().name(),
+                request.formData(),
+                request.fileIds(),
+                summary
+        ));
     }
 
     private void cancelActiveTasks(Long nodeInstanceId, WorkflowActionRequest request, LocalDateTime now) {

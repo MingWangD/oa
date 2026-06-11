@@ -5,7 +5,9 @@ import {
   fetchJudicialCatalog,
   fetchPlatformModules,
   fetchReconstructionPlan,
+  importJudicialCatalog,
   type JudicialCatalog,
+  type JudicialConfigImportResult,
   type OaModule,
   type ReconstructionPhase
 } from '../api/judicial';
@@ -15,6 +17,8 @@ const errorMessage = ref('');
 const modules = ref<OaModule[]>([]);
 const phases = ref<ReconstructionPhase[]>([]);
 const judicialCatalog = ref<JudicialCatalog | null>(null);
+const importLoading = ref(false);
+const importResult = ref<JudicialConfigImportResult | null>(null);
 
 const priorityModules = computed(() => modules.value.filter((item) => item.priority === 'P0'));
 const workflowPreview = computed(() => judicialCatalog.value?.workflows.slice(0, 8) ?? []);
@@ -45,6 +49,19 @@ async function loadData(): Promise<void> {
     errorMessage.value = error instanceof Error ? error.message : '加载平台总览失败';
   } finally {
     loading.value = false;
+  }
+}
+
+async function handleImportCatalog(): Promise<void> {
+  importLoading.value = true;
+  errorMessage.value = '';
+  try {
+    importResult.value = await importJudicialCatalog(false);
+    await loadData();
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : '导入司法鉴定配置失败';
+  } finally {
+    importLoading.value = false;
   }
 }
 
@@ -124,8 +141,13 @@ onMounted(() => {
     <div class="panel-heading">
       <div>
         <h3 class="panel-title">司法鉴定流程目录</h3>
-        <p class="panel-subtitle">首批登记 20 个流程定义和 19 个表单定义，后续接入动态流程设计器。</p>
+        <p class="panel-subtitle">首批登记 20 个流程定义和 19 个表单定义，可一键同步到动态表单/流程设计器。</p>
       </div>
+      <el-button type="primary" :loading="importLoading" @click="handleImportCatalog">导入平台配置</el-button>
+    </div>
+    <div v-if="importResult" class="state-banner">
+      本次导入：表单 {{ importResult.formsCreated }} 个，跳过 {{ importResult.formsSkipped }} 个；流程
+      {{ importResult.workflowsCreated }} 个，跳过 {{ importResult.workflowsSkipped }} 个。
     </div>
     <div class="table-frame">
       <el-table :data="workflowPreview" border stripe>

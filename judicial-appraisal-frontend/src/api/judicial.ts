@@ -1,4 +1,4 @@
-import { get, post, put } from './http';
+import { get, getBlob, post, put } from './http';
 
 export interface UserRole {
   id?: number | null;
@@ -225,6 +225,8 @@ export interface WorkflowActionPayload {
   reason?: string;
   assigneeId?: number;
   assigneeName?: string;
+  formData?: Record<string, unknown>;
+  fileIds?: number[];
 }
 
 export interface WorkflowActionResult {
@@ -289,6 +291,40 @@ export interface JudicialCatalog {
   dedicatedRoles: string[];
   workflows: JudicialWorkflowDefinition[];
   forms: JudicialFormDefinition[];
+}
+
+export interface JudicialConfigImportResult {
+  formsCreated: number;
+  formsSkipped: number;
+  workflowsCreated: number;
+  workflowsSkipped: number;
+  messages: string[];
+}
+
+export interface KnowledgeDirectory {
+  id: number;
+  parentId: number | null;
+  directoryCode: string;
+  directoryName: string;
+  directoryType: string;
+  caseId: number | null;
+  path: string | null;
+}
+
+export interface KnowledgeDocument {
+  id: number;
+  directoryId: number;
+  caseId: number | null;
+  title: string;
+  artifactCode: string | null;
+  sourceType: string;
+  nodeCode: string | null;
+  nodeName: string | null;
+  taskId: number | null;
+  currentFileId: number | null;
+  currentVersionNo: number;
+  status: string;
+  updatedTime: string | null;
 }
 
 export interface FormDefinitionDesign {
@@ -535,6 +571,30 @@ export function fetchReconstructionPlan(): Promise<ReconstructionPhase[]> {
 
 export function fetchJudicialCatalog(): Promise<JudicialCatalog> {
   return get<JudicialCatalog>('/platform/judicial-catalog');
+}
+
+export function importJudicialCatalog(forceNewVersion = false): Promise<JudicialConfigImportResult> {
+  return post<JudicialConfigImportResult>(`/platform/judicial-catalog/import?forceNewVersion=${forceNewVersion}`);
+}
+
+export function fetchKnowledgeDirectories(caseId?: number): Promise<KnowledgeDirectory[]> {
+  return get<KnowledgeDirectory[]>('/knowledge/directories', { caseId });
+}
+
+export function fetchKnowledgeDocuments(params: {
+  directoryId?: number;
+  caseId?: number;
+  keyword?: string;
+}): Promise<KnowledgeDocument[]> {
+  return get<KnowledgeDocument[]>('/knowledge/documents', params);
+}
+
+export function downloadKnowledgeDocument(documentId: number): Promise<{ blob: Blob; filename: string }> {
+  return getBlob(`/knowledge/documents/${documentId}/download`);
+}
+
+export function previewKnowledgeDocument(documentId: number): Promise<{ blob: Blob; filename: string }> {
+  return getBlob(`/knowledge/documents/${documentId}/preview`);
 }
 
 export function fetchFormDesigns(): Promise<FormDefinitionDesign[]> {
