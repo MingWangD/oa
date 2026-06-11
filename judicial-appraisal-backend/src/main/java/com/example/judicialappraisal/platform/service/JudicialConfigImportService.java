@@ -99,6 +99,9 @@ public class JudicialConfigImportService {
         if ("material-receive-return".equals(form.code())) {
             return materialReceiveReturnFormRequest(form);
         }
+        if ("draft-opinion-review".equals(form.code())) {
+            return draftOpinionReviewFormRequest(form);
+        }
         return new FormDesignRequest(
                 form.code(),
                 form.name(),
@@ -146,6 +149,9 @@ public class JudicialConfigImportService {
         }
         if ("material-receive-return".equals(workflow.code())) {
             return materialReceiveReturnWorkflowRequest(workflow);
+        }
+        if ("draft-opinion-review".equals(workflow.code())) {
+            return draftOpinionReviewWorkflowRequest(workflow);
         }
         List<WorkflowNodeRequest> nodes = new ArrayList<>();
         List<WorkflowTransitionRequest> transitions = new ArrayList<>();
@@ -1093,6 +1099,115 @@ public class JudicialConfigImportService {
                         "entryMode", workflow.entryMode(),
                         "highFidelity", true,
                         "flowNameTemplate", "${caseNo}-材料接收与返还",
+                        "keyRules", workflow.keyRules(),
+                        "nextFlows", workflow.nextFlows(),
+                        "autoArchive", true,
+                        "preserveVersions", true
+                )),
+                nodes,
+                transitions
+        );
+    }
+
+    private FormDesignRequest draftOpinionReviewFormRequest(JudicialFormDefinitionDto form) {
+        List<Map<String, Object>> fields = List.of(
+                field("caseNo", "案件号", "text", "流程基础", true, true),
+                field("flowName", "流程名称", "text", "流程基础", false, true),
+                field("projectLeaderId", "项目负责人", "user", "流程基础", true, true),
+                field("projectAssistantId", "项目辅助人", "user", "流程基础", true, true),
+                field("technicalLeaderId", "技术负责人", "user", "流程基础", true, true),
+                field("departmentHeadId", "部门负责人", "user", "流程基础", true, true),
+                field("draftOpinionUploaded", "征求意见稿初稿已上传", "boolean", "初稿编制", true, false),
+                field("projectReviewPassed", "项目负责人审核通过", "boolean", "项目负责人审核", true, false),
+                field("technicalReviewPassed", "技术负责人审核通过", "boolean", "技术负责人审核", false, false),
+                field("departmentReviewPassed", "部门负责人审核通过", "boolean", "部门负责人审核", false, false),
+                field("finalDraftUploaded", "征求意见稿送审稿定稿已上传", "boolean", "定稿上传", true, false),
+                field("nextRecommendation", "下一步建议", "select", "后续流程", true, false,
+                        List.of("出具征求意见稿")),
+                field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
+        );
+        return new FormDesignRequest(
+                form.code(),
+                form.name(),
+                "司法鉴定",
+                toJson(toFileRules(form.inputFiles(), "input")),
+                toJson(toFileRules(form.outputFiles(), "output")),
+                toJson(form.versionedArtifacts()),
+                toJson(fields),
+                toJson(Map.of(
+                        "layout", "grouped",
+                        "groups", List.of("流程基础", "初稿编制", "项目负责人审核", "技术负责人审核", "部门负责人审核", "定稿上传", "后续流程", "办理意见")
+                )),
+                toJson(Map.of(
+                        "requiredFields", fields.stream().filter(item -> Boolean.TRUE.equals(item.get("required"))).map(item -> item.get("field")).toList(),
+                        "requiredInputs", form.inputFiles(),
+                        "requiredOutputs", form.outputFiles()
+                )),
+                toJson(Map.of(
+                        "groups", Map.of(
+                                "流程基础", Map.of("readOnly", true),
+                                "初稿编制", Map.of("roles", List.of("项目辅助人")),
+                                "项目负责人审核", Map.of("roles", List.of("项目负责人")),
+                                "技术负责人审核", Map.of("roles", List.of("技术负责人")),
+                                "部门负责人审核", Map.of("roles", List.of("部门负责人")),
+                                "定稿上传", Map.of("roles", List.of("项目负责人"))
+                        )
+                )),
+                toJson(Map.of(
+                        "flowNameTemplate", "${caseNo}-征求意见稿送审稿编制",
+                        "branchFields", List.of("projectReviewPassed", "technicalReviewPassed", "departmentReviewPassed", "nextRecommendation")
+                )),
+                toJson(Map.of(
+                        "flowName", "concat(caseNo,'-征求意见稿送审稿编制')",
+                        "autoArchiveTitle", "concat(caseNo,'/征求意见稿送审稿编制/',nodeName)"
+                )),
+                toJson(Map.of("enabled", true, "inputFiles", form.inputFiles(), "outputFiles", form.outputFiles(), "duplicatePolicy", "warn")),
+                "[]",
+                toJson(List.of(
+                        Map.of("type", "business", "text", "项目辅助人编制初稿，经项目负责人、技术负责人、部门负责人三级审核后上传定稿"),
+                        Map.of("type", "validation", "text", "定稿必须由项目负责人确认上传，三级审核不可合并"),
+                        Map.of("type", "archive", "text", "初稿、项目负责人审核稿、技术负责人审核稿、部门负责人审核稿等版本过程自动归档保留")
+                ))
+        );
+    }
+
+    private WorkflowDesignRequest draftOpinionReviewWorkflowRequest(JudicialWorkflowDefinitionDto workflow) {
+        List<WorkflowNodeRequest> nodes = List.of(
+                node("START", "开始", "start", "single", null, 0, 0, false, null, 0),
+                node("ASSISTANT_DRAFT", "项目辅助人编制初稿", "task", "candidate", "项目辅助人", 1, 48, true, workflow.formCode(), 10),
+                node("PROJECT_REVIEW", "项目负责人审核", "task", "candidate", "项目负责人", 1, 48, true, workflow.formCode(), 20),
+                node("TECHNICAL_REVIEW", "技术负责人审核", "task", "candidate", "技术负责人", 1, 48, true, workflow.formCode(), 30),
+                node("DEPARTMENT_REVIEW", "部门负责人审核", "task", "candidate", "部门负责人", 1, 48, true, workflow.formCode(), 40),
+                node("PROJECT_FINAL_UPLOAD", "项目负责人上传定稿", "task", "candidate", "项目负责人", 1, 24, true, workflow.formCode(), 50),
+                node("ISSUE_DRAFT_OPINION", "进入出具征求意见稿", "task", "candidate", "项目负责人", 1, 24, true, "issue-draft-opinion", 60),
+                node("END", "流程结束", "end", "single", null, 0, 0, false, null, 70)
+        );
+
+        List<WorkflowTransitionRequest> transitions = List.of(
+                transition("START", "ASSISTANT_DRAFT", "APPROVE", "进入征求意见稿送审稿编制", null, 0, 10),
+                transition("ASSISTANT_DRAFT", "PROJECT_REVIEW", "APPROVE", "转交项目负责人审核", null, 1, 20),
+                transition("PROJECT_REVIEW", "TECHNICAL_REVIEW", "APPROVE", "项目负责人审核通过，转技术负责人", "form.projectReviewPassed == true", 1, 30),
+                transition("PROJECT_REVIEW", "ASSISTANT_DRAFT", "RETURN", "退回项目辅助人修改初稿", "form.projectReviewPassed == false", 1, 31),
+                transition("TECHNICAL_REVIEW", "DEPARTMENT_REVIEW", "APPROVE", "技术负责人审核通过，转部门负责人", "form.technicalReviewPassed == true", 1, 40),
+                transition("TECHNICAL_REVIEW", "PROJECT_REVIEW", "RETURN", "退回项目负责人复核", "form.technicalReviewPassed == false", 1, 41),
+                transition("DEPARTMENT_REVIEW", "PROJECT_FINAL_UPLOAD", "APPROVE", "部门负责人审核通过，转项目负责人定稿", "form.departmentReviewPassed == true", 1, 50),
+                transition("DEPARTMENT_REVIEW", "TECHNICAL_REVIEW", "RETURN", "退回技术负责人复核", "form.departmentReviewPassed == false", 1, 51),
+                transition("PROJECT_FINAL_UPLOAD", "ISSUE_DRAFT_OPINION", "APPROVE", "进入出具征求意见稿", "form.nextRecommendation == '出具征求意见稿'", 1, 60,
+                        subflowConfig("issue-draft-opinion", "征求意见稿送审稿编制完成后选择进入出具征求意见稿")),
+                transition("PROJECT_FINAL_UPLOAD", "DEPARTMENT_REVIEW", "RETURN", "退回部门负责人复核", null, 1, 61),
+                transition("ISSUE_DRAFT_OPINION", "END", "COMPLETE", "出具征求意见稿子流程已触发", null, 1, 70)
+        );
+
+        return new WorkflowDesignRequest(
+                workflow.code(),
+                workflow.name(),
+                "judicial",
+                workflow.formCode(),
+                "由司法鉴定使用手册高保真校准：鉴定意见书征求意见稿送审稿编制",
+                toJson(Map.of(
+                        "entryMode", workflow.entryMode(),
+                        "highFidelity", true,
+                        "flowNameTemplate", "${caseNo}-征求意见稿送审稿编制",
                         "keyRules", workflow.keyRules(),
                         "nextFlows", workflow.nextFlows(),
                         "autoArchive", true,

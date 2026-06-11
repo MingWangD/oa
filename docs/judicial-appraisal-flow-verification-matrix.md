@@ -36,7 +36,7 @@
 | 4 | `quality-control` | 编制内部质量控制文件 | `quality-control` | 子流程 | 已完成首轮高保真校准 | 用真实案件跑通“中心格式/非中心格式金额阈值 -> F 类项目 -> 部门负责人审核 -> 用章 -> 后续六类子流程”路径，并补父流程回写 |
 | 5 | `field-survey` | 现场勘验 | `field-survey` | 子流程 | 已完成首轮高保真校准 | 用真实案件跑通“现场工作方案/勘验记录/设备记录 -> 15 万阈值 -> 技术负责人/部门负责人审核 -> 后续五类子流程”路径，并补父流程回写 |
 | 6 | `material-receive-return` | 材料接收与返还 | `material-receive-return` | 子流程 | 已完成首轮高保真校准 | 准备真实案件联调，并推进后续鉴定意见书环节 |
-| 7 | `draft-opinion-review` | 鉴定意见书征求意见稿送审稿编制 | `draft-opinion-review` | 子流程 | 已导入配置，待高保真校准 | 补初稿、项目负责人/技术负责人/部门负责人三级审核和版本 |
+| 7 | `draft-opinion-review` | 鉴定意见书征求意见稿送审稿编制 | `draft-opinion-review` | 子流程 | 已完成首轮高保真校准 | 准备真实案件联调 |
 | 8 | `final-opinion-review` | 鉴定意见书送审稿编制 | `final-opinion-review` | 子流程 | 已导入配置，待高保真校准 | 补初稿、A、A-B、A-B-C、最终送审稿版本保留 |
 | 9 | `issue-opinion` | 出具鉴定意见书 | `issue-opinion` | 子流程 | 已导入配置，待高保真校准 | 补承诺书、复核意见、盖章、开票并行、扫描件归档 |
 | 10 | `issue-draft-opinion` | 出具征求意见稿 | `issue-draft-opinion` | 子流程 | 已导入配置，待高保真校准 | 补说明函、征求意见稿、寄送、等待反馈、异议判断 |
