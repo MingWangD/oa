@@ -561,6 +561,7 @@ public class WorkflowRuntimeService {
         CaseTask nextTask = createNextNodeTask(
                 caseInfo,
                 wfInstance,
+                wfInstance.getWfId(),
                 null,
                 nextNode.getId(),
                 nextNodeCode,
@@ -585,8 +586,9 @@ public class WorkflowRuntimeService {
 
     private WorkflowActionResult tryAdvanceByDefinition(CaseInfo caseInfo, CaseTask completedTask, WorkflowActionRequest request, LocalDateTime now) {
         CaseWfInstance wfInstance = requireRunningInstance(caseInfo.getId());
+        Long activeWfId = resolveActiveDefinitionWfId(wfInstance, completedTask);
         List<WfTransitionDef> transitions = wfTransitionDefMapper.selectList(new LambdaQueryWrapper<WfTransitionDef>()
-                .eq(WfTransitionDef::getWfId, wfInstance.getWfId())
+                .eq(WfTransitionDef::getWfId, activeWfId)
                 .eq(WfTransitionDef::getFromNodeCode, completedTask.getNodeCode())
                 .eq(WfTransitionDef::getActionCode, request.actionCode().name())
                 .eq(WfTransitionDef::getEnabled, 1)
@@ -603,7 +605,7 @@ public class WorkflowRuntimeService {
         }
 
         List<TransitionAdvance> advances = matchedTransitions.stream()
-                .map(transition -> createTransitionTarget(caseInfo, wfInstance, completedTask, transition, request, now))
+                .map(transition -> createTransitionTarget(caseInfo, wfInstance, completedTask, transition, request, now, activeWfId))
                 .toList();
         List<CaseTask> createdTasks = advances.stream()
                 .flatMap(advance -> advance.tasks().stream())
@@ -716,14 +718,18 @@ public class WorkflowRuntimeService {
             CaseTask completedTask,
             WfTransitionDef transition,
             WorkflowActionRequest request,
-            LocalDateTime now) {
-        WfNodeDef targetNode = findNodeDef(wfInstance.getWfId(), transition.getToNodeCode());
+            LocalDateTime now,
+            Long activeWfId) {
+        Map<String, Object> transitionConfig = parseTransitionConfig(transition.getTransitionConfigJson());
+        if (Boolean.TRUE.equals(toBoolean(transitionConfig.get("launchSubflow")))) {
+            return createLaunchedSubflowTarget(caseInfo, wfInstance, completedTask, transition, request, now, transitionConfig);
+        }
+
+        WfNodeDef targetNode = findNodeDef(activeWfId, transition.getToNodeCode());
         if (targetNode == null) {
             throw new BusinessException("流程定义缺少目标节点：" + transition.getToNodeCode());
         }
-
-        CaseSubflowInstance subflowInstance = maybeCreateSubflowInstance(caseInfo, wfInstance, completedTask, transition, request, now);
-        Long subflowInstanceId = subflowInstance == null ? null : subflowInstance.getId();
+        Long subflowInstanceId = completedTask.getSubflowInstanceId();
         CaseNodeInstance nodeInstance = createNodeInstance(caseInfo.getId(), wfInstance.getId(), subflowInstanceId,
                 targetNode.getNodeCode(), targetNode.getNodeName(), now);
         if (NODE_END.equalsIgnoreCase(targetNode.getNodeType())) {
@@ -733,10 +739,41 @@ public class WorkflowRuntimeService {
         CaseTask nextTask = createNextNodeTask(
                 caseInfo,
                 wfInstance,
+                activeWfId,
                 subflowInstanceId,
                 nodeInstance.getId(),
                 targetNode.getNodeCode(),
                 targetNode.getNodeName(),
+                request,
+                completedTask.getAssigneeId(),
+                completedTask.getAssigneeName(),
+                now);
+        return new TransitionAdvance(List.of(nextTask), false, true);
+    }
+
+    private TransitionAdvance createLaunchedSubflowTarget(
+            CaseInfo caseInfo,
+            CaseWfInstance wfInstance,
+            CaseTask completedTask,
+            WfTransitionDef transition,
+            WorkflowActionRequest request,
+            LocalDateTime now,
+            Map<String, Object> transitionConfig) {
+        CaseSubflowInstance subflowInstance = maybeCreateSubflowInstance(caseInfo, wfInstance, completedTask, transition, request, now, transitionConfig);
+        WfNodeDef firstNode = findFirstActionableNode(subflowInstance.getWfId());
+        if (firstNode == null) {
+            throw new BusinessException("子流程缺少可办理节点：" + subflowInstance.getWfCode());
+        }
+        CaseNodeInstance nodeInstance = createNodeInstance(caseInfo.getId(), wfInstance.getId(), subflowInstance.getId(),
+                firstNode.getNodeCode(), firstNode.getNodeName(), now);
+        CaseTask nextTask = createNextNodeTask(
+                caseInfo,
+                wfInstance,
+                subflowInstance.getWfId(),
+                subflowInstance.getId(),
+                nodeInstance.getId(),
+                firstNode.getNodeCode(),
+                firstNode.getNodeName(),
                 request,
                 completedTask.getAssigneeId(),
                 completedTask.getAssigneeName(),
@@ -785,8 +822,8 @@ public class WorkflowRuntimeService {
             CaseTask parentTask,
             WfTransitionDef transition,
             WorkflowActionRequest request,
-            LocalDateTime now) {
-        Map<String, Object> config = parseTransitionConfig(transition.getTransitionConfigJson());
+            LocalDateTime now,
+            Map<String, Object> config) {
         if (!Boolean.TRUE.equals(toBoolean(config.get("launchSubflow")))) {
             return null;
         }
@@ -858,12 +895,28 @@ public class WorkflowRuntimeService {
         return caseInfo;
     }
 
+    private Long resolveActiveDefinitionWfId(CaseWfInstance wfInstance, CaseTask task) {
+        if (task.getSubflowInstanceId() == null) {
+            return wfInstance.getWfId();
+        }
+        CaseSubflowInstance subflowInstance = requireSubflowInstance(task.getSubflowInstanceId(), task.getCaseId());
+        return subflowInstance.getWfId();
+    }
+
     private CaseTask requireTask(Long caseId, Long taskId) {
         CaseTask task = caseTaskMapper.selectById(taskId);
         if (task == null || !caseId.equals(task.getCaseId())) {
             throw new BusinessException("任务不存在");
         }
         return task;
+    }
+
+    private CaseSubflowInstance requireSubflowInstance(Long subflowInstanceId, Long caseId) {
+        CaseSubflowInstance subflowInstance = caseSubflowInstanceMapper.selectById(subflowInstanceId);
+        if (subflowInstance == null || (caseId != null && !caseId.equals(subflowInstance.getCaseId()))) {
+            throw new BusinessException("子流程实例不存在");
+        }
+        return subflowInstance;
     }
 
     private void validateTaskCanProcess(CaseTask task) {
@@ -1019,6 +1072,7 @@ public class WorkflowRuntimeService {
     private CaseTask createNextNodeTask(
             CaseInfo caseInfo,
             CaseWfInstance wfInstance,
+            Long activeWfId,
             Long subflowInstanceId,
             Long nodeInstanceId,
             String nodeCode,
@@ -1031,7 +1085,7 @@ public class WorkflowRuntimeService {
             return createTask(caseInfo, wfInstance.getId(), subflowInstanceId, nodeInstanceId, nodeCode, nodeName, inheritedAssigneeId, inheritedAssigneeName, now);
         }
 
-        WfNodeDef nodeDef = findNodeDef(wfInstance.getWfId(), nodeCode);
+        WfNodeDef nodeDef = findNodeDef(activeWfId, nodeCode);
         if (nodeDef != null && !isBlank(nodeDef.getHandlerRoleRule())) {
             return createCandidateTask(caseInfo, wfInstance.getId(), subflowInstanceId, nodeInstanceId, nodeCode, nodeName, nodeDef, now);
         }
@@ -1047,6 +1101,19 @@ public class WorkflowRuntimeService {
                 .eq(WfNodeDef::getWfId, wfId)
                 .eq(WfNodeDef::getNodeCode, nodeCode)
                 .eq(WfNodeDef::getEnabled, 1)
+                .last("limit 1"));
+    }
+
+    private WfNodeDef findFirstActionableNode(Long wfId) {
+        if (wfId == null) {
+            return null;
+        }
+        return wfNodeDefMapper.selectOne(new LambdaQueryWrapper<WfNodeDef>()
+                .eq(WfNodeDef::getWfId, wfId)
+                .ne(WfNodeDef::getNodeType, "start")
+                .eq(WfNodeDef::getEnabled, 1)
+                .orderByAsc(WfNodeDef::getSortNo)
+                .orderByAsc(WfNodeDef::getId)
                 .last("limit 1"));
     }
 

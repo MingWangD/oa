@@ -404,6 +404,7 @@ class WorkflowRuntimeServiceTests {
         CaseSubflowInstance subflowInstance = new CaseSubflowInstance();
         subflowInstance.setId(801L);
         subflowInstance.setCaseId(88L);
+        subflowInstance.setWfId(177L);
         subflowInstance.setStatus("running");
 
         WfTransitionDef transition = new WfTransitionDef();
