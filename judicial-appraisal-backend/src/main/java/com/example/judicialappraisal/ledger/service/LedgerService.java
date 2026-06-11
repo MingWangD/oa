@@ -210,7 +210,10 @@ public class LedgerService {
                         List.of(
                                 "承接部门：" + fallback(item.acceptDeptName(), "待补"),
                                 "当前负责人：" + fallback(item.ownerName(), "待补"),
-                                "活跃案件数：" + item.activeCaseCount()
+                                "活跃案件数：" + item.activeCaseCount(),
+                                "最近委托：" + fallback(item.latestCaseTitle(), "待补"),
+                                "客户分级：" + customerTier(item),
+                                "建议跟进时间：" + formatRelative(nextCustomerFollowUp(item))
                         ),
                         null
                 ))
@@ -275,12 +278,13 @@ public class LedgerService {
                                 contractTags(item),
                                 List.of(
                                         "案件编号：" + fallback(item.getCaseNo(), "待补"),
+                                        "合同编号草案：" + contractDraftNumber(item),
                                         "流程状态：" + statusName(item.getCaseStatus()),
                                         "委托单位：" + fallback(item.getEntrustOrgName(), "待补"),
                                         "当前办理人：" + fallback(item.getCurrentHandlerName(), "待补"),
+                                        "签约窗口建议：" + contractSigningWindow(item),
                                         "截止时间：" + formatRelative(item.getDeadlineTime())
-                                )
-                                ,
+                                ),
                                 casePath(item)
                         ))
                         .toList(),
@@ -330,12 +334,13 @@ public class LedgerService {
                                 projectTags(item),
                                 List.of(
                                         "案件编号：" + fallback(item.getCaseNo(), "待补"),
+                                        "项目里程碑：" + projectMilestone(item),
                                         "案件状态：" + statusName(item.getCaseStatus()),
                                         "当前节点：" + fallback(item.getCurrentNodeName(), fallback(item.getCurrentNodeCode(), "待补")),
                                         "承接部门：" + fallback(item.getAcceptDeptName(), "待补"),
+                                        "下一检查点：" + projectCheckpoint(item),
                                         "截止时间：" + formatRelative(item.getDeadlineTime())
-                                )
-                                ,
+                                ),
                                 casePath(item)
                         ))
                         .toList(),
@@ -916,6 +921,67 @@ public class LedgerService {
         return value != null && !value.isBlank();
     }
 
+    private String contractDraftNumber(CaseInfo item) {
+        String base = fallback(item.getCaseNo(), "HT-" + fallback(item.getId() == null ? null : item.getId().toString(), "TEMP"));
+        return "HT-" + base.replace(" ", "-");
+    }
+
+    private String contractSigningWindow(CaseInfo item) {
+        if (List.of("DRAFT", "TO_ACCEPT", "ACCEPT_REVIEWING", "REVIEWING").contains(item.getCaseStatus())) {
+            return "本周内完成审批与签约确认";
+        }
+        if (List.of("PROCESSING", "DOC_ISSUING").contains(item.getCaseStatus())) {
+            return "以履约跟踪为主，补签约归档字段";
+        }
+        return "转归档校验与归档补录";
+    }
+
+    private String projectMilestone(CaseInfo item) {
+        if (List.of("DRAFT", "TO_ACCEPT", "ACCEPT_REVIEWING").contains(item.getCaseStatus())) {
+            return "收案与受理";
+        }
+        if (List.of("REVIEWING", "PROCESSING").contains(item.getCaseStatus())) {
+            return "实施与审核";
+        }
+        if ("DOC_ISSUING".equals(item.getCaseStatus())) {
+            return "文书出具";
+        }
+        if (List.of("COMPLETED", "ARCHIVED").contains(item.getCaseStatus())) {
+            return "结案归档";
+        }
+        return "异常收口";
+    }
+
+    private String projectCheckpoint(CaseInfo item) {
+        if (isOverdue(item)) {
+            return "补延期说明并重新确认节点责任";
+        }
+        if (Objects.equals(item.getUrgentFlag(), 1)) {
+            return "优先锁定紧急节点与交付时间";
+        }
+        return "按当前节点推进并补里程碑说明";
+    }
+
+    private String customerTier(CustomerAggregate item) {
+        if (item.caseCount() >= 3 || item.urgentCaseCount() >= 2) {
+            return "A 级重点";
+        }
+        if (item.activeCaseCount() >= 1) {
+            return "B 级维护";
+        }
+        return "C 级沉淀";
+    }
+
+    private LocalDateTime nextCustomerFollowUp(CustomerAggregate item) {
+        if (item.urgentCaseCount() > 0) {
+            return LocalDateTime.now().plusHours(24);
+        }
+        if (item.activeCaseCount() > 0) {
+            return LocalDateTime.now().plusDays(3);
+        }
+        return LocalDateTime.now().plusDays(7);
+    }
+
     @SafeVarargs
     private <T> T firstNonNull(T... values) {
         for (T value : values) {
@@ -967,6 +1033,7 @@ public class LedgerService {
         private String ownerName;
         private LocalDateTime lastUpdated;
         private LocalDateTime nearestDeadline;
+        private String latestCaseTitle;
         private final List<String> tagBuffer = new ArrayList<>();
 
         private CustomerAggregate(String orgName) {
@@ -990,6 +1057,7 @@ public class LedgerService {
             LocalDateTime updated = item.getUpdatedTime() != null ? item.getUpdatedTime() : item.getCreatedTime();
             if (updated != null && (lastUpdated == null || updated.isAfter(lastUpdated))) {
                 lastUpdated = updated;
+                latestCaseTitle = chooseText(item.getCaseTitle(), item.getCaseNo(), "待补");
             }
             if (item.getDeadlineTime() != null && (nearestDeadline == null || item.getDeadlineTime().isBefore(nearestDeadline))) {
                 nearestDeadline = item.getDeadlineTime();
@@ -1031,8 +1099,22 @@ public class LedgerService {
             return nearestDeadline;
         }
 
+        private String latestCaseTitle() {
+            return latestCaseTitle;
+        }
+
         private List<String> tags() {
             return tagBuffer.stream().filter(Objects::nonNull).distinct().limit(3).collect(Collectors.toList());
+        }
+
+        private String chooseText(String primary, String secondary, String fallback) {
+            if (primary != null && !primary.isBlank()) {
+                return primary.trim();
+            }
+            if (secondary != null && !secondary.isBlank()) {
+                return secondary.trim();
+            }
+            return fallback;
         }
     }
 }
