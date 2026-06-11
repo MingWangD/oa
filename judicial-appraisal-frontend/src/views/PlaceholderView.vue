@@ -152,6 +152,7 @@ const BOARD_CODE_BY_PREFIX: Array<{ prefix: string; code: string }> = [
 function statusText(status: string): string {
   const map: Record<string, string> = {
     completed: '已完成',
+    implemented: '已实现',
     in_progress: '建设中',
     partial: '部分完成',
     cataloged: '已建目录',
