@@ -51,6 +51,7 @@ class LedgerServiceTests {
                 assertThat(row.facts()).contains("活跃案件数：1");
                 assertThat(row.facts()).anyMatch(item -> item.startsWith("客户分级："));
                 assertThat(row.facts()).anyMatch(item -> item.startsWith("建议跟进时间："));
+                assertThat(row.relatedPath()).isEqualTo("/case/1");
             }
         });
     }

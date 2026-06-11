@@ -159,15 +159,15 @@ public class LedgerService {
                             new LedgerRowDto("crm-sample-1", "上海市某法院", "综合业务部", "法院客户", "张主任", "跟进中", "委托案件 3 件，紧急 1 件",
                                     "案件推进活跃，近两天有节点流转", "优先跟进紧急案件并确认反馈窗口",
                                     LocalDateTime.now().minusHours(6), LocalDateTime.now().plusDays(2), List.of("法院", "重点客户"),
-                                    List.of("最近委托：交通事故伤残等级鉴定", "当前承接部门：综合业务部", "建议补联系人、跟进记录和客户分级"), null),
+                                    List.of("最近委托：交通事故伤残等级鉴定", "当前承接部门：综合业务部", "建议补联系人、跟进记录和客户分级"), "/case/101"),
                             new LedgerRowDto("crm-sample-2", "某保险公估公司", "司法鉴定一部", "机构客户", "李经理", "跟进中", "委托案件 2 件，紧急 0 件",
                                     "近期有新增委托，适合补续签信息", "同步合同与项目推进情况",
                                     LocalDateTime.now().minusDays(1), LocalDateTime.now().plusDays(5), List.of("机构", "续签中"),
-                                    List.of("最近委托：房屋损失评估鉴定", "当前承接部门：司法鉴定一部", "建议补商务跟进和续签计划"), null),
+                                    List.of("最近委托：房屋损失评估鉴定", "当前承接部门：司法鉴定一部", "建议补商务跟进和续签计划"), "/case/102"),
                             new LedgerRowDto("crm-sample-3", "某律所", "司法鉴定二部", "律所客户", "王主管", "已沉淀", "委托案件 1 件，紧急 0 件",
                                     "当前没有活跃流转，可纳入沉淀客户池", "补客户画像后再做激活",
                                     LocalDateTime.now().minusDays(8), null, List.of("律所"),
-                                    List.of("最近委托：医疗损害责任鉴定", "当前承接部门：司法鉴定二部", "建议补联系人信息和下次回访时间"), null)
+                                    List.of("最近委托：医疗损害责任鉴定", "当前承接部门：司法鉴定二部", "建议补联系人信息和下次回访时间"), "/case/103")
                     ),
                     List.of("补客户联系人与跟进记录", "补客户分级与转化状态", "接入合同与项目联动")
             );
@@ -215,7 +215,7 @@ public class LedgerService {
                                 "客户分级：" + customerTier(item),
                                 "建议跟进时间：" + formatRelative(nextCustomerFollowUp(item))
                         ),
-                        null
+                        casePath(item.latestCaseId())
                 ))
                 .toList();
 
@@ -838,6 +838,10 @@ public class LedgerService {
         return item.getId() == null ? null : "/case/" + item.getId();
     }
 
+    private String casePath(Long caseId) {
+        return caseId == null ? null : "/case/" + caseId;
+    }
+
     private LocalDateTime caseUpdatedTime(CaseInfo item) {
         return firstNonNull(item.getUpdatedTime(), item.getSubmittedTime(), item.getCreatedTime());
     }
@@ -1034,6 +1038,7 @@ public class LedgerService {
         private LocalDateTime lastUpdated;
         private LocalDateTime nearestDeadline;
         private String latestCaseTitle;
+        private Long latestCaseId;
         private final List<String> tagBuffer = new ArrayList<>();
 
         private CustomerAggregate(String orgName) {
@@ -1058,6 +1063,7 @@ public class LedgerService {
             if (updated != null && (lastUpdated == null || updated.isAfter(lastUpdated))) {
                 lastUpdated = updated;
                 latestCaseTitle = chooseText(item.getCaseTitle(), item.getCaseNo(), "待补");
+                latestCaseId = item.getId();
             }
             if (item.getDeadlineTime() != null && (nearestDeadline == null || item.getDeadlineTime().isBefore(nearestDeadline))) {
                 nearestDeadline = item.getDeadlineTime();
@@ -1101,6 +1107,10 @@ public class LedgerService {
 
         private String latestCaseTitle() {
             return latestCaseTitle;
+        }
+
+        private Long latestCaseId() {
+            return latestCaseId;
         }
 
         private List<String> tags() {

@@ -455,6 +455,22 @@ async function openRelatedPath(row: LedgerRow): Promise<void> {
   await router.push(row.relatedPath);
 }
 
+function relatedActionLabel(row: LedgerRow): string {
+  if (!row.relatedPath) {
+    return '继续办理';
+  }
+  if (row.relatedPath.startsWith('/case/')) {
+    return '查看案件';
+  }
+  if (row.relatedPath.startsWith('/knowledge')) {
+    return '查看知识库';
+  }
+  if (row.relatedPath.startsWith('/admin/users')) {
+    return '查看用户';
+  }
+  return '继续办理';
+}
+
 function exportBoard(): void {
   if (!ledgerBoard.value || typeof window === 'undefined') {
     return;
@@ -714,7 +730,7 @@ watch([keyword, statusFilter], () => {
           <template #default="scope">
             <div class="row-actions">
               <el-button link type="primary" @click="openRowDetail(scope.row)">查看详情</el-button>
-              <el-button v-if="scope.row.relatedPath" link @click="openRelatedPath(scope.row)">继续办理</el-button>
+              <el-button v-if="scope.row.relatedPath" link @click="openRelatedPath(scope.row)">{{ relatedActionLabel(scope.row) }}</el-button>
             </div>
           </template>
         </el-table-column>
@@ -804,7 +820,7 @@ watch([keyword, statusFilter], () => {
       </div>
 
       <div v-if="detailRow.relatedPath" class="drawer-actions">
-        <el-button type="primary" @click="openRelatedPath(detailRow)">继续办理</el-button>
+        <el-button type="primary" @click="openRelatedPath(detailRow)">{{ relatedActionLabel(detailRow) }}</el-button>
       </div>
     </div>
   </el-drawer>
