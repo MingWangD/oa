@@ -62,6 +62,7 @@ class LedgerServiceTests {
         assertThat(board.sourceType()).isEqualTo("sample");
         assertThat(board.rows()).isNotEmpty();
         assertThat(board.rows().get(0).tertiaryText()).isNotBlank();
+        assertThat(board.rows().get(0).relatedPath()).startsWith("/case/");
         assertThat(board.metrics()).extracting("label")
                 .contains("合同清单", "审批中", "履约中", "已收口");
     }
@@ -79,6 +80,8 @@ class LedgerServiceTests {
         assertThat(board.rows().get(0).statusLabel()).isEqualTo("预警中");
         assertThat(board.rows().get(0).tags()).contains("超期", "紧急");
         assertThat(board.rows().get(0).actionHint()).contains("优先处理超期说明");
+        assertThat(board.rows().get(0).relatedPath()).isEqualTo("/case/10");
+        assertThat(board.rows().get(0).facts()).contains("案件编号：沪司鉴-010");
     }
 
     private CaseInfo caseInfo(Long id, String caseNo, String caseTitle, String status, String entrustOrgName,

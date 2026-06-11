@@ -16,7 +16,8 @@ public record LedgerRowDto(
         LocalDateTime updatedTime,
         LocalDateTime deadlineTime,
         List<String> tags,
-        List<String> facts
+        List<String> facts,
+        String relatedPath
 ) {
     public LedgerRowDto {
         tags = tags == null ? List.of() : List.copyOf(tags);

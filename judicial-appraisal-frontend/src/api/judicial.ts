@@ -305,6 +305,7 @@ export interface LedgerRow {
   deadlineTime: string | null;
   tags: string[];
   facts: string[];
+  relatedPath: string | null;
 }
 
 export interface LedgerBoard {

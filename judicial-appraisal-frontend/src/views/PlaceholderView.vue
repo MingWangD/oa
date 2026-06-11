@@ -446,6 +446,15 @@ function openRowDetail(row: LedgerRow): void {
   detailVisible.value = true;
 }
 
+async function openRelatedPath(row: LedgerRow): Promise<void> {
+  if (!row.relatedPath) {
+    return;
+  }
+  detailVisible.value = false;
+  detailRow.value = null;
+  await router.push(row.relatedPath);
+}
+
 function exportBoard(): void {
   if (!ledgerBoard.value || typeof window === 'undefined') {
     return;
@@ -701,9 +710,12 @@ watch([keyword, statusFilter], () => {
         <el-table-column label="截止时间" min-width="170">
           <template #default="scope">{{ formatDateTime(scope.row.deadlineTime) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="120">
+        <el-table-column label="操作" width="180">
           <template #default="scope">
-            <el-button link type="primary" @click="openRowDetail(scope.row)">查看详情</el-button>
+            <div class="row-actions">
+              <el-button link type="primary" @click="openRowDetail(scope.row)">查看详情</el-button>
+              <el-button v-if="scope.row.relatedPath" link @click="openRelatedPath(scope.row)">继续办理</el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -789,6 +801,10 @@ watch([keyword, statusFilter], () => {
         <ul class="compact-list">
           <li v-for="fact in detailRow.facts" :key="fact">{{ fact }}</li>
         </ul>
+      </div>
+
+      <div v-if="detailRow.relatedPath" class="drawer-actions">
+        <el-button type="primary" @click="openRelatedPath(detailRow)">继续办理</el-button>
       </div>
     </div>
   </el-drawer>
@@ -890,6 +906,12 @@ watch([keyword, statusFilter], () => {
   background: var(--td-accent-soft);
 }
 
+.row-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 .ledger-drawer {
   display: grid;
   gap: 16px;
@@ -920,6 +942,11 @@ watch([keyword, statusFilter], () => {
   color: var(--td-text);
   font-size: 18px;
   font-weight: 600;
+}
+
+.drawer-actions {
+  display: flex;
+  justify-content: flex-start;
 }
 
 @media (max-width: 960px) {

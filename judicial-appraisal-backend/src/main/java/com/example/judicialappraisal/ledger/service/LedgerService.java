@@ -159,15 +159,15 @@ public class LedgerService {
                             new LedgerRowDto("crm-sample-1", "上海市某法院", "综合业务部", "法院客户", "张主任", "跟进中", "委托案件 3 件，紧急 1 件",
                                     "案件推进活跃，近两天有节点流转", "优先跟进紧急案件并确认反馈窗口",
                                     LocalDateTime.now().minusHours(6), LocalDateTime.now().plusDays(2), List.of("法院", "重点客户"),
-                                    List.of("最近委托：交通事故伤残等级鉴定", "当前承接部门：综合业务部", "建议补联系人、跟进记录和客户分级")),
+                                    List.of("最近委托：交通事故伤残等级鉴定", "当前承接部门：综合业务部", "建议补联系人、跟进记录和客户分级"), null),
                             new LedgerRowDto("crm-sample-2", "某保险公估公司", "司法鉴定一部", "机构客户", "李经理", "跟进中", "委托案件 2 件，紧急 0 件",
                                     "近期有新增委托，适合补续签信息", "同步合同与项目推进情况",
                                     LocalDateTime.now().minusDays(1), LocalDateTime.now().plusDays(5), List.of("机构", "续签中"),
-                                    List.of("最近委托：房屋损失评估鉴定", "当前承接部门：司法鉴定一部", "建议补商务跟进和续签计划")),
+                                    List.of("最近委托：房屋损失评估鉴定", "当前承接部门：司法鉴定一部", "建议补商务跟进和续签计划"), null),
                             new LedgerRowDto("crm-sample-3", "某律所", "司法鉴定二部", "律所客户", "王主管", "已沉淀", "委托案件 1 件，紧急 0 件",
                                     "当前没有活跃流转，可纳入沉淀客户池", "补客户画像后再做激活",
                                     LocalDateTime.now().minusDays(8), null, List.of("律所"),
-                                    List.of("最近委托：医疗损害责任鉴定", "当前承接部门：司法鉴定二部", "建议补联系人信息和下次回访时间"))
+                                    List.of("最近委托：医疗损害责任鉴定", "当前承接部门：司法鉴定二部", "建议补联系人信息和下次回访时间"), null)
                     ),
                     List.of("补客户联系人与跟进记录", "补客户分级与转化状态", "接入合同与项目联动")
             );
@@ -211,7 +211,8 @@ public class LedgerService {
                                 "承接部门：" + fallback(item.acceptDeptName(), "待补"),
                                 "当前负责人：" + fallback(item.ownerName(), "待补"),
                                 "活跃案件数：" + item.activeCaseCount()
-                        )
+                        ),
+                        null
                 ))
                 .toList();
 
@@ -273,10 +274,14 @@ public class LedgerService {
                                 item.getDeadlineTime(),
                                 contractTags(item),
                                 List.of(
+                                        "案件编号：" + fallback(item.getCaseNo(), "待补"),
                                         "流程状态：" + statusName(item.getCaseStatus()),
                                         "委托单位：" + fallback(item.getEntrustOrgName(), "待补"),
-                                        "当前办理人：" + fallback(item.getCurrentHandlerName(), "待补")
+                                        "当前办理人：" + fallback(item.getCurrentHandlerName(), "待补"),
+                                        "截止时间：" + formatRelative(item.getDeadlineTime())
                                 )
+                                ,
+                                casePath(item)
                         ))
                         .toList(),
                 List.of("补正式合同编号与金额", "补审批节点与签约日期", "接入客户和项目关联")
@@ -324,10 +329,14 @@ public class LedgerService {
                                 item.getDeadlineTime(),
                                 projectTags(item),
                                 List.of(
+                                        "案件编号：" + fallback(item.getCaseNo(), "待补"),
                                         "案件状态：" + statusName(item.getCaseStatus()),
                                         "当前节点：" + fallback(item.getCurrentNodeName(), fallback(item.getCurrentNodeCode(), "待补")),
-                                        "承接部门：" + fallback(item.getAcceptDeptName(), "待补")
+                                        "承接部门：" + fallback(item.getAcceptDeptName(), "待补"),
+                                        "截止时间：" + formatRelative(item.getDeadlineTime())
                                 )
+                                ,
+                                casePath(item)
                         ))
                         .toList(),
                 List.of("补项目编号与计划节点", "补项目预警与延期说明", "接入合同、费用和归档联动")
@@ -817,7 +826,11 @@ public class LedgerService {
                              List<String> tags,
                              List<String> facts) {
         return new LedgerRowDto(rowKey, primaryText, secondaryText, tertiaryText, ownerName, statusLabel, metricText,
-                progressLabel, actionHint, updatedTime, deadlineTime, tags, facts);
+                progressLabel, actionHint, updatedTime, deadlineTime, tags, facts, null);
+    }
+
+    private String casePath(CaseInfo item) {
+        return item.getId() == null ? null : "/case/" + item.getId();
     }
 
     private LocalDateTime caseUpdatedTime(CaseInfo item) {
