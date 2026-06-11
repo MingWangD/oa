@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 
 import {
@@ -12,6 +12,7 @@ import {
 import { useAuthStore } from '../stores/auth';
 
 const route = useRoute();
+const router = useRouter();
 const authStore = useAuthStore();
 const loading = ref(false);
 const acting = ref(false);
@@ -19,6 +20,9 @@ const detail = ref<CaseDetail | null>(null);
 const opinion = ref('');
 
 const caseId = computed(() => Number(route.params.id));
+const returnPath = computed(() => (typeof route.query.from === 'string' ? route.query.from : ''));
+const returnLabel = computed(() => (typeof route.query.fromLabel === 'string' ? route.query.fromLabel : '上一页'));
+const sourceBoard = computed(() => (typeof route.query.fromBoard === 'string' ? route.query.fromBoard : ''));
 
 function formatDateTime(value: string | null): string {
   if (!value) {
@@ -63,6 +67,14 @@ async function submitAction(actionCode: WorkflowActionCode): Promise<void> {
   }
 }
 
+async function goBack(): Promise<void> {
+  if (returnPath.value) {
+    await router.push(returnPath.value);
+    return;
+  }
+  router.back();
+}
+
 onMounted(() => {
   void loadDetail();
 });
@@ -75,10 +87,18 @@ onMounted(() => {
         <h3 class="panel-title">案件详情</h3>
         <p class="panel-subtitle">展示案件主数据、当前环节和基础办理动作；后续接入动态表单渲染。</p>
       </div>
-      <el-button :loading="loading" @click="loadDetail">刷新</el-button>
+      <div class="query-actions">
+        <el-button v-if="returnPath" @click="goBack">返回{{ returnLabel }}</el-button>
+        <el-button :loading="loading" @click="loadDetail">刷新</el-button>
+      </div>
     </div>
 
     <div v-if="detail" class="detail-body" v-loading="loading">
+      <div v-if="returnPath" class="state-banner">
+        当前从 <strong>{{ returnLabel }}</strong> 进入案件详情
+        <span v-if="sourceBoard">，可在处理后直接返回原模块。</span>
+      </div>
+
       <el-descriptions border :column="2" title="案件信息">
         <el-descriptions-item label="案件名称">{{ detail.caseTitle || '-' }}</el-descriptions-item>
         <el-descriptions-item label="案件编号">{{ detail.caseNo || '-' }}</el-descriptions-item>

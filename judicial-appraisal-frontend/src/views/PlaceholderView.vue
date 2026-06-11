@@ -452,7 +452,14 @@ async function openRelatedPath(row: LedgerRow): Promise<void> {
   }
   detailVisible.value = false;
   detailRow.value = null;
-  await router.push(row.relatedPath);
+  await router.push({
+    path: row.relatedPath,
+    query: {
+      from: route.fullPath,
+      fromLabel: currentTitle.value,
+      fromBoard: currentBoardCode.value
+    }
+  });
 }
 
 function relatedActionLabel(row: LedgerRow): string {

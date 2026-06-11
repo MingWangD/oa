@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
 import { fetchCases, type CaseItem, type PageResult } from '../api/judicial';
 
+const route = useRoute();
 const router = useRouter();
 const loading = ref(false);
 const errorMessage = ref('');
@@ -101,26 +102,60 @@ async function loadCases(pageNo = pageData.value.pageNo): Promise<void> {
 }
 
 function search(): void {
+  persistFiltersToRoute(1);
   void loadCases(1);
 }
 
 function resetFilters(): void {
   filters.keyword = '';
   filters.caseStatus = '';
+  persistFiltersToRoute(1);
   void loadCases(1);
 }
 
 function handleCurrentChange(pageNo: number): void {
+  persistFiltersToRoute(pageNo);
   void loadCases(pageNo);
 }
 
 function openCaseDetail(caseId: number): void {
-  void router.push(`/case/${caseId}`);
+  void router.push({
+    path: `/case/${caseId}`,
+    query: {
+      from: route.fullPath,
+      fromLabel: '工作查询'
+    }
+  });
+}
+
+function syncFiltersFromRoute(): void {
+  filters.keyword = typeof route.query.keyword === 'string' ? route.query.keyword : '';
+  filters.caseStatus = typeof route.query.caseStatus === 'string' ? route.query.caseStatus : '';
+}
+
+function persistFiltersToRoute(pageNo = 1): void {
+  void router.replace({
+    path: route.path,
+    query: {
+      ...(filters.keyword.trim() ? { keyword: filters.keyword.trim() } : {}),
+      ...(filters.caseStatus ? { caseStatus: filters.caseStatus } : {}),
+      ...(pageNo > 1 ? { pageNo: String(pageNo) } : {})
+    }
+  });
 }
 
 onMounted(() => {
-  void loadCases(1);
+  syncFiltersFromRoute();
+  const initialPage = Number(route.query.pageNo);
+  void loadCases(Number.isFinite(initialPage) && initialPage > 0 ? initialPage : 1);
 });
+
+watch(
+  () => route.query,
+  () => {
+    syncFiltersFromRoute();
+  }
+);
 </script>
 
 <template>
