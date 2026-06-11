@@ -110,7 +110,7 @@ public class LedgerService {
             case "hr" -> hrBoard(rowLimit);
             case "attendance" -> attendanceBoard();
             case "official-doc" -> officialDocBoard();
-            case "archive" -> archiveBoard(rowLimit);
+            case "archive" -> archiveBoard(normalizedStatus, rowLimit);
             case "community" -> communityBoard();
             case "supervision" -> supervisionBoard(cases, rowLimit);
             case "portal" -> portalBoard(cases);
@@ -118,8 +118,8 @@ public class LedgerService {
             case "open-api" -> openApiBoard();
             case "sso" -> ssoBoard();
             case "unified-todo" -> unifiedTodoBoard(cases, rowLimit);
-            case "system-permission" -> systemPermissionBoard(rowLimit);
-            case "system-log" -> systemLogBoard(rowLimit);
+            case "system-permission" -> systemPermissionBoard(normalizedStatus, rowLimit);
+            case "system-log" -> systemLogBoard(normalizedStatus, rowLimit);
             case "system-datasource" -> systemDatasourceBoard();
             default -> throw new BusinessException("暂不支持的业务台账模块");
         };
@@ -619,19 +619,41 @@ public class LedgerService {
                 List.of("补岗位信息", "补入离职状态", "接入考勤与权限联动"));
     }
 
-    private LedgerBoardDto archiveBoard(int rowLimit) {
+    private LedgerBoardDto archiveBoard(String status, int rowLimit) {
         if (caseArchiveRecordMapper == null || knowledgeDocumentMapper == null) {
             return simpleOfficeBoard("archive", "档案", "承接案件档案、公文档案和中心入库结果。");
         }
-        List<CaseArchiveRecord> archives = caseArchiveRecordMapper.selectList(new LambdaQueryWrapper<CaseArchiveRecord>().orderByDesc(CaseArchiveRecord::getArchivedTime).last("limit " + rowLimit));
+        List<CaseArchiveRecord> archives = caseArchiveRecordMapper.selectList(new LambdaQueryWrapper<CaseArchiveRecord>().orderByDesc(CaseArchiveRecord::getArchivedTime).last("limit 200"));
         int docs = Math.toIntExact(knowledgeDocumentMapper.selectCount(new LambdaQueryWrapper<KnowledgeDocument>().eq(KnowledgeDocument::getDeleted, 0)));
-        return new LedgerBoardDto("archive", "档案", "基于自动归档与知识文档承接档案台账。", "live", List.of("all"),
+        List<CaseArchiveRecord> filtered = archives.stream()
+                .filter(item -> archiveMatchesStatus(item, status))
+                .limit(rowLimit)
+                .toList();
+        return new LedgerBoardDto("archive", "档案", "基于自动归档与知识文档承接档案台账。", "live",
+                List.of("all", "archived", "pending"),
                 List.of(new LedgerMetricDto("归档记录", String.valueOf(archives.size()), false), new LedgerMetricDto("知识文档", String.valueOf(docs), false),
                         new LedgerMetricDto("中心入库", String.valueOf(archives.stream().filter(item -> "archived".equals(item.getArchiveStatus())).count()), true), new LedgerMetricDto("待补详情", String.valueOf(archives.stream().filter(item -> !hasText(item.getArchiveSummary())).count()), false)),
-                archives.stream().map(item -> row("archive-" + item.getId(), fallback(item.getCaseNo(), "待补案号"), fallback(item.getNodeName(), "归档节点"), fallback(item.getArchiveType(), "档案"),
-                        fallback(String.valueOf(item.getArchivedBy()), "系统"), fallback(item.getArchiveStatus(), "待处理"), fallback(item.getArchiveSummary(), "已记录归档动作"),
-                        "建议补电子地址与入库位置", "后续接中心入库确认", item.getArchivedTime(), null, List.of(fallback(item.getArchiveType(), "档案")),
-                        List.of("节点：" + fallback(item.getNodeName(), "待补"), "任务ID：" + fallback(String.valueOf(item.getTaskId()), "待补"), "文档ID：" + fallback(String.valueOf(item.getDocumentId()), "待补")))).toList(),
+                filtered.stream().map(item -> new LedgerRowDto(
+                        "archive-" + item.getId(),
+                        fallback(item.getCaseNo(), "待补案号"),
+                        fallback(item.getNodeName(), "归档节点"),
+                        fallback(item.getArchiveType(), "档案"),
+                        fallback(String.valueOf(item.getArchivedBy()), "系统"),
+                        archiveStatusLabel(item.getArchiveStatus()),
+                        fallback(item.getArchiveSummary(), "已记录归档动作"),
+                        hasText(item.getArchiveSummary()) ? "归档摘要已留痕" : "待补归档摘要与电子地址",
+                        "建议补电子地址、入库位置和借阅状态",
+                        item.getArchivedTime(),
+                        null,
+                        List.of(fallback(item.getArchiveType(), "档案"), archiveStatusLabel(item.getArchiveStatus())),
+                        List.of(
+                                "节点：" + fallback(item.getNodeName(), "待补"),
+                                "任务ID：" + fallback(String.valueOf(item.getTaskId()), "待补"),
+                                "文档ID：" + fallback(String.valueOf(item.getDocumentId()), "待补"),
+                                "案件ID：" + fallback(String.valueOf(item.getCaseId()), "待补")
+                        ),
+                        "/knowledge"
+                )).toList(),
                 List.of("补电子归档地址", "补中心入库结果", "接入公文与项目档案"));
     }
 
@@ -669,31 +691,98 @@ public class LedgerService {
         return personalTaskBoard(cases, rowLimit);
     }
 
-    private LedgerBoardDto systemPermissionBoard(int rowLimit) {
+    private LedgerBoardDto systemPermissionBoard(String status, int rowLimit) {
         if (sysRoleMapper == null || sysMenuMapper == null) {
             return simpleOfficeBoard("system-permission", "权限管理", "承接角色、菜单、数据范围和授权矩阵。");
         }
-        List<SysRole> roles = sysRoleMapper.selectList(new LambdaQueryWrapper<SysRole>().eq(SysRole::getDeleted, 0).orderByDesc(SysRole::getUpdatedTime).last("limit " + rowLimit));
+        List<SysRole> roles = sysRoleMapper.selectList(new LambdaQueryWrapper<SysRole>().eq(SysRole::getDeleted, 0).orderByDesc(SysRole::getUpdatedTime).last("limit 200"));
         long menus = sysMenuMapper.selectCount(new LambdaQueryWrapper<SysMenu>().eq(SysMenu::getDeleted, 0));
-        return new LedgerBoardDto("system-permission", "权限管理", "基于当前角色和菜单台账承接授权治理。", "live", List.of("all"),
+        List<SysRole> filtered = roles.stream().filter(item -> roleMatchesStatus(item, status)).limit(rowLimit).toList();
+        return new LedgerBoardDto("system-permission", "权限管理", "基于当前角色和菜单台账承接授权治理。", "live",
+                List.of("all", "enabled", "disabled"),
                 List.of(new LedgerMetricDto("角色", String.valueOf(roles.size()), false), new LedgerMetricDto("菜单", String.valueOf(menus), false), new LedgerMetricDto("启用角色", String.valueOf(roles.stream().filter(item -> "enabled".equals(item.getStatus())).count()), true), new LedgerMetricDto("数据范围", "5 类", false)),
-                roles.stream().map(item -> row("role-" + item.getId(), fallback(item.getRoleName(), "未命名角色"), fallback(item.getRoleCode(), "待补编码"), fallback(item.getDataScope(), "待补范围"),
-                        fallback(item.getRoleCode(), "角色"), "enabled".equals(item.getStatus()) ? "启用" : fallback(item.getStatus(), "待治理"), "数据范围：" + fallback(item.getDataScope(), "待补"),
-                        "建议补角色矩阵与成员明细", "后续接权限变更审批", firstNonNull(item.getUpdatedTime(), item.getCreatedTime()), null, List.of("角色"), List.of("角色编码：" + fallback(item.getRoleCode(), "待补"), "数据范围：" + fallback(item.getDataScope(), "待补"), "建议补成员列表"))).toList(),
+                filtered.stream().map(item -> new LedgerRowDto(
+                        "role-" + item.getId(),
+                        fallback(item.getRoleName(), "未命名角色"),
+                        fallback(item.getRoleCode(), "待补编码"),
+                        fallback(item.getDataScope(), "待补范围"),
+                        fallback(item.getRoleCode(), "角色"),
+                        "enabled".equals(item.getStatus()) ? "启用" : "停用",
+                        "数据范围：" + fallback(item.getDataScope(), "待补"),
+                        "建议补角色矩阵、成员明细与授权范围",
+                        "后续接权限变更审批与审计",
+                        firstNonNull(item.getUpdatedTime(), item.getCreatedTime()),
+                        null,
+                        List.of("角色", "enabled".equals(item.getStatus()) ? "启用" : "停用"),
+                        List.of(
+                                "角色编码：" + fallback(item.getRoleCode(), "待补"),
+                                "数据范围：" + fallback(item.getDataScope(), "待补"),
+                                "创建人：" + fallback(String.valueOf(item.getCreatedBy()), "待补")
+                        ),
+                        "/admin/users"
+                )).toList(),
                 List.of("补角色矩阵", "补成员明细", "接入权限变更审批"));
     }
 
-    private LedgerBoardDto systemLogBoard(int rowLimit) {
+    private LedgerBoardDto systemLogBoard(String status, int rowLimit) {
         if (auditEventMapper == null) {
             return simpleOfficeBoard("system-log", "管理日志", "承接登录、下载、权限变更和业务审计查询。");
         }
-        List<AuditEvent> events = auditEventMapper.selectList(new LambdaQueryWrapper<AuditEvent>().orderByDesc(AuditEvent::getOperatedTime).last("limit " + rowLimit));
-        return new LedgerBoardDto("system-log", "管理日志", "基于审计事件承接系统与业务操作日志。", "live", List.of("all"),
+        List<AuditEvent> events = auditEventMapper.selectList(new LambdaQueryWrapper<AuditEvent>().orderByDesc(AuditEvent::getOperatedTime).last("limit 200"));
+        List<AuditEvent> filtered = events.stream().filter(item -> logMatchesStatus(item, status)).limit(rowLimit).toList();
+        return new LedgerBoardDto("system-log", "管理日志", "基于审计事件承接系统与业务操作日志。", "live",
+                List.of("all", "success", "failed"),
                 List.of(new LedgerMetricDto("最近日志", String.valueOf(events.size()), false), new LedgerMetricDto("成功", String.valueOf(events.stream().filter(item -> "success".equalsIgnoreCase(item.getResultStatus())).count()), false), new LedgerMetricDto("失败", String.valueOf(events.stream().filter(item -> !"success".equalsIgnoreCase(item.getResultStatus())).count()), true), new LedgerMetricDto("审计覆盖", "已开启", false)),
-                events.stream().map(item -> row("audit-" + item.getId(), fallback(item.getActionName(), "未命名操作"), fallback(item.getOperatorName(), "系统"), fallback(item.getBizType(), "业务"),
-                        fallback(item.getOperatorName(), "系统"), fallback(item.getResultStatus(), "unknown"), fallback(item.getActionCode(), "待补编码"),
-                        hasText(item.getDetailJson()) ? "已记录详情" : "建议补更多审计细节", "后续接高级筛选与导出", item.getOperatedTime(), null, List.of(fallback(item.getBizType(), "审计")), List.of("业务ID：" + fallback(String.valueOf(item.getBizId()), "待补"), "案件ID：" + fallback(String.valueOf(item.getCaseId()), "待补"), "操作时间：" + formatRelative(item.getOperatedTime())))).toList(),
+                filtered.stream().map(item -> new LedgerRowDto(
+                        "audit-" + item.getId(),
+                        fallback(item.getActionName(), "未命名操作"),
+                        fallback(item.getOperatorName(), "系统"),
+                        fallback(item.getBizType(), "业务"),
+                        fallback(item.getOperatorName(), "系统"),
+                        "success".equalsIgnoreCase(item.getResultStatus()) ? "成功" : "失败",
+                        fallback(item.getActionCode(), "待补编码"),
+                        hasText(item.getDetailJson()) ? "已记录详情" : "建议补更多审计细节",
+                        item.getCaseId() != null ? "可顺着跳回案件详情排查" : "后续接高级筛选与导出",
+                        item.getOperatedTime(),
+                        null,
+                        List.of(fallback(item.getBizType(), "审计"), "success".equalsIgnoreCase(item.getResultStatus()) ? "成功" : "失败"),
+                        List.of(
+                                "业务ID：" + fallback(String.valueOf(item.getBizId()), "待补"),
+                                "案件ID：" + fallback(String.valueOf(item.getCaseId()), "待补"),
+                                "IP：" + fallback(item.getIpAddress(), "待补"),
+                                "操作时间：" + formatRelative(item.getOperatedTime())
+                        ),
+                        casePath(item.getCaseId())
+                )).toList(),
                 List.of("补筛选条件", "补导出能力", "接入审计详情页"));
+    }
+
+    private boolean archiveMatchesStatus(CaseArchiveRecord item, String status) {
+        return switch (status) {
+            case "archived" -> "archived".equalsIgnoreCase(item.getArchiveStatus());
+            case "pending" -> !"archived".equalsIgnoreCase(item.getArchiveStatus());
+            default -> true;
+        };
+    }
+
+    private boolean roleMatchesStatus(SysRole item, String status) {
+        return switch (status) {
+            case "enabled" -> "enabled".equalsIgnoreCase(item.getStatus());
+            case "disabled" -> !"enabled".equalsIgnoreCase(item.getStatus());
+            default -> true;
+        };
+    }
+
+    private boolean logMatchesStatus(AuditEvent item, String status) {
+        return switch (status) {
+            case "success" -> "success".equalsIgnoreCase(item.getResultStatus());
+            case "failed" -> !"success".equalsIgnoreCase(item.getResultStatus());
+            default -> true;
+        };
+    }
+
+    private String archiveStatusLabel(String status) {
+        return "archived".equalsIgnoreCase(status) ? "已入库" : "待补充";
     }
 
     private boolean crmMatchesStatus(CustomerAggregate item, String status) {

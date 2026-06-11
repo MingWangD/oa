@@ -260,11 +260,14 @@ const statusLabels = computed<Record<string, string>>(() => ({
   terminated: '已终止',
   processing: '推进中',
   warning: '预警中',
-  pending: '待处理',
+  archived: '已入库',
+  pending: '待补充',
   planning: '规划中',
   recent: '最近',
   enabled: '启用',
-  disabled: '停用'
+  disabled: '停用',
+  success: '成功',
+  failed: '失败'
 }));
 const statusButtons = computed(() => ledgerBoard.value?.statusOptions ?? ['all']);
 const filterSummary = computed(() => {

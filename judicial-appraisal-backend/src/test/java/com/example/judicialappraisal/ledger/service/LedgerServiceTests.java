@@ -5,9 +5,17 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import com.example.judicialappraisal.audit.entity.AuditEvent;
+import com.example.judicialappraisal.audit.mapper.AuditEventMapper;
 import com.example.judicialappraisal.caseinfo.entity.CaseInfo;
 import com.example.judicialappraisal.caseinfo.mapper.CaseInfoMapper;
+import com.example.judicialappraisal.knowledge.entity.CaseArchiveRecord;
+import com.example.judicialappraisal.knowledge.mapper.CaseArchiveRecordMapper;
+import com.example.judicialappraisal.knowledge.mapper.KnowledgeDocumentMapper;
 import com.example.judicialappraisal.ledger.dto.LedgerBoardDto;
+import com.example.judicialappraisal.organization.entity.SysRole;
+import com.example.judicialappraisal.organization.mapper.SysMenuMapper;
+import com.example.judicialappraisal.organization.mapper.SysRoleMapper;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,12 +29,23 @@ class LedgerServiceTests {
 
     @Mock
     private CaseInfoMapper caseInfoMapper;
+    @Mock
+    private CaseArchiveRecordMapper caseArchiveRecordMapper;
+    @Mock
+    private KnowledgeDocumentMapper knowledgeDocumentMapper;
+    @Mock
+    private SysRoleMapper sysRoleMapper;
+    @Mock
+    private SysMenuMapper sysMenuMapper;
+    @Mock
+    private AuditEventMapper auditEventMapper;
 
     private LedgerService ledgerService;
 
     @BeforeEach
     void setUp() {
-        ledgerService = new LedgerService(caseInfoMapper, null, null, null, null, null, null, null, null, null, null);
+        ledgerService = new LedgerService(caseInfoMapper, null, sysRoleMapper, sysMenuMapper, auditEventMapper,
+                caseArchiveRecordMapper, knowledgeDocumentMapper, null, null, null, null);
     }
 
     @Test
@@ -89,6 +108,53 @@ class LedgerServiceTests {
         assertThat(board.rows().get(0).facts()).anyMatch(item -> item.startsWith("下一检查点："));
     }
 
+    @Test
+    void archiveBoardSupportsStatusFilteringAndKnowledgeNavigation() {
+        when(caseArchiveRecordMapper.selectList(any())).thenReturn(List.of(
+                archiveRecord(1L, 11L, "沪司鉴-011", "archived", "意见书归档"),
+                archiveRecord(2L, 12L, "沪司鉴-012", "pending", null)
+        ));
+        when(knowledgeDocumentMapper.selectCount(any())).thenReturn(5L);
+
+        LedgerBoardDto board = ledgerService.board("archive", null, "archived", 10);
+
+        assertThat(board.statusOptions()).contains("all", "archived", "pending");
+        assertThat(board.rows()).hasSize(1);
+        assertThat(board.rows().get(0).statusLabel()).isEqualTo("已入库");
+        assertThat(board.rows().get(0).relatedPath()).isEqualTo("/knowledge");
+    }
+
+    @Test
+    void systemPermissionBoardSupportsStatusFilteringAndUserNavigation() {
+        when(sysRoleMapper.selectList(any())).thenReturn(List.of(
+                role(1L, "管理员", "ADMIN", "enabled", "all"),
+                role(2L, "访客", "GUEST", "disabled", "self")
+        ));
+        when(sysMenuMapper.selectCount(any())).thenReturn(12L);
+
+        LedgerBoardDto board = ledgerService.board("system-permission", null, "disabled", 10);
+
+        assertThat(board.statusOptions()).contains("all", "enabled", "disabled");
+        assertThat(board.rows()).hasSize(1);
+        assertThat(board.rows().get(0).statusLabel()).isEqualTo("停用");
+        assertThat(board.rows().get(0).relatedPath()).isEqualTo("/admin/users");
+    }
+
+    @Test
+    void systemLogBoardSupportsFailureFilteringAndCaseNavigation() {
+        when(auditEventMapper.selectList(any())).thenReturn(List.of(
+                auditEvent(1L, "提交案件", "success", 21L),
+                auditEvent(2L, "终止流程", "failed", 22L)
+        ));
+
+        LedgerBoardDto board = ledgerService.board("system-log", null, "failed", 10);
+
+        assertThat(board.statusOptions()).contains("all", "success", "failed");
+        assertThat(board.rows()).hasSize(1);
+        assertThat(board.rows().get(0).statusLabel()).isEqualTo("失败");
+        assertThat(board.rows().get(0).relatedPath()).isEqualTo("/case/22");
+    }
+
     private CaseInfo caseInfo(Long id, String caseNo, String caseTitle, String status, String entrustOrgName,
                               String acceptDeptName, String currentHandlerName, Integer urgentFlag,
                               LocalDateTime deadlineTime) {
@@ -104,6 +170,50 @@ class LedgerServiceTests {
         item.setDeadlineTime(deadlineTime);
         item.setUpdatedTime(LocalDateTime.now());
         item.setCreatedTime(LocalDateTime.now().minusDays(2));
+        return item;
+    }
+
+    private CaseArchiveRecord archiveRecord(Long id, Long caseId, String caseNo, String status, String summary) {
+        CaseArchiveRecord item = new CaseArchiveRecord();
+        item.setId(id);
+        item.setCaseId(caseId);
+        item.setCaseNo(caseNo);
+        item.setArchiveStatus(status);
+        item.setArchiveSummary(summary);
+        item.setArchiveType("案件档案");
+        item.setNodeName("归档");
+        item.setTaskId(100L + id);
+        item.setDocumentId(200L + id);
+        item.setArchivedBy(1L);
+        item.setArchivedTime(LocalDateTime.now().minusHours(id));
+        return item;
+    }
+
+    private SysRole role(Long id, String name, String code, String status, String dataScope) {
+        SysRole item = new SysRole();
+        item.setId(id);
+        item.setRoleName(name);
+        item.setRoleCode(code);
+        item.setStatus(status);
+        item.setDataScope(dataScope);
+        item.setCreatedBy(1L);
+        item.setCreatedTime(LocalDateTime.now().minusDays(2));
+        item.setUpdatedTime(LocalDateTime.now());
+        return item;
+    }
+
+    private AuditEvent auditEvent(Long id, String actionName, String resultStatus, Long caseId) {
+        AuditEvent item = new AuditEvent();
+        item.setId(id);
+        item.setActionName(actionName);
+        item.setActionCode("ACTION-" + id);
+        item.setResultStatus(resultStatus);
+        item.setCaseId(caseId);
+        item.setBizType("workflow");
+        item.setBizId(1000L + id);
+        item.setOperatorName("管理员");
+        item.setIpAddress("127.0.0.1");
+        item.setOperatedTime(LocalDateTime.now().minusMinutes(id));
         return item;
     }
 }
