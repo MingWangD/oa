@@ -95,6 +95,7 @@
 
 目标：逐一落地 20 个流程和 19 个表单。
 
+- [x] 建立司法鉴定 20 流程/19 表单核对矩阵：[`judicial-appraisal-flow-verification-matrix.md`](./judicial-appraisal-flow-verification-matrix.md)。
 - [x] 提供 20 个流程/19 个表单从需求目录导入动态设计器的接口。
 - [x] 配置每个表单的输入文件、输出文件、版本产物和归档要求。
 - [x] 为每个流程生成角色办理节点、归档节点、通过路径和退回上一节点路径。
