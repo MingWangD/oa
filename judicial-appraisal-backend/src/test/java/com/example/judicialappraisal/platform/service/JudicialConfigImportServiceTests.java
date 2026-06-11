@@ -76,4 +76,37 @@ class JudicialConfigImportServiceTests {
                 .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "preliminary-survey"))
                 .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "payment-notice"));
     }
+
+    @Test
+    void preliminarySurveyImportUsesHighFidelityFormAndWorkflowConfiguration() {
+        when(formDesignService.listVersions(any())).thenReturn(List.of());
+        when(workflowDesignService.listVersions(any())).thenReturn(List.of());
+
+        service.importCatalog(false);
+
+        ArgumentCaptor<FormDesignRequest> formCaptor = ArgumentCaptor.forClass(FormDesignRequest.class);
+        verify(formDesignService, times(19)).saveDraft(formCaptor.capture());
+        FormDesignRequest preliminarySurveyForm = formCaptor.getAllValues().stream()
+                .filter(request -> "preliminary-survey".equals(request.formCode()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(preliminarySurveyForm.fieldSchemaJson())
+                .contains("surveyPlanUploaded", "equipmentOutboundRecorded", "equipmentUsageRecorded", "appraisalConditionMet");
+        assertThat(preliminarySurveyForm.validationSchemaJson())
+                .contains("crossFieldRules", "nextRecommendation");
+
+        ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
+        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        WorkflowDesignRequest preliminarySurveyWorkflow = workflowCaptor.getAllValues().stream()
+                .filter(request -> "preliminary-survey".equals(request.wfCode()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(preliminarySurveyWorkflow.nodes()).extracting("nodeCode")
+                .contains("ASSISTANT_PREPARE", "PROJECT_REVIEW", "PAYMENT_NOTICE", "TERMINATE_APPRAISAL");
+        assertThat(preliminarySurveyWorkflow.transitions()).extracting("conditionExpression")
+                .contains("form.appraisalConditionMet == true", "form.appraisalConditionMet == false");
+        assertThat(preliminarySurveyWorkflow.transitions()).extracting("transitionConfigJson")
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "payment-notice"))
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "terminate-appraisal"));
+    }
 }

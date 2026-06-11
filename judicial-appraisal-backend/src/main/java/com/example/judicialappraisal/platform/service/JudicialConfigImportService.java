@@ -81,6 +81,9 @@ public class JudicialConfigImportService {
         if ("received-entrust".equals(form.code())) {
             return receivedEntrustFormRequest(form);
         }
+        if ("preliminary-survey".equals(form.code())) {
+            return preliminarySurveyFormRequest(form);
+        }
         return new FormDesignRequest(
                 form.code(),
                 form.name(),
@@ -110,6 +113,9 @@ public class JudicialConfigImportService {
     private WorkflowDesignRequest toWorkflowRequest(JudicialWorkflowDefinitionDto workflow) {
         if ("received-entrust".equals(workflow.code())) {
             return receivedEntrustWorkflowRequest(workflow);
+        }
+        if ("preliminary-survey".equals(workflow.code())) {
+            return preliminarySurveyWorkflowRequest(workflow);
         }
         List<WorkflowNodeRequest> nodes = new ArrayList<>();
         List<WorkflowTransitionRequest> transitions = new ArrayList<>();
@@ -301,6 +307,110 @@ public class JudicialConfigImportService {
                         "highFidelity", true,
                         "flowNameTemplate", "${caseNo}-${clientName}",
                         "parallelBranchNode", "PROJECT_DECISION",
+                        "keyRules", workflow.keyRules(),
+                        "nextFlows", workflow.nextFlows(),
+                        "autoArchive", true,
+                        "preserveVersions", true
+                )),
+                nodes,
+                transitions
+        );
+    }
+
+    private FormDesignRequest preliminarySurveyFormRequest(JudicialFormDefinitionDto form) {
+        List<Map<String, Object>> fields = List.of(
+                field("caseNo", "案件号", "text", "流程基础", true, true),
+                field("flowName", "流程名称", "text", "流程基础", false, true),
+                field("projectLeaderId", "项目负责人", "user", "流程基础", true, true),
+                field("projectAssistantId", "项目辅助人", "user", "流程基础", true, true),
+                field("surveyDate", "初步勘验日期", "date", "勘验安排", true, false),
+                field("surveyLocation", "勘验地点", "text", "勘验安排", true, false),
+                field("surveyPlanUploaded", "现场工作方案已上传", "boolean", "勘验安排", true, false),
+                field("equipmentOutboundRecorded", "设备出入库记录已登记", "boolean", "设备记录", true, false),
+                field("equipmentUsageRecorded", "设备使用记录已登记", "boolean", "设备记录", true, false),
+                field("surveySummary", "初步勘验情况", "textarea", "勘验结论", true, false),
+                field("appraisalConditionMet", "是否具备鉴定条件", "boolean", "勘验结论", true, false),
+                field("nextRecommendation", "下一步建议", "select", "勘验结论", true, false,
+                        List.of("发交费通知书及相关函件", "终止鉴定")),
+                field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
+        );
+        return new FormDesignRequest(
+                form.code(),
+                form.name(),
+                "司法鉴定",
+                toJson(toFileRules(form.inputFiles(), "input")),
+                toJson(toFileRules(form.outputFiles(), "output")),
+                toJson(form.versionedArtifacts()),
+                toJson(fields),
+                toJson(Map.of(
+                        "layout", "grouped",
+                        "groups", List.of("流程基础", "勘验安排", "设备记录", "勘验结论", "办理意见")
+                )),
+                toJson(Map.of(
+                        "requiredFields", fields.stream().filter(item -> Boolean.TRUE.equals(item.get("required"))).map(item -> item.get("field")).toList(),
+                        "requiredInputs", form.inputFiles(),
+                        "requiredOutputs", form.outputFiles(),
+                        "crossFieldRules", List.of(
+                                Map.of("if", "appraisalConditionMet == true", "then", "nextRecommendation == '发交费通知书及相关函件'"),
+                                Map.of("if", "appraisalConditionMet == false", "then", "nextRecommendation == '终止鉴定'")
+                        )
+                )),
+                toJson(Map.of(
+                        "groups", Map.of(
+                                "流程基础", Map.of("readOnly", true),
+                                "勘验结论", Map.of("roles", List.of("项目负责人"))
+                        )
+                )),
+                toJson(Map.of(
+                        "flowNameTemplate", "${caseNo}-初步勘验",
+                        "branchFields", List.of("appraisalConditionMet", "nextRecommendation")
+                )),
+                toJson(Map.of(
+                        "flowName", "concat(caseNo,'-初步勘验')",
+                        "autoArchiveTitle", "concat(caseNo,'/初步勘验/',nodeName)"
+                )),
+                toJson(Map.of("enabled", true, "inputFiles", form.inputFiles(), "outputFiles", form.outputFiles(), "duplicatePolicy", "warn")),
+                "[]",
+                toJson(List.of(
+                        Map.of("type", "business", "text", "项目辅助人上传现场工作方案并完成设备记录，项目负责人判断是否具备鉴定条件"),
+                        Map.of("type", "validation", "text", "提交审核前必须补齐现场工作方案、设备出入库记录和设备使用记录"),
+                        Map.of("type", "archive", "text", "勘验结论、设备记录和附件在节点完成后自动归档，为后续缴费或终止流程提供依据")
+                ))
+        );
+    }
+
+    private WorkflowDesignRequest preliminarySurveyWorkflowRequest(JudicialWorkflowDefinitionDto workflow) {
+        List<WorkflowNodeRequest> nodes = List.of(
+                node("START", "开始", "start", "single", null, 0, 0, false, null, 0),
+                node("ASSISTANT_PREPARE", "项目辅助人上传方案与设备记录", "task", "candidate", "项目辅助人", 1, 24, true, workflow.formCode(), 10),
+                node("PROJECT_REVIEW", "项目负责人审核勘验结论", "task", "candidate", "项目负责人", 1, 48, true, workflow.formCode(), 20),
+                node("PAYMENT_NOTICE", "进入发交费通知", "task", "candidate", "项目负责人", 1, 24, true, "payment-notice", 30),
+                node("TERMINATE_APPRAISAL", "进入终止鉴定", "task", "candidate", "项目负责人", 1, 24, true, "terminate-appraisal", 40),
+                node("END", "流程结束", "end", "single", null, 0, 0, false, null, 50)
+        );
+
+        List<WorkflowTransitionRequest> transitions = List.of(
+                transition("START", "ASSISTANT_PREPARE", "APPROVE", "进入初步勘验", null, 0, 10),
+                transition("ASSISTANT_PREPARE", "PROJECT_REVIEW", "APPROVE", "转交项目负责人审核", null, 1, 20),
+                transition("PROJECT_REVIEW", "PAYMENT_NOTICE", "APPROVE", "具备鉴定条件，转发交费通知", "form.appraisalConditionMet == true", 1, 30,
+                        subflowConfig("payment-notice", "初步勘验确认具备鉴定条件后自动进入发交费通知书及相关函件")),
+                transition("PROJECT_REVIEW", "TERMINATE_APPRAISAL", "APPROVE", "不具备鉴定条件，转终止鉴定", "form.appraisalConditionMet == false", 1, 31,
+                        subflowConfig("terminate-appraisal", "初步勘验确认不具备鉴定条件后自动进入终止鉴定")),
+                transition("PROJECT_REVIEW", "ASSISTANT_PREPARE", "RETURN", "退回项目辅助人补充方案与记录", null, 1, 40),
+                transition("PAYMENT_NOTICE", "END", "COMPLETE", "缴费通知子流程已触发", null, 1, 50),
+                transition("TERMINATE_APPRAISAL", "END", "COMPLETE", "终止鉴定子流程已触发", null, 1, 51)
+        );
+
+        return new WorkflowDesignRequest(
+                workflow.code(),
+                workflow.name(),
+                "judicial",
+                workflow.formCode(),
+                "由司法鉴定使用手册高保真校准：初步勘验",
+                toJson(Map.of(
+                        "entryMode", workflow.entryMode(),
+                        "highFidelity", true,
+                        "flowNameTemplate", "${caseNo}-初步勘验",
                         "keyRules", workflow.keyRules(),
                         "nextFlows", workflow.nextFlows(),
                         "autoArchive", true,
