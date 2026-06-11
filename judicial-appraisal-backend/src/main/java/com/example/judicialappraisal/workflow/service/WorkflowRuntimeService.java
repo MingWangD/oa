@@ -580,8 +580,14 @@ public class WorkflowRuntimeService {
         if (transitions == null || transitions.isEmpty()) {
             return null;
         }
+        List<WfTransitionDef> matchedTransitions = transitions.stream()
+                .filter(transition -> matchesCondition(transition.getConditionExpression(), request))
+                .toList();
+        if (matchedTransitions.isEmpty()) {
+            throw new BusinessException("没有命中的流程流转条件");
+        }
 
-        List<TransitionAdvance> advances = transitions.stream()
+        List<TransitionAdvance> advances = matchedTransitions.stream()
                 .map(transition -> createTransitionTarget(caseInfo, wfInstance, completedTask, transition, request, now))
                 .toList();
         List<CaseTask> createdTasks = advances.stream()
@@ -607,6 +613,91 @@ public class WorkflowRuntimeService {
         wfInstance.setCurrentNodeName(primaryTask.getNodeName());
         caseWfInstanceMapper.updateById(wfInstance);
         return new WorkflowActionResult(caseInfo.getId(), completedTask.getId(), request.actionCode().name(), true, "按流程定义完成办理");
+    }
+
+    private boolean matchesCondition(String conditionExpression, WorkflowActionRequest request) {
+        if (isBlank(conditionExpression)) {
+            return true;
+        }
+        String expression = conditionExpression.trim();
+        if ("true".equalsIgnoreCase(expression) || "always".equalsIgnoreCase(expression)) {
+            return true;
+        }
+        if ("false".equalsIgnoreCase(expression) || "never".equalsIgnoreCase(expression)) {
+            return false;
+        }
+
+        String operator = expression.contains("!=") ? "!=" : expression.contains("==") ? "==" : null;
+        if (operator == null) {
+            throw new BusinessException("暂不支持的流程条件表达式：" + conditionExpression);
+        }
+        String[] parts = expression.split(java.util.regex.Pattern.quote(operator), 2);
+        if (parts.length != 2) {
+            throw new BusinessException("流程条件表达式格式错误：" + conditionExpression);
+        }
+        Object actual = resolveConditionValue(parts[0].trim(), request);
+        Object expected = parseConditionLiteral(parts[1].trim());
+        boolean equals = conditionValueEquals(actual, expected);
+        return "==".equals(operator) == equals;
+    }
+
+    private Object resolveConditionValue(String fieldExpression, WorkflowActionRequest request) {
+        if (request.formData() == null || request.formData().isEmpty()) {
+            return null;
+        }
+        String field = fieldExpression;
+        if (field.startsWith("form.")) {
+            field = field.substring("form.".length());
+        }
+        return request.formData().get(field);
+    }
+
+    private Object parseConditionLiteral(String literal) {
+        String value = literal.trim();
+        if ((value.startsWith("\"") && value.endsWith("\"")) || (value.startsWith("'") && value.endsWith("'"))) {
+            return value.substring(1, value.length() - 1);
+        }
+        if ("true".equalsIgnoreCase(value) || "是".equals(value) || "yes".equalsIgnoreCase(value)) {
+            return Boolean.TRUE;
+        }
+        if ("false".equalsIgnoreCase(value) || "否".equals(value) || "no".equalsIgnoreCase(value)) {
+            return Boolean.FALSE;
+        }
+        try {
+            if (value.contains(".")) {
+                return Double.parseDouble(value);
+            }
+            return Long.parseLong(value);
+        } catch (NumberFormatException ignored) {
+            return value;
+        }
+    }
+
+    private boolean conditionValueEquals(Object actual, Object expected) {
+        if (actual == null || expected == null) {
+            return actual == expected;
+        }
+        if (expected instanceof Boolean expectedBoolean) {
+            return expectedBoolean.equals(toBoolean(actual));
+        }
+        if (expected instanceof Number expectedNumber && actual instanceof Number actualNumber) {
+            return Double.compare(actualNumber.doubleValue(), expectedNumber.doubleValue()) == 0;
+        }
+        return String.valueOf(actual).equals(String.valueOf(expected));
+    }
+
+    private Boolean toBoolean(Object value) {
+        if (value instanceof Boolean booleanValue) {
+            return booleanValue;
+        }
+        String text = String.valueOf(value).trim();
+        if ("true".equalsIgnoreCase(text) || "是".equals(text) || "yes".equalsIgnoreCase(text) || "1".equals(text)) {
+            return Boolean.TRUE;
+        }
+        if ("false".equalsIgnoreCase(text) || "否".equals(text) || "no".equalsIgnoreCase(text) || "0".equals(text)) {
+            return Boolean.FALSE;
+        }
+        return null;
     }
 
     private TransitionAdvance createTransitionTarget(

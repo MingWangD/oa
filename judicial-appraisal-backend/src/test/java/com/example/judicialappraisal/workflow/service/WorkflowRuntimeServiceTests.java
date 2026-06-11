@@ -28,6 +28,7 @@ import com.example.judicialappraisal.workflow.mapper.WfNodeDefMapper;
 import com.example.judicialappraisal.workflow.mapper.WfTransitionDefMapper;
 import com.example.judicialappraisal.organization.mapper.SysRoleMapper;
 import com.example.judicialappraisal.organization.mapper.SysUserRoleMapper;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -166,5 +167,88 @@ class WorkflowRuntimeServiceTests {
         verify(caseTaskMapper).insert(taskCaptor.capture());
         assertThat(taskCaptor.getValue().getNodeCode()).isEqualTo("DYNAMIC_REVIEW");
         assertThat(caseInfo.getCurrentNodeCode()).isEqualTo("DYNAMIC_REVIEW");
+    }
+
+    @Test
+    void completeTaskOnlyAdvancesTransitionsWhoseConditionsMatchFormData() {
+        CaseInfo caseInfo = new CaseInfo();
+        caseInfo.setId(88L);
+        caseInfo.setCaseTitle("收到委托书测试");
+        caseInfo.setCaseStatus(CaseStatus.PROCESSING.name());
+
+        CaseTask currentTask = new CaseTask();
+        currentTask.setId(701L);
+        currentTask.setCaseId(88L);
+        currentTask.setWfInstanceId(501L);
+        currentTask.setNodeInstanceId(601L);
+        currentTask.setNodeCode("DEPT_REVIEW");
+        currentTask.setNodeName("部门负责人审阅");
+        currentTask.setAssigneeId(9L);
+        currentTask.setAssigneeName("管理员");
+        currentTask.setStatus("pending");
+
+        CaseNodeInstance currentNode = new CaseNodeInstance();
+        currentNode.setId(601L);
+        currentNode.setCaseId(88L);
+        currentNode.setStatus("running");
+
+        CaseWfInstance wfInstance = new CaseWfInstance();
+        wfInstance.setId(501L);
+        wfInstance.setCaseId(88L);
+        wfInstance.setWfId(77L);
+        wfInstance.setWfCode("received-entrust");
+        wfInstance.setWfName("收到委托书");
+        wfInstance.setStatus("running");
+
+        WfTransitionDef acceptedTransition = new WfTransitionDef();
+        acceptedTransition.setToNodeCode("PROJECT_DECISION");
+        acceptedTransition.setActionCode("APPROVE");
+        acceptedTransition.setActionName("受理");
+        acceptedTransition.setConditionExpression("form.entrustAccepted == true");
+
+        WfTransitionDef rejectedTransition = new WfTransitionDef();
+        rejectedTransition.setToNodeCode("REJECT_ACCEPTANCE");
+        rejectedTransition.setActionCode("APPROVE");
+        rejectedTransition.setActionName("不予受理");
+        rejectedTransition.setConditionExpression("form.entrustAccepted == false");
+
+        WfNodeDef rejectNode = new WfNodeDef();
+        rejectNode.setNodeCode("REJECT_ACCEPTANCE");
+        rejectNode.setNodeName("进入不予受理");
+        rejectNode.setNodeType("task");
+        rejectNode.setTaskType("single");
+        rejectNode.setEnabled(1);
+
+        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+        when(caseTaskMapper.selectById(701L)).thenReturn(currentTask);
+        when(caseNodeInstanceMapper.selectById(601L)).thenReturn(currentNode);
+        when(caseWfInstanceMapper.selectOne(any())).thenReturn(wfInstance);
+        when(wfTransitionDefMapper.selectList(any())).thenReturn(java.util.List.of(acceptedTransition, rejectedTransition));
+        when(wfNodeDefMapper.selectOne(any())).thenReturn(rejectNode);
+        doAnswer(invocation -> {
+            CaseNodeInstance node = invocation.getArgument(0);
+            node.setId(602L);
+            return 1;
+        }).when(caseNodeInstanceMapper).insert(any(CaseNodeInstance.class));
+        doAnswer(invocation -> {
+            CaseTask task = invocation.getArgument(0);
+            task.setId(702L);
+            return 1;
+        }).when(caseTaskMapper).insert(any(CaseTask.class));
+
+        service.completeTask(88L, new WorkflowActionRequest(
+                701L,
+                ActionCode.APPROVE,
+                "不受理",
+                null,
+                null,
+                null,
+                Map.of("entrustAccepted", false),
+                null));
+
+        ArgumentCaptor<CaseTask> taskCaptor = ArgumentCaptor.forClass(CaseTask.class);
+        verify(caseTaskMapper).insert(taskCaptor.capture());
+        assertThat(taskCaptor.getValue().getNodeCode()).isEqualTo("REJECT_ACCEPTANCE");
+        assertThat(caseInfo.getCurrentNodeCode()).isEqualTo("REJECT_ACCEPTANCE");
     }
 }
