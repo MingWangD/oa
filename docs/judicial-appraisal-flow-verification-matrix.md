@@ -37,7 +37,7 @@
 | 5 | `field-survey` | 现场勘验 | `field-survey` | 子流程 | 已完成首轮高保真校准 | 用真实案件跑通“现场工作方案/勘验记录/设备记录 -> 15 万阈值 -> 技术负责人/部门负责人审核 -> 后续五类子流程”路径，并补父流程回写 |
 | 6 | `material-receive-return` | 材料接收与返还 | `material-receive-return` | 子流程 | 已完成首轮高保真校准 | 准备真实案件联调，并推进后续鉴定意见书环节 |
 | 7 | `draft-opinion-review` | 鉴定意见书征求意见稿送审稿编制 | `draft-opinion-review` | 子流程 | 已完成首轮高保真校准 | 准备真实案件联调 |
-| 8 | `final-opinion-review` | 鉴定意见书送审稿编制 | `final-opinion-review` | 子流程 | 已导入配置，待高保真校准 | 补初稿、A、A-B、A-B-C、最终送审稿版本保留 |
+| 8 | `final-opinion-review` | 鉴定意见书送审稿编制 | `final-opinion-review` | 子流程 | 已完成首轮高保真校准 | 准备真实案件联调 |
 | 9 | `issue-opinion` | 出具鉴定意见书 | `issue-opinion` | 子流程 | 已导入配置，待高保真校准 | 补承诺书、复核意见、盖章、开票并行、扫描件归档 |
 | 10 | `issue-draft-opinion` | 出具征求意见稿 | `issue-draft-opinion` | 子流程 | 已导入配置，待高保真校准 | 补说明函、征求意见稿、寄送、等待反馈、异议判断 |
 | 11 | `court-letter` | 收到法院其他函件（含异议函） | `court-letter` | 直接或关联发起 | 已导入配置，待高保真校准 | 补关联原流程、异议/非异议分支、回复函、用章、寄送 |

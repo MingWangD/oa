@@ -322,4 +322,36 @@ class JudicialConfigImportServiceTests {
         assertThat(draftOpinionReviewWorkflow.transitions()).extracting("transitionConfigJson")
                 .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "issue-draft-opinion"));
     }
+
+    @Test
+    void finalOpinionReviewImportUsesHighFidelityFormAndWorkflowConfiguration() {
+        when(formDesignService.listVersions(any())).thenReturn(List.of());
+        when(workflowDesignService.listVersions(any())).thenReturn(List.of());
+
+        service.importCatalog(false);
+
+        ArgumentCaptor<FormDesignRequest> formCaptor = ArgumentCaptor.forClass(FormDesignRequest.class);
+        verify(formDesignService, times(19)).saveDraft(formCaptor.capture());
+        FormDesignRequest finalOpinionReviewForm = formCaptor.getAllValues().stream()
+                .filter(request -> "final-opinion-review".equals(request.formCode()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(finalOpinionReviewForm.fieldSchemaJson())
+                .contains("opinionDraftUploaded", "projectReviewPassed", "versionAUploaded", "technicalReviewPassed", "versionABUploaded", "departmentReviewPassed", "versionABCUploaded", "finalDraftUploaded", "nextRecommendation");
+        assertThat(finalOpinionReviewForm.validationSchemaJson())
+                .contains("versionAUploaded == true", "versionABUploaded == true", "versionABCUploaded == true");
+
+        ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
+        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        WorkflowDesignRequest finalOpinionReviewWorkflow = workflowCaptor.getAllValues().stream()
+                .filter(request -> "final-opinion-review".equals(request.wfCode()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(finalOpinionReviewWorkflow.nodes()).extracting("nodeCode")
+                .contains("ASSISTANT_DRAFT", "PROJECT_REVIEW", "TECHNICAL_REVIEW", "DEPARTMENT_REVIEW", "PROJECT_FINAL_UPLOAD", "ISSUE_OPINION");
+        assertThat(finalOpinionReviewWorkflow.transitions()).extracting("conditionExpression")
+                .contains("form.projectReviewPassed == true", "form.technicalReviewPassed == true", "form.departmentReviewPassed == true", "form.nextRecommendation == '出具鉴定意见书'");
+        assertThat(finalOpinionReviewWorkflow.transitions()).extracting("transitionConfigJson")
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "issue-opinion"));
+    }
 }
