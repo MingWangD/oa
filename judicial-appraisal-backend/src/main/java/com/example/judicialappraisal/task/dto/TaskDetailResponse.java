@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 public record TaskDetailResponse(
         Long id,
         Long caseId,
+        Long subflowInstanceId,
         String caseNo,
         String caseTitle,
         String wfName,

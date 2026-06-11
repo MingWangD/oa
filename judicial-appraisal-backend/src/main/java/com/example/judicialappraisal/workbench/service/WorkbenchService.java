@@ -116,6 +116,7 @@ public class WorkbenchService {
         return new TaskSummaryResponse(
                 task.getId(),
                 task.getCaseId(),
+                task.getSubflowInstanceId(),
                 task.getTaskTitle(),
                 task.getNodeCode(),
                 task.getNodeName(),

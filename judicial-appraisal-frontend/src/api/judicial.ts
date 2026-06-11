@@ -110,6 +110,7 @@ export interface WorkbenchSummary {
 export interface TaskSummary {
   id: number;
   caseId: number;
+  subflowInstanceId: number | null;
   taskTitle: string;
   nodeCode: string;
   nodeName: string;
@@ -122,6 +123,7 @@ export interface TaskSummary {
 export interface TaskDetail {
   id: number;
   caseId: number;
+  subflowInstanceId: number | null;
   caseNo: string | null;
   caseTitle: string;
   wfName: string | null;
@@ -235,6 +237,23 @@ export interface WorkflowActionResult {
   actionCode: string;
   success: boolean;
   message: string;
+}
+
+export interface CaseSubflowSummary {
+  id: number;
+  caseId: number;
+  parentWfInstanceId: number | null;
+  parentTaskId: number | null;
+  parentNodeCode: string | null;
+  wfId: number | null;
+  wfCode: string | null;
+  wfName: string | null;
+  subflowType: string;
+  status: string;
+  reason: string | null;
+  startedBy: number | null;
+  startedTime: string | null;
+  completedTime: string | null;
 }
 
 export interface MenuDto {
@@ -555,6 +574,10 @@ export function submitWorkflowAction(
   payload: WorkflowActionPayload
 ): Promise<WorkflowActionResult> {
   return post<WorkflowActionResult>(`/cases/${caseId}/actions`, payload);
+}
+
+export function fetchCaseSubflows(caseId: number): Promise<CaseSubflowSummary[]> {
+  return get<CaseSubflowSummary[]>(`/cases/${caseId}/subflows`);
 }
 
 export function fetchPlatformMenus(): Promise<MenuDto[]> {

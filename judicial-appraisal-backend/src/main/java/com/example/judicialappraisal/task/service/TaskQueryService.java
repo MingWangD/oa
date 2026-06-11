@@ -56,6 +56,7 @@ public class TaskQueryService {
         return new TaskDetailResponse(
                 task.getId(),
                 task.getCaseId(),
+                task.getSubflowInstanceId(),
                 caseNo,
                 caseTitle,
                 wfName,

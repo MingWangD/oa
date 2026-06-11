@@ -356,4 +356,99 @@ class WorkflowRuntimeServiceTests {
         assertThat(taskCaptor.getValue().getSubflowInstanceId()).isEqualTo(801L);
         assertThat(taskCaptor.getValue().getNodeCode()).isEqualTo("PRELIMINARY_SURVEY");
     }
+
+    @Test
+    void completingSubflowBranchEndWritesBackToRemainingParentTaskInsteadOfCompletingCase() {
+        CaseInfo caseInfo = new CaseInfo();
+        caseInfo.setId(88L);
+        caseInfo.setCaseTitle("收到委托书测试");
+        caseInfo.setCaseStatus(CaseStatus.PROCESSING.name());
+
+        CaseTask currentTask = new CaseTask();
+        currentTask.setId(702L);
+        currentTask.setCaseId(88L);
+        currentTask.setWfInstanceId(501L);
+        currentTask.setSubflowInstanceId(801L);
+        currentTask.setNodeInstanceId(602L);
+        currentTask.setNodeCode("PRELIMINARY_SURVEY");
+        currentTask.setNodeName("进入初步勘验");
+        currentTask.setAssigneeId(9L);
+        currentTask.setAssigneeName("管理员");
+        currentTask.setStatus("pending");
+
+        CaseTask remainingTask = new CaseTask();
+        remainingTask.setId(703L);
+        remainingTask.setCaseId(88L);
+        remainingTask.setWfInstanceId(501L);
+        remainingTask.setNodeInstanceId(603L);
+        remainingTask.setNodeCode("ASSISTANT_NOTICE");
+        remainingTask.setNodeName("告知项目辅助人");
+        remainingTask.setAssigneeId(18L);
+        remainingTask.setAssigneeName("辅助人");
+        remainingTask.setStatus("pending");
+
+        CaseNodeInstance currentNode = new CaseNodeInstance();
+        currentNode.setId(602L);
+        currentNode.setCaseId(88L);
+        currentNode.setSubflowInstanceId(801L);
+        currentNode.setStatus("running");
+
+        CaseWfInstance wfInstance = new CaseWfInstance();
+        wfInstance.setId(501L);
+        wfInstance.setCaseId(88L);
+        wfInstance.setWfId(77L);
+        wfInstance.setWfCode("received-entrust");
+        wfInstance.setWfName("收到委托书");
+        wfInstance.setStatus("running");
+
+        CaseSubflowInstance subflowInstance = new CaseSubflowInstance();
+        subflowInstance.setId(801L);
+        subflowInstance.setCaseId(88L);
+        subflowInstance.setStatus("running");
+
+        WfTransitionDef transition = new WfTransitionDef();
+        transition.setToNodeCode("END");
+        transition.setActionCode("COMPLETE");
+        transition.setActionName("初勘结束");
+
+        WfNodeDef endNode = new WfNodeDef();
+        endNode.setNodeCode("END");
+        endNode.setNodeName("流程结束");
+        endNode.setNodeType("end");
+        endNode.setEnabled(1);
+
+        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+        when(caseTaskMapper.selectById(702L)).thenReturn(currentTask);
+        when(caseNodeInstanceMapper.selectById(602L)).thenReturn(currentNode);
+        when(caseWfInstanceMapper.selectOne(any())).thenReturn(wfInstance);
+        when(wfTransitionDefMapper.selectList(any())).thenReturn(java.util.List.of(transition));
+        when(wfNodeDefMapper.selectOne(any())).thenReturn(endNode);
+        when(caseSubflowInstanceMapper.selectById(801L)).thenReturn(subflowInstance);
+        when(caseTaskMapper.selectOne(any())).thenReturn(remainingTask);
+
+        service.completeTask(88L, new WorkflowActionRequest(
+                702L,
+                ActionCode.COMPLETE,
+                "初勘结束",
+                null,
+                null,
+                null,
+                null,
+                null));
+
+        ArgumentCaptor<CaseSubflowInstance> subflowCaptor = ArgumentCaptor.forClass(CaseSubflowInstance.class);
+        verify(caseSubflowInstanceMapper).updateById(subflowCaptor.capture());
+        assertThat(subflowCaptor.getValue().getStatus()).isEqualTo("completed");
+
+        assertThat(caseInfo.getCaseStatus()).isEqualTo(CaseStatus.PROCESSING.name());
+        assertThat(caseInfo.getCurrentNodeCode()).isEqualTo("ASSISTANT_NOTICE");
+        assertThat(caseInfo.getCurrentNodeName()).isEqualTo("告知项目辅助人");
+        assertThat(caseInfo.getCurrentHandlerId()).isEqualTo(18L);
+        assertThat(caseInfo.getCompletedTime()).isNull();
+
+        ArgumentCaptor<CaseWfInstance> wfCaptor = ArgumentCaptor.forClass(CaseWfInstance.class);
+        verify(caseWfInstanceMapper).updateById(wfCaptor.capture());
+        assertThat(wfCaptor.getValue().getStatus()).isEqualTo("running");
+        assertThat(wfCaptor.getValue().getCurrentNodeCode()).isEqualTo("ASSISTANT_NOTICE");
+    }
 }

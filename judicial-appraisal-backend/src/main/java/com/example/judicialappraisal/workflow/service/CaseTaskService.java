@@ -78,6 +78,7 @@ public class CaseTaskService extends ServiceImpl<CaseTaskMapper, CaseTask> {
         return new TaskSummaryResponse(
                 task.getId(),
                 task.getCaseId(),
+                task.getSubflowInstanceId(),
                 task.getTaskTitle(),
                 task.getNodeCode(),
                 task.getNodeName(),
