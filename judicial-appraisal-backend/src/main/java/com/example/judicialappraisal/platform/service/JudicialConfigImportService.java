@@ -87,6 +87,18 @@ public class JudicialConfigImportService {
         if ("payment-notice".equals(form.code())) {
             return paymentNoticeFormRequest(form);
         }
+        if ("quality-control".equals(form.code())) {
+            return qualityControlFormRequest(form);
+        }
+        if ("field-survey".equals(form.code())) {
+            return fieldSurveyFormRequest(form);
+        }
+        if ("reject-acceptance".equals(form.code())) {
+            return rejectAcceptanceFormRequest(form);
+        }
+        if ("material-receive-return".equals(form.code())) {
+            return materialReceiveReturnFormRequest(form);
+        }
         return new FormDesignRequest(
                 form.code(),
                 form.name(),
@@ -122,6 +134,18 @@ public class JudicialConfigImportService {
         }
         if ("payment-notice".equals(workflow.code())) {
             return paymentNoticeWorkflowRequest(workflow);
+        }
+        if ("quality-control".equals(workflow.code())) {
+            return qualityControlWorkflowRequest(workflow);
+        }
+        if ("field-survey".equals(workflow.code())) {
+            return fieldSurveyWorkflowRequest(workflow);
+        }
+        if ("reject-acceptance".equals(workflow.code())) {
+            return rejectAcceptanceWorkflowRequest(workflow);
+        }
+        if ("material-receive-return".equals(workflow.code())) {
+            return materialReceiveReturnWorkflowRequest(workflow);
         }
         List<WorkflowNodeRequest> nodes = new ArrayList<>();
         List<WorkflowTransitionRequest> transitions = new ArrayList<>();
@@ -534,6 +558,541 @@ public class JudicialConfigImportService {
                         "entryMode", workflow.entryMode(),
                         "highFidelity", true,
                         "flowNameTemplate", "${caseNo}-发交费通知",
+                        "keyRules", workflow.keyRules(),
+                        "nextFlows", workflow.nextFlows(),
+                        "autoArchive", true,
+                        "preserveVersions", true
+                )),
+                nodes,
+                transitions
+        );
+    }
+
+    private FormDesignRequest qualityControlFormRequest(JudicialFormDefinitionDto form) {
+        List<Map<String, Object>> fields = List.of(
+                field("caseNo", "案件号", "text", "流程基础", true, true),
+                field("flowName", "流程名称", "text", "流程基础", false, true),
+                field("projectLeaderId", "项目负责人", "user", "流程基础", true, true),
+                field("projectAssistantId", "项目辅助人", "user", "流程基础", true, true),
+                field("qualityFileDraftCompleted", "内部质量控制文件草稿已编制", "boolean", "质量控制文件", true, false),
+                field("qualityFileSummary", "内部质量控制文件摘要", "textarea", "质量控制文件", true, false),
+                field("formatType", "格式类型", "select", "F类项目判断", true, false,
+                        List.of("中心格式", "非中心格式")),
+                field("contractAmount", "合同金额", "number", "F类项目判断", true, false),
+                field("fClassProject", "是否F类项目", "boolean", "F类项目判断", true, false),
+                field("projectReviewPassed", "项目负责人审核通过", "boolean", "项目负责人审核", true, false),
+                field("projectReviewRoute", "项目负责人审核后流向", "select", "项目负责人审核", true, false,
+                        List.of("部门负责人审核", "进入用章", "退回修改")),
+                field("projectReviewOpinion", "项目负责人审核意见", "textarea", "项目负责人审核", false, false),
+                field("departmentReviewPassed", "部门负责人审核通过", "boolean", "部门负责人审核", false, false),
+                field("departmentReviewOpinion", "部门负责人审核意见", "textarea", "部门负责人审核", false, false),
+                field("sealRequired", "是否需要用章", "boolean", "用章与回传", true, false),
+                field("sealedQualityFileUploaded", "内部质量控制文件盖章件已上传", "boolean", "用章与回传", true, false),
+                field("nextRecommendation", "下一步建议", "select", "后续流程", true, false,
+                        List.of("现场勘验", "材料接收与返还", "鉴定意见书征求意见稿送审稿编制", "鉴定意见书送审稿编制", "退费", "终止鉴定")),
+                field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
+        );
+        return new FormDesignRequest(
+                form.code(),
+                form.name(),
+                "司法鉴定",
+                toJson(toFileRules(form.inputFiles(), "input")),
+                toJson(toFileRules(form.outputFiles(), "output")),
+                toJson(form.versionedArtifacts()),
+                toJson(fields),
+                toJson(Map.of(
+                        "layout", "grouped",
+                        "groups", List.of("流程基础", "质量控制文件", "F类项目判断", "项目负责人审核", "部门负责人审核", "用章与回传", "后续流程", "办理意见")
+                )),
+                toJson(Map.of(
+                        "requiredFields", fields.stream().filter(item -> Boolean.TRUE.equals(item.get("required"))).map(item -> item.get("field")).toList(),
+                        "requiredInputs", form.inputFiles(),
+                        "requiredOutputs", form.outputFiles(),
+                        "crossFieldRules", List.of(
+                                Map.of("if", "formatType == '中心格式' && contractAmount > 500000", "then", "fClassProject == true"),
+                                Map.of("if", "formatType == '非中心格式' && contractAmount > 250000", "then", "fClassProject == true"),
+                                Map.of("if", "fClassProject == true && projectReviewPassed == true", "then", "projectReviewRoute == '部门负责人审核'"),
+                                Map.of("if", "fClassProject == false && projectReviewPassed == true", "then", "projectReviewRoute == '进入用章'"),
+                                Map.of("if", "projectReviewPassed == false", "then", "projectReviewRoute == '退回修改'"),
+                                Map.of("if", "sealRequired == true", "then", "sealedQualityFileUploaded == true")
+                        )
+                )),
+                toJson(Map.of(
+                        "groups", Map.of(
+                                "流程基础", Map.of("readOnly", true),
+                                "F类项目判断", Map.of("roles", List.of("项目负责人")),
+                                "项目负责人审核", Map.of("roles", List.of("项目负责人")),
+                                "部门负责人审核", Map.of("roles", List.of("部门负责人")),
+                                "用章与回传", Map.of("roles", List.of("档案管理员"))
+                        )
+                )),
+                toJson(Map.of(
+                        "flowNameTemplate", "${caseNo}-编制内部质量控制文件",
+                        "branchFields", List.of("fClassProject", "projectReviewPassed", "projectReviewRoute", "departmentReviewPassed", "nextRecommendation")
+                )),
+                toJson(Map.of(
+                        "flowName", "concat(caseNo,'-编制内部质量控制文件')",
+                        "fClassProject", "(formatType == '中心格式' && contractAmount > 500000) || (formatType == '非中心格式' && contractAmount > 250000)",
+                        "autoArchiveTitle", "concat(caseNo,'/编制内部质量控制文件/',nodeName)"
+                )),
+                toJson(Map.of("enabled", true, "inputFiles", form.inputFiles(), "outputFiles", form.outputFiles(), "duplicatePolicy", "warn")),
+                "[]",
+                toJson(List.of(
+                        Map.of("type", "business", "text", "项目辅助人编制内部质量控制文件，项目负责人审核并判断中心格式、合同金额和F类项目"),
+                        Map.of("type", "validation", "text", "中心格式金额大于50万或非中心格式金额大于25万时判定F类项目，F类必须经部门负责人审核"),
+                        Map.of("type", "archive", "text", "质量控制文件草稿、审核意见、盖章件和后续流程选择在节点完成后自动归档")
+                ))
+        );
+    }
+
+    private WorkflowDesignRequest qualityControlWorkflowRequest(JudicialWorkflowDefinitionDto workflow) {
+        List<WorkflowNodeRequest> nodes = List.of(
+                node("START", "开始", "start", "single", null, 0, 0, false, null, 0),
+                node("ASSISTANT_DRAFT", "项目辅助人编制内部质量控制文件", "task", "candidate", "项目辅助人", 1, 24, true, workflow.formCode(), 10),
+                node("PROJECT_REVIEW", "项目负责人审核并判定F类", "task", "candidate", "项目负责人", 1, 48, true, workflow.formCode(), 20),
+                node("DEPARTMENT_REVIEW", "部门负责人审核F类项目", "task", "candidate", "部门负责人", 1, 48, true, workflow.formCode(), 30),
+                node("SEAL_APPLICATION", "进入用章流程", "task", "candidate", "项目负责人", 1, 24, true, "seal-application", 40),
+                node("SEALED_FILE_UPLOAD", "档案管理员回传盖章件", "task", "candidate", "档案管理员", 1, 24, true, workflow.formCode(), 50),
+                node("NEXT_FLOW_DECISION", "项目负责人确认后续流程", "task", "candidate", "项目负责人", 1, 24, true, workflow.formCode(), 60),
+                node("FIELD_SURVEY", "进入现场勘验", "task", "candidate", "项目负责人", 1, 24, true, "field-survey", 70),
+                node("MATERIAL_RECEIVE_RETURN", "进入材料接收与返还", "task", "candidate", "项目负责人", 1, 24, true, "material-receive-return", 80),
+                node("DRAFT_OPINION_REVIEW", "进入征求意见稿送审稿编制", "task", "candidate", "项目负责人", 1, 24, true, "draft-opinion-review", 90),
+                node("FINAL_OPINION_REVIEW", "进入鉴定意见书送审稿编制", "task", "candidate", "项目负责人", 1, 24, true, "final-opinion-review", 100),
+                node("REFUND", "进入退费", "task", "candidate", "项目负责人", 1, 24, true, "refund", 110),
+                node("TERMINATE_APPRAISAL", "进入终止鉴定", "task", "candidate", "项目负责人", 1, 24, true, "terminate-appraisal", 120),
+                node("END", "流程结束", "end", "single", null, 0, 0, false, null, 130)
+        );
+
+        List<WorkflowTransitionRequest> transitions = List.of(
+                transition("START", "ASSISTANT_DRAFT", "APPROVE", "进入内部质量控制文件编制", null, 0, 10),
+                transition("ASSISTANT_DRAFT", "PROJECT_REVIEW", "APPROVE", "转交项目负责人审核", null, 1, 20),
+                transition("PROJECT_REVIEW", "DEPARTMENT_REVIEW", "APPROVE", "F类项目，转部门负责人审核", "form.projectReviewRoute == '部门负责人审核'", 1, 30),
+                transition("PROJECT_REVIEW", "SEAL_APPLICATION", "APPROVE", "非F类项目，进入用章", "form.projectReviewRoute == '进入用章'", 1, 31,
+                        subflowConfig("seal-application", "内部质量控制文件审核通过后自动进入用章流程")),
+                transition("PROJECT_REVIEW", "ASSISTANT_DRAFT", "RETURN", "退回项目辅助人修改质量控制文件", "form.projectReviewRoute == '退回修改'", 1, 32),
+                transition("DEPARTMENT_REVIEW", "SEAL_APPLICATION", "APPROVE", "部门负责人审核通过，进入用章", "form.departmentReviewPassed == true", 1, 40,
+                        subflowConfig("seal-application", "F类项目经部门负责人审核通过后自动进入用章流程")),
+                transition("DEPARTMENT_REVIEW", "PROJECT_REVIEW", "RETURN", "退回项目负责人复核F类判断", "form.departmentReviewPassed == false", 1, 41),
+                transition("SEAL_APPLICATION", "SEALED_FILE_UPLOAD", "COMPLETE", "用章流程完成", null, 1, 50),
+                transition("SEALED_FILE_UPLOAD", "NEXT_FLOW_DECISION", "APPROVE", "转交项目负责人确认后续流程", null, 1, 60),
+                transition("SEALED_FILE_UPLOAD", "PROJECT_REVIEW", "RETURN", "退回项目负责人复核质量控制文件", null, 1, 61),
+                transition("NEXT_FLOW_DECISION", "FIELD_SURVEY", "APPROVE", "进入现场勘验", "form.nextRecommendation == '现场勘验'", 1, 70,
+                        subflowConfig("field-survey", "内部质量控制完成后选择进入现场勘验")),
+                transition("NEXT_FLOW_DECISION", "MATERIAL_RECEIVE_RETURN", "APPROVE", "进入材料接收与返还", "form.nextRecommendation == '材料接收与返还'", 1, 71,
+                        subflowConfig("material-receive-return", "内部质量控制完成后选择进入材料接收与返还")),
+                transition("NEXT_FLOW_DECISION", "DRAFT_OPINION_REVIEW", "APPROVE", "进入征求意见稿送审稿编制", "form.nextRecommendation == '鉴定意见书征求意见稿送审稿编制'", 1, 72,
+                        subflowConfig("draft-opinion-review", "内部质量控制完成后选择进入征求意见稿送审稿编制")),
+                transition("NEXT_FLOW_DECISION", "FINAL_OPINION_REVIEW", "APPROVE", "进入鉴定意见书送审稿编制", "form.nextRecommendation == '鉴定意见书送审稿编制'", 1, 73,
+                        subflowConfig("final-opinion-review", "内部质量控制完成后选择进入鉴定意见书送审稿编制")),
+                transition("NEXT_FLOW_DECISION", "REFUND", "APPROVE", "进入退费", "form.nextRecommendation == '退费'", 1, 74,
+                        subflowConfig("refund", "内部质量控制完成后选择进入退费")),
+                transition("NEXT_FLOW_DECISION", "TERMINATE_APPRAISAL", "APPROVE", "进入终止鉴定", "form.nextRecommendation == '终止鉴定'", 1, 75,
+                        subflowConfig("terminate-appraisal", "内部质量控制完成后选择进入终止鉴定")),
+                transition("FIELD_SURVEY", "END", "COMPLETE", "现场勘验子流程已触发", null, 1, 80),
+                transition("MATERIAL_RECEIVE_RETURN", "END", "COMPLETE", "材料接收与返还子流程已触发", null, 1, 81),
+                transition("DRAFT_OPINION_REVIEW", "END", "COMPLETE", "征求意见稿送审稿编制子流程已触发", null, 1, 82),
+                transition("FINAL_OPINION_REVIEW", "END", "COMPLETE", "鉴定意见书送审稿编制子流程已触发", null, 1, 83),
+                transition("REFUND", "END", "COMPLETE", "退费子流程已触发", null, 1, 84),
+                transition("TERMINATE_APPRAISAL", "END", "COMPLETE", "终止鉴定子流程已触发", null, 1, 85)
+        );
+
+        return new WorkflowDesignRequest(
+                workflow.code(),
+                workflow.name(),
+                "judicial",
+                workflow.formCode(),
+                "由司法鉴定使用手册高保真校准：编制内部质量控制文件",
+                toJson(Map.of(
+                        "entryMode", workflow.entryMode(),
+                        "highFidelity", true,
+                        "flowNameTemplate", "${caseNo}-编制内部质量控制文件",
+                        "fClassRule", "中心格式且金额大于50万或非中心格式且金额大于25万判定F类，F类需部门负责人审核",
+                        "keyRules", workflow.keyRules(),
+                        "nextFlows", workflow.nextFlows(),
+                        "autoArchive", true,
+                        "preserveVersions", true
+                )),
+                nodes,
+                transitions
+        );
+    }
+
+    private FormDesignRequest fieldSurveyFormRequest(JudicialFormDefinitionDto form) {
+        List<Map<String, Object>> fields = List.of(
+                field("caseNo", "案件号", "text", "流程基础", true, true),
+                field("flowName", "流程名称", "text", "流程基础", false, true),
+                field("projectLeaderId", "项目负责人", "user", "流程基础", true, true),
+                field("projectAssistantId", "项目辅助人", "user", "流程基础", true, true),
+                field("technicalLeaderId", "技术负责人", "user", "流程基础", false, false),
+                field("departmentHeadId", "部门负责人", "user", "流程基础", false, false),
+                field("surveyDate", "现场勘验日期", "date", "勘验安排", true, false),
+                field("surveyLocation", "勘验地点", "text", "勘验安排", true, false),
+                field("surveyPlanUploaded", "现场工作方案已上传", "boolean", "勘验安排", true, false),
+                field("fieldRecordUploaded", "勘验记录已上传", "boolean", "勘验记录", true, false),
+                field("equipmentUsageRecorded", "设备使用记录已登记", "boolean", "设备记录", true, false),
+                field("equipmentReturnRecorded", "设备归还记录已登记", "boolean", "设备记录", true, false),
+                field("projectAmount", "项目金额", "number", "审核规则", true, false),
+                field("majorAmountProject", "项目金额是否大于15万", "boolean", "审核规则", true, false),
+                field("projectReviewPassed", "项目负责人审核通过", "boolean", "项目负责人审核", true, false),
+                field("projectReviewRoute", "项目负责人审核后流向", "select", "项目负责人审核", true, false,
+                        List.of("技术负责人审核", "确认后续流程", "退回修改")),
+                field("technicalReviewPassed", "技术负责人审核通过", "boolean", "技术负责人审核", false, false),
+                field("departmentReviewPassed", "部门负责人审核通过", "boolean", "部门负责人审核", false, false),
+                field("nextRecommendation", "下一步建议", "select", "后续流程", true, false,
+                        List.of("材料接收与返还", "鉴定意见书征求意见稿送审稿编制", "鉴定意见书送审稿编制", "退费", "终止鉴定")),
+                field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
+        );
+        return new FormDesignRequest(
+                form.code(),
+                form.name(),
+                "司法鉴定",
+                toJson(toFileRules(form.inputFiles(), "input")),
+                toJson(toFileRules(form.outputFiles(), "output")),
+                toJson(form.versionedArtifacts()),
+                toJson(fields),
+                toJson(Map.of(
+                        "layout", "grouped",
+                        "groups", List.of("流程基础", "勘验安排", "勘验记录", "设备记录", "审核规则", "项目负责人审核", "技术负责人审核", "部门负责人审核", "后续流程", "办理意见")
+                )),
+                toJson(Map.of(
+                        "requiredFields", fields.stream().filter(item -> Boolean.TRUE.equals(item.get("required"))).map(item -> item.get("field")).toList(),
+                        "requiredInputs", form.inputFiles(),
+                        "requiredOutputs", form.outputFiles(),
+                        "crossFieldRules", List.of(
+                                Map.of("if", "projectAmount > 150000", "then", "majorAmountProject == true"),
+                                Map.of("if", "majorAmountProject == true && projectReviewPassed == true", "then", "projectReviewRoute == '技术负责人审核'"),
+                                Map.of("if", "majorAmountProject == false && projectReviewPassed == true", "then", "projectReviewRoute == '确认后续流程'"),
+                                Map.of("if", "projectReviewPassed == false", "then", "projectReviewRoute == '退回修改'"),
+                                Map.of("if", "projectReviewPassed == true", "then", "fieldRecordUploaded == true"),
+                                Map.of("if", "projectReviewPassed == true", "then", "equipmentUsageRecorded == true")
+                        )
+                )),
+                toJson(Map.of(
+                        "groups", Map.of(
+                                "流程基础", Map.of("readOnly", true),
+                                "项目负责人审核", Map.of("roles", List.of("项目负责人")),
+                                "技术负责人审核", Map.of("roles", List.of("技术负责人")),
+                                "部门负责人审核", Map.of("roles", List.of("部门负责人"))
+                        )
+                )),
+                toJson(Map.of(
+                        "flowNameTemplate", "${caseNo}-现场勘验",
+                        "branchFields", List.of("majorAmountProject", "projectReviewPassed", "projectReviewRoute", "technicalReviewPassed", "departmentReviewPassed", "nextRecommendation")
+                )),
+                toJson(Map.of(
+                        "flowName", "concat(caseNo,'-现场勘验')",
+                        "majorAmountProject", "projectAmount > 150000",
+                        "autoArchiveTitle", "concat(caseNo,'/现场勘验/',nodeName)"
+                )),
+                toJson(Map.of("enabled", true, "inputFiles", form.inputFiles(), "outputFiles", form.outputFiles(), "duplicatePolicy", "warn")),
+                "[]",
+                toJson(List.of(
+                        Map.of("type", "business", "text", "项目辅助人完成现场工作方案、勘验记录和设备记录，项目负责人审核现场勘验结论"),
+                        Map.of("type", "validation", "text", "项目金额大于15万时必须经项目负责人、技术负责人、部门负责人逐级审核"),
+                        Map.of("type", "archive", "text", "现场工作方案、勘验记录、设备记录和审核意见在节点完成后自动归档")
+                ))
+        );
+    }
+
+    private WorkflowDesignRequest fieldSurveyWorkflowRequest(JudicialWorkflowDefinitionDto workflow) {
+        List<WorkflowNodeRequest> nodes = List.of(
+                node("START", "开始", "start", "single", null, 0, 0, false, null, 0),
+                node("ASSISTANT_SURVEY", "项目辅助人完成现场勘验记录", "task", "candidate", "项目辅助人", 1, 24, true, workflow.formCode(), 10),
+                node("PROJECT_REVIEW", "项目负责人审核现场勘验", "task", "candidate", "项目负责人", 1, 48, true, workflow.formCode(), 20),
+                node("TECHNICAL_REVIEW", "技术负责人审核现场勘验", "task", "candidate", "技术负责人", 1, 48, true, workflow.formCode(), 30),
+                node("DEPARTMENT_REVIEW", "部门负责人审核现场勘验", "task", "candidate", "部门负责人", 1, 48, true, workflow.formCode(), 40),
+                node("NEXT_FLOW_DECISION", "项目负责人确认后续流程", "task", "candidate", "项目负责人", 1, 24, true, workflow.formCode(), 50),
+                node("MATERIAL_RECEIVE_RETURN", "进入材料接收与返还", "task", "candidate", "项目负责人", 1, 24, true, "material-receive-return", 60),
+                node("DRAFT_OPINION_REVIEW", "进入征求意见稿送审稿编制", "task", "candidate", "项目负责人", 1, 24, true, "draft-opinion-review", 70),
+                node("FINAL_OPINION_REVIEW", "进入鉴定意见书送审稿编制", "task", "candidate", "项目负责人", 1, 24, true, "final-opinion-review", 80),
+                node("REFUND", "进入退费", "task", "candidate", "项目负责人", 1, 24, true, "refund", 90),
+                node("TERMINATE_APPRAISAL", "进入终止鉴定", "task", "candidate", "项目负责人", 1, 24, true, "terminate-appraisal", 100),
+                node("END", "流程结束", "end", "single", null, 0, 0, false, null, 110)
+        );
+
+        List<WorkflowTransitionRequest> transitions = List.of(
+                transition("START", "ASSISTANT_SURVEY", "APPROVE", "进入现场勘验", null, 0, 10),
+                transition("ASSISTANT_SURVEY", "PROJECT_REVIEW", "APPROVE", "转交项目负责人审核", null, 1, 20),
+                transition("PROJECT_REVIEW", "TECHNICAL_REVIEW", "APPROVE", "金额大于15万，转技术负责人审核", "form.projectReviewRoute == '技术负责人审核'", 1, 30),
+                transition("PROJECT_REVIEW", "NEXT_FLOW_DECISION", "APPROVE", "金额不超过15万，确认后续流程", "form.projectReviewRoute == '确认后续流程'", 1, 31),
+                transition("PROJECT_REVIEW", "ASSISTANT_SURVEY", "RETURN", "退回项目辅助人补充勘验记录", "form.projectReviewRoute == '退回修改'", 1, 32),
+                transition("TECHNICAL_REVIEW", "DEPARTMENT_REVIEW", "APPROVE", "技术负责人审核通过，转部门负责人审核", "form.technicalReviewPassed == true", 1, 40),
+                transition("TECHNICAL_REVIEW", "PROJECT_REVIEW", "RETURN", "退回项目负责人复核", "form.technicalReviewPassed == false", 1, 41),
+                transition("DEPARTMENT_REVIEW", "NEXT_FLOW_DECISION", "APPROVE", "部门负责人审核通过，确认后续流程", "form.departmentReviewPassed == true", 1, 50),
+                transition("DEPARTMENT_REVIEW", "TECHNICAL_REVIEW", "RETURN", "退回技术负责人复核", "form.departmentReviewPassed == false", 1, 51),
+                transition("NEXT_FLOW_DECISION", "MATERIAL_RECEIVE_RETURN", "APPROVE", "进入材料接收与返还", "form.nextRecommendation == '材料接收与返还'", 1, 60,
+                        subflowConfig("material-receive-return", "现场勘验完成后选择进入材料接收与返还")),
+                transition("NEXT_FLOW_DECISION", "DRAFT_OPINION_REVIEW", "APPROVE", "进入征求意见稿送审稿编制", "form.nextRecommendation == '鉴定意见书征求意见稿送审稿编制'", 1, 61,
+                        subflowConfig("draft-opinion-review", "现场勘验完成后选择进入征求意见稿送审稿编制")),
+                transition("NEXT_FLOW_DECISION", "FINAL_OPINION_REVIEW", "APPROVE", "进入鉴定意见书送审稿编制", "form.nextRecommendation == '鉴定意见书送审稿编制'", 1, 62,
+                        subflowConfig("final-opinion-review", "现场勘验完成后选择进入鉴定意见书送审稿编制")),
+                transition("NEXT_FLOW_DECISION", "REFUND", "APPROVE", "进入退费", "form.nextRecommendation == '退费'", 1, 63,
+                        subflowConfig("refund", "现场勘验完成后选择进入退费")),
+                transition("NEXT_FLOW_DECISION", "TERMINATE_APPRAISAL", "APPROVE", "进入终止鉴定", "form.nextRecommendation == '终止鉴定'", 1, 64,
+                        subflowConfig("terminate-appraisal", "现场勘验完成后选择进入终止鉴定")),
+                transition("MATERIAL_RECEIVE_RETURN", "END", "COMPLETE", "材料接收与返还子流程已触发", null, 1, 70),
+                transition("DRAFT_OPINION_REVIEW", "END", "COMPLETE", "征求意见稿送审稿编制子流程已触发", null, 1, 71),
+                transition("FINAL_OPINION_REVIEW", "END", "COMPLETE", "鉴定意见书送审稿编制子流程已触发", null, 1, 72),
+                transition("REFUND", "END", "COMPLETE", "退费子流程已触发", null, 1, 73),
+                transition("TERMINATE_APPRAISAL", "END", "COMPLETE", "终止鉴定子流程已触发", null, 1, 74)
+        );
+
+        return new WorkflowDesignRequest(
+                workflow.code(),
+                workflow.name(),
+                "judicial",
+                workflow.formCode(),
+                "由司法鉴定使用手册高保真校准：现场勘验",
+                toJson(Map.of(
+                        "entryMode", workflow.entryMode(),
+                        "highFidelity", true,
+                        "flowNameTemplate", "${caseNo}-现场勘验",
+                        "amountReviewRule", "项目金额大于15万需项目负责人、技术负责人、部门负责人逐级审核",
+                        "keyRules", workflow.keyRules(),
+                        "nextFlows", workflow.nextFlows(),
+                        "autoArchive", true,
+                        "preserveVersions", true
+                )),
+                nodes,
+                transitions
+        );
+    }
+
+    private FormDesignRequest rejectAcceptanceFormRequest(JudicialFormDefinitionDto form) {
+        List<Map<String, Object>> fields = List.of(
+                field("caseNo", "案件号", "text", "流程基础", true, true),
+                field("flowName", "流程名称", "text", "流程基础", false, true),
+                field("projectLeaderId", "项目负责人", "user", "流程基础", true, true),
+                field("projectAssistantId", "项目辅助人", "user", "流程基础", true, true),
+                field("rejectionReason", "不予受理原因", "textarea", "通知编制", true, false),
+                field("noticeDraftCompleted", "不予受理通知书已编制", "boolean", "通知编制", true, false),
+                field("noticeSummary", "通知书内容摘要", "textarea", "通知编制", true, false),
+                field("projectReviewPassed", "项目负责人审核通过", "boolean", "项目负责人审核", true, false),
+                field("reviewOpinion", "审核意见", "textarea", "项目负责人审核", false, false),
+                field("sealRequired", "是否需要用章", "boolean", "用章与回传", true, false),
+                field("sealedNoticeUploaded", "盖章通知书扫描件已上传", "boolean", "用章与回传", true, false),
+                field("deliveryMethod", "送达方式", "select", "送达与归档", true, false,
+                        List.of("邮寄", "现场领取", "电子送达", "其他")),
+                field("deliveryDate", "送达日期", "date", "送达与归档", false, false),
+                field("archiveConfirmed", "归档材料已确认", "boolean", "送达与归档", true, false),
+                field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
+        );
+        return new FormDesignRequest(
+                form.code(),
+                form.name(),
+                "司法鉴定",
+                toJson(toFileRules(form.inputFiles(), "input")),
+                toJson(toFileRules(form.outputFiles(), "output")),
+                toJson(form.versionedArtifacts()),
+                toJson(fields),
+                toJson(Map.of(
+                        "layout", "grouped",
+                        "groups", List.of("流程基础", "通知编制", "项目负责人审核", "用章与回传", "送达与归档", "办理意见")
+                )),
+                toJson(Map.of(
+                        "requiredFields", fields.stream().filter(item -> Boolean.TRUE.equals(item.get("required"))).map(item -> item.get("field")).toList(),
+                        "requiredInputs", form.inputFiles(),
+                        "requiredOutputs", form.outputFiles(),
+                        "crossFieldRules", List.of(
+                                Map.of("if", "projectReviewPassed == true", "then", "noticeDraftCompleted == true"),
+                                Map.of("if", "sealRequired == true", "then", "sealedNoticeUploaded == true"),
+                                Map.of("if", "archiveConfirmed == true", "then", "sealedNoticeUploaded == true")
+                        )
+                )),
+                toJson(Map.of(
+                        "groups", Map.of(
+                                "流程基础", Map.of("readOnly", true),
+                                "项目负责人审核", Map.of("roles", List.of("项目负责人")),
+                                "用章与回传", Map.of("roles", List.of("档案管理员", "综合业务部")),
+                                "送达与归档", Map.of("roles", List.of("档案管理员"))
+                        )
+                )),
+                toJson(Map.of(
+                        "flowNameTemplate", "${caseNo}-不予受理",
+                        "branchFields", List.of("projectReviewPassed", "sealRequired", "archiveConfirmed")
+                )),
+                toJson(Map.of(
+                        "flowName", "concat(caseNo,'-不予受理')",
+                        "autoArchiveTitle", "concat(caseNo,'/不予受理/',nodeName)"
+                )),
+                toJson(Map.of("enabled", true, "inputFiles", form.inputFiles(), "outputFiles", form.outputFiles(), "duplicatePolicy", "warn")),
+                "[]",
+                toJson(List.of(
+                        Map.of("type", "business", "text", "项目辅助人编制不予受理通知书，项目负责人审核后进入用章、回传、送达和归档"),
+                        Map.of("type", "validation", "text", "审核通过前必须完成通知书草稿；需要用章时必须上传盖章通知书扫描件"),
+                        Map.of("type", "archive", "text", "不予受理原因、通知书扫描件、送达记录和归档确认在节点完成后自动归档")
+                ))
+        );
+    }
+
+    private WorkflowDesignRequest rejectAcceptanceWorkflowRequest(JudicialWorkflowDefinitionDto workflow) {
+        List<WorkflowNodeRequest> nodes = List.of(
+                node("START", "开始", "start", "single", null, 0, 0, false, null, 0),
+                node("ASSISTANT_DRAFT", "项目辅助人编制不予受理通知书", "task", "candidate", "项目辅助人", 1, 24, true, workflow.formCode(), 10),
+                node("PROJECT_REVIEW", "项目负责人审核不予受理通知书", "task", "candidate", "项目负责人", 1, 48, true, workflow.formCode(), 20),
+                node("SEAL_APPLICATION", "进入用章流程", "task", "candidate", "综合业务部", 1, 24, true, "seal-application", 30),
+                node("SEALED_NOTICE_UPLOAD", "档案管理员回传盖章通知书", "task", "candidate", "档案管理员", 1, 24, true, workflow.formCode(), 40),
+                node("DELIVERY_ARCHIVE", "档案管理员送达并归档", "task", "candidate", "档案管理员", 1, 72, true, workflow.formCode(), 50),
+                node("ARCHIVE", "进入归档", "task", "candidate", "档案管理员", 1, 24, true, "archive", 60),
+                node("END", "流程结束", "end", "single", null, 0, 0, false, null, 70)
+        );
+
+        List<WorkflowTransitionRequest> transitions = List.of(
+                transition("START", "ASSISTANT_DRAFT", "APPROVE", "进入不予受理", null, 0, 10),
+                transition("ASSISTANT_DRAFT", "PROJECT_REVIEW", "APPROVE", "转交项目负责人审核", null, 1, 20),
+                transition("PROJECT_REVIEW", "SEAL_APPLICATION", "APPROVE", "审核通过，发起用章", "form.projectReviewPassed == true", 1, 30,
+                        subflowConfig("seal-application", "不予受理通知书审核通过且需要用章后自动进入用章流程")),
+                transition("PROJECT_REVIEW", "ASSISTANT_DRAFT", "RETURN", "退回项目辅助人修改通知书", "form.projectReviewPassed == false", 1, 31),
+                transition("PROJECT_REVIEW", "ASSISTANT_DRAFT", "RETURN", "退回项目辅助人补充材料", null, 1, 32),
+                transition("SEAL_APPLICATION", "SEALED_NOTICE_UPLOAD", "COMPLETE", "用章流程完成", null, 1, 40),
+                transition("SEALED_NOTICE_UPLOAD", "DELIVERY_ARCHIVE", "APPROVE", "转交送达与归档确认", null, 1, 50),
+                transition("SEALED_NOTICE_UPLOAD", "PROJECT_REVIEW", "RETURN", "退回项目负责人复核", null, 1, 51),
+                transition("DELIVERY_ARCHIVE", "ARCHIVE", "APPROVE", "送达完成，进入归档", "form.archiveConfirmed == true", 1, 60,
+                        subflowConfig("archive", "不予受理通知书送达并确认归档材料后自动进入归档流程")),
+                transition("DELIVERY_ARCHIVE", "SEALED_NOTICE_UPLOAD", "RETURN", "退回补充盖章通知书或送达记录", null, 1, 61),
+                transition("ARCHIVE", "END", "COMPLETE", "归档子流程已触发", null, 1, 70)
+        );
+
+        return new WorkflowDesignRequest(
+                workflow.code(),
+                workflow.name(),
+                "judicial",
+                workflow.formCode(),
+                "由司法鉴定使用手册高保真校准：不予受理",
+                toJson(Map.of(
+                        "entryMode", workflow.entryMode(),
+                        "highFidelity", true,
+                        "flowNameTemplate", "${caseNo}-不予受理",
+                        "keyRules", workflow.keyRules(),
+                        "nextFlows", workflow.nextFlows(),
+                        "autoArchive", true,
+                        "preserveVersions", true
+                )),
+                nodes,
+                transitions
+        );
+    }
+
+    private FormDesignRequest materialReceiveReturnFormRequest(JudicialFormDefinitionDto form) {
+        List<Map<String, Object>> fields = List.of(
+                field("caseNo", "案件号", "text", "流程基础", true, true),
+                field("flowName", "流程名称", "text", "流程基础", false, true),
+                field("projectLeaderId", "项目负责人", "user", "流程基础", true, true),
+                field("projectAssistantId", "项目辅助人", "user", "流程基础", true, true),
+                field("archivistId", "档案管理员", "user", "流程基础", true, true),
+                field("materialSource", "材料来源", "text", "材料接收", true, false),
+                field("requireSupplementaryMaterial", "是否补充材料", "boolean", "材料接收", true, false),
+                field("supplementaryNotice", "补材通知", "textarea", "材料接收", false, false),
+                field("materialDetails", "材料名称/数量/介质", "textarea", "材料接收", true, false),
+                field("receiveDate", "接收时间", "date", "材料接收", true, false),
+                field("storageLocation", "存放地址", "text", "材料保管", true, false),
+                field("requireReturn", "是否返还", "boolean", "材料保管", true, false),
+                field("storageStatus", "保管状态", "select", "材料保管", true, false,
+                        List.of("正常", "损毁", "灭失")),
+                field("returnReceiver", "返还接收人", "text", "材料返还", false, false),
+                field("returnDate", "返还时间", "date", "材料返还", false, false),
+                field("nextRecommendation", "下一步建议", "select", "后续流程", true, false,
+                        List.of("鉴定意见书征求意见稿送审稿编制", "鉴定意见书送审稿编制", "退费", "终止鉴定", "归档")),
+                field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
+        );
+        return new FormDesignRequest(
+                form.code(),
+                form.name(),
+                "司法鉴定",
+                toJson(toFileRules(form.inputFiles(), "input")),
+                toJson(toFileRules(form.outputFiles(), "output")),
+                toJson(form.versionedArtifacts()),
+                toJson(fields),
+                toJson(Map.of(
+                        "layout", "grouped",
+                        "groups", List.of("流程基础", "材料接收", "材料保管", "材料返还", "后续流程", "办理意见")
+                )),
+                toJson(Map.of(
+                        "requiredFields", fields.stream().filter(item -> Boolean.TRUE.equals(item.get("required"))).map(item -> item.get("field")).toList(),
+                        "requiredInputs", form.inputFiles(),
+                        "requiredOutputs", form.outputFiles(),
+                        "crossFieldRules", List.of(
+                                Map.of("if", "requireReturn == true", "then", "returnReceiver != null"),
+                                Map.of("if", "requireReturn == true", "then", "returnDate != null")
+                        )
+                )),
+                toJson(Map.of(
+                        "groups", Map.of(
+                                "流程基础", Map.of("readOnly", true),
+                                "材料接收", Map.of("roles", List.of("项目负责人", "项目辅助人")),
+                                "材料保管", Map.of("roles", List.of("档案管理员")),
+                                "材料返还", Map.of("roles", List.of("档案管理员")),
+                                "后续流程", Map.of("roles", List.of("项目负责人"))
+                        )
+                )),
+                toJson(Map.of(
+                        "flowNameTemplate", "${caseNo}-材料接收与返还",
+                        "branchFields", List.of("requireSupplementaryMaterial", "requireReturn", "nextRecommendation")
+                )),
+                toJson(Map.of(
+                        "flowName", "concat(caseNo,'-材料接收与返还')",
+                        "autoArchiveTitle", "concat(caseNo,'/材料接收与返还/',nodeName)"
+                )),
+                toJson(Map.of("enabled", true, "inputFiles", form.inputFiles(), "outputFiles", form.outputFiles(), "duplicatePolicy", "warn")),
+                "[]",
+                toJson(List.of(
+                        Map.of("type", "business", "text", "项目负责人确认材料需求，项目辅助人登记材料，档案管理员负责接收、保管与返还"),
+                        Map.of("type", "validation", "text", "如果需要返还，则必须填写返还接收人和返还时间"),
+                        Map.of("type", "archive", "text", "材料来源、明细、补材通知、保管状态及返还记录在各节点完成后自动归档")
+                ))
+        );
+    }
+
+    private WorkflowDesignRequest materialReceiveReturnWorkflowRequest(JudicialWorkflowDefinitionDto workflow) {
+        List<WorkflowNodeRequest> nodes = List.of(
+                node("START", "开始", "start", "single", null, 0, 0, false, null, 0),
+                node("PROJECT_CONFIRM", "项目负责人确认材料需求", "task", "candidate", "项目负责人", 1, 24, true, workflow.formCode(), 10),
+                node("ASSISTANT_REGISTER", "项目辅助人登记材料", "task", "candidate", "项目辅助人", 1, 24, true, workflow.formCode(), 20),
+                node("ARCHIVIST_HANDLE", "档案管理员接收保管与返还", "task", "candidate", "档案管理员", 1, 48, true, workflow.formCode(), 30),
+                node("PROJECT_DECISION", "项目负责人确认后续流程", "task", "candidate", "项目负责人", 1, 24, true, workflow.formCode(), 40),
+                node("DRAFT_OPINION_REVIEW", "进入征求意见稿送审稿编制", "task", "candidate", "项目负责人", 1, 24, true, "draft-opinion-review", 50),
+                node("FINAL_OPINION_REVIEW", "进入鉴定意见书送审稿编制", "task", "candidate", "项目负责人", 1, 24, true, "final-opinion-review", 60),
+                node("REFUND", "进入退费", "task", "candidate", "项目负责人", 1, 24, true, "refund", 70),
+                node("TERMINATE_APPRAISAL", "进入终止鉴定", "task", "candidate", "项目负责人", 1, 24, true, "terminate-appraisal", 80),
+                node("ARCHIVE", "进入归档", "task", "candidate", "档案管理员", 1, 24, true, "archive", 90),
+                node("END", "流程结束", "end", "single", null, 0, 0, false, null, 100)
+        );
+
+        List<WorkflowTransitionRequest> transitions = List.of(
+                transition("START", "PROJECT_CONFIRM", "APPROVE", "进入材料接收与返还", null, 0, 10),
+                transition("PROJECT_CONFIRM", "ASSISTANT_REGISTER", "APPROVE", "转交项目辅助人登记材料", null, 1, 20),
+                transition("ASSISTANT_REGISTER", "ARCHIVIST_HANDLE", "APPROVE", "转交档案管理员接收与保管", null, 1, 30),
+                transition("ASSISTANT_REGISTER", "PROJECT_CONFIRM", "RETURN", "退回项目负责人复核材料需求", null, 1, 31),
+                transition("ARCHIVIST_HANDLE", "PROJECT_DECISION", "APPROVE", "转交项目负责人确认后续流程", null, 1, 40),
+                transition("ARCHIVIST_HANDLE", "ASSISTANT_REGISTER", "RETURN", "退回项目辅助人重新登记材料", null, 1, 41),
+                transition("PROJECT_DECISION", "DRAFT_OPINION_REVIEW", "APPROVE", "进入征求意见稿送审稿编制", "form.nextRecommendation == '鉴定意见书征求意见稿送审稿编制'", 1, 50,
+                        subflowConfig("draft-opinion-review", "材料处理完成后选择进入征求意见稿送审稿编制")),
+                transition("PROJECT_DECISION", "FINAL_OPINION_REVIEW", "APPROVE", "进入鉴定意见书送审稿编制", "form.nextRecommendation == '鉴定意见书送审稿编制'", 1, 51,
+                        subflowConfig("final-opinion-review", "材料处理完成后选择进入鉴定意见书送审稿编制")),
+                transition("PROJECT_DECISION", "REFUND", "APPROVE", "进入退费", "form.nextRecommendation == '退费'", 1, 52,
+                        subflowConfig("refund", "材料处理完成后选择进入退费")),
+                transition("PROJECT_DECISION", "TERMINATE_APPRAISAL", "APPROVE", "进入终止鉴定", "form.nextRecommendation == '终止鉴定'", 1, 53,
+                        subflowConfig("terminate-appraisal", "材料处理完成后选择进入终止鉴定")),
+                transition("PROJECT_DECISION", "ARCHIVE", "APPROVE", "进入归档", "form.nextRecommendation == '归档'", 1, 54,
+                        subflowConfig("archive", "材料处理完成后选择进入归档")),
+                transition("PROJECT_DECISION", "ARCHIVIST_HANDLE", "RETURN", "退回档案管理员处理材料", null, 1, 55),
+                transition("DRAFT_OPINION_REVIEW", "END", "COMPLETE", "征求意见稿送审稿编制子流程已触发", null, 1, 60),
+                transition("FINAL_OPINION_REVIEW", "END", "COMPLETE", "鉴定意见书送审稿编制子流程已触发", null, 1, 61),
+                transition("REFUND", "END", "COMPLETE", "退费子流程已触发", null, 1, 62),
+                transition("TERMINATE_APPRAISAL", "END", "COMPLETE", "终止鉴定子流程已触发", null, 1, 63),
+                transition("ARCHIVE", "END", "COMPLETE", "归档子流程已触发", null, 1, 64)
+        );
+
+        return new WorkflowDesignRequest(
+                workflow.code(),
+                workflow.name(),
+                "judicial",
+                workflow.formCode(),
+                "由司法鉴定使用手册高保真校准：材料接收与返还",
+                toJson(Map.of(
+                        "entryMode", workflow.entryMode(),
+                        "highFidelity", true,
+                        "flowNameTemplate", "${caseNo}-材料接收与返还",
                         "keyRules", workflow.keyRules(),
                         "nextFlows", workflow.nextFlows(),
                         "autoArchive", true,
