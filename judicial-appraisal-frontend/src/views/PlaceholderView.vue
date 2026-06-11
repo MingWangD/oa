@@ -107,6 +107,7 @@ const keyword = ref('');
 const statusFilter = ref('all');
 const detailVisible = ref(false);
 const detailRow = ref<LedgerRow | null>(null);
+const exporting = ref(false);
 
 const BOARD_CODE_BY_PREFIX: Array<{ prefix: string; code: string }> = [
   { prefix: '/placeholder/quick/mail', code: 'quick-mail' },
@@ -155,6 +156,10 @@ function statusText(status: string): string {
 
 function flattenMenuEntries(entries: MenuEntry[]): MenuEntry[] {
   return entries.flatMap((item) => [item, ...flattenMenuEntries(item.children || [])]);
+}
+
+function getFilterStorageKey(boardCode: string): string {
+  return `oa:module-board:${boardCode}:filters`;
 }
 
 function findSectionByPath(path: string): SectionDefinition | null {
@@ -256,6 +261,16 @@ const statusLabels = computed<Record<string, string>>(() => ({
   disabled: '停用'
 }));
 const statusButtons = computed(() => ledgerBoard.value?.statusOptions ?? ['all']);
+const filterSummary = computed(() => {
+  const parts: string[] = [];
+  if (keyword.value.trim()) {
+    parts.push(`关键词“${keyword.value.trim()}”`);
+  }
+  if (statusFilter.value !== 'all') {
+    parts.push(`状态“${statusLabels.value[statusFilter.value] ?? statusFilter.value}”`);
+  }
+  return parts.length > 0 ? parts.join('，') : '全部数据';
+});
 
 const listMetricLabel = computed(() => {
   const labels: Record<string, string> = {
@@ -315,9 +330,43 @@ function entryStateLabel(path: string, current: boolean): string {
   return '待建设';
 }
 
+function persistFilters(): void {
+  if (!currentBoardCode.value || typeof window === 'undefined') {
+    return;
+  }
+  window.sessionStorage.setItem(
+    getFilterStorageKey(currentBoardCode.value),
+    JSON.stringify({
+      keyword: keyword.value,
+      statusFilter: statusFilter.value
+    })
+  );
+}
+
+function restoreFilters(boardCode: string): void {
+  if (!boardCode || typeof window === 'undefined') {
+    return;
+  }
+  const raw = window.sessionStorage.getItem(getFilterStorageKey(boardCode));
+  if (!raw) {
+    keyword.value = '';
+    statusFilter.value = 'all';
+    return;
+  }
+  try {
+    const parsed = JSON.parse(raw) as { keyword?: string; statusFilter?: string };
+    keyword.value = parsed.keyword ?? '';
+    statusFilter.value = parsed.statusFilter ?? 'all';
+  } catch {
+    keyword.value = '';
+    statusFilter.value = 'all';
+  }
+}
+
 function applyFilters(): void {
   detailVisible.value = false;
   detailRow.value = null;
+  persistFilters();
   void loadData();
 }
 
@@ -326,6 +375,7 @@ function resetFilters(): void {
   statusFilter.value = 'all';
   detailVisible.value = false;
   detailRow.value = null;
+  persistFilters();
   void loadData();
 }
 
@@ -334,16 +384,62 @@ function openRowDetail(row: LedgerRow): void {
   detailVisible.value = true;
 }
 
+function exportBoard(): void {
+  if (!ledgerBoard.value || typeof window === 'undefined') {
+    return;
+  }
+  exporting.value = true;
+  try {
+    const headers = ['名称', '补充信息', '第三信息', '负责人', '状态', listMetricLabel.value, '推进说明', '操作提示', '标签', '最近更新', '截止时间', '业务事实'];
+    const rows = ledgerBoard.value.rows.map((row) => [
+      row.primaryText,
+      row.secondaryText,
+      row.tertiaryText,
+      row.ownerName,
+      row.statusLabel,
+      row.metricText,
+      row.progressLabel,
+      row.actionHint,
+      row.tags.join(' / '),
+      formatDateTime(row.updatedTime),
+      formatDateTime(row.deadlineTime),
+      row.facts.join(' / ')
+    ]);
+    const csv = [headers, ...rows]
+      .map((line) =>
+        line
+          .map((cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`)
+          .join(',')
+      )
+      .join('\n');
+    const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${ledgerBoard.value.moduleCode}-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  } finally {
+    exporting.value = false;
+  }
+}
+
 onMounted(() => {
+  restoreFilters(currentBoardCode.value);
   void loadData();
 });
 
 watch(
-  () => route.path,
-  () => {
+  () => currentBoardCode.value,
+  (boardCode) => {
+    restoreFilters(boardCode);
     void loadData();
   }
 );
+
+watch([keyword, statusFilter], () => {
+  persistFilters();
+});
 </script>
 
 <template>
@@ -423,9 +519,12 @@ watch(
         <h3 class="panel-title">{{ ledgerBoard.moduleName }}</h3>
         <p class="panel-subtitle">{{ ledgerBoard.description }}</p>
       </div>
-      <el-tag :type="ledgerBoard.sourceType === 'live' ? 'success' : 'warning'" effect="plain">
-        {{ ledgerBoard.sourceType === 'live' ? '实时案件派生' : '示例台账' }}
-      </el-tag>
+      <div class="inline-actions">
+        <el-tag :type="ledgerBoard.sourceType === 'live' ? 'success' : 'warning'" effect="plain">
+          {{ ledgerBoard.sourceType === 'live' ? '实时案件派生' : '示例台账' }}
+        </el-tag>
+        <el-button :loading="exporting" @click="exportBoard">导出 CSV</el-button>
+      </div>
     </div>
 
     <el-form class="query-bar" :inline="true" @submit.prevent="applyFilters">
@@ -446,6 +545,15 @@ watch(
         </div>
       </el-form-item>
     </el-form>
+
+    <div class="query-summary">
+      <p class="query-summary-text">
+        当前条件：<strong>{{ filterSummary }}</strong>
+      </p>
+      <p class="query-summary-text">
+        当前记录：<strong>{{ ledgerBoard.rows.length }}</strong> 条
+      </p>
+    </div>
 
     <div class="ledger-metric-grid">
       <article v-for="metric in ledgerBoard.metrics" :key="metric.label" class="ledger-metric-card" :class="{ 'is-accent': metric.accent }">
