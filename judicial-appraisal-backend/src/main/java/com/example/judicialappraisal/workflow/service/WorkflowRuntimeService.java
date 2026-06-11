@@ -17,12 +17,16 @@ import com.example.judicialappraisal.workflow.entity.CaseNodeInstance;
 import com.example.judicialappraisal.workflow.entity.CaseTask;
 import com.example.judicialappraisal.workflow.entity.CaseTaskCandidate;
 import com.example.judicialappraisal.workflow.entity.CaseWfInstance;
+import com.example.judicialappraisal.workflow.entity.WfDefinition;
 import com.example.judicialappraisal.workflow.entity.WfNodeDef;
+import com.example.judicialappraisal.workflow.entity.WfTransitionDef;
 import com.example.judicialappraisal.workflow.mapper.CaseNodeInstanceMapper;
 import com.example.judicialappraisal.workflow.mapper.CaseTaskCandidateMapper;
 import com.example.judicialappraisal.workflow.mapper.CaseTaskMapper;
 import com.example.judicialappraisal.workflow.mapper.CaseWfInstanceMapper;
+import com.example.judicialappraisal.workflow.mapper.WfDefinitionMapper;
 import com.example.judicialappraisal.workflow.mapper.WfNodeDefMapper;
+import com.example.judicialappraisal.workflow.mapper.WfTransitionDefMapper;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -55,6 +59,7 @@ public class WorkflowRuntimeService {
     private static final String NODE_RUNNING = "running";
     private static final String NODE_COMPLETED = "completed";
     private static final String NODE_CANCELLED = "cancelled";
+    private static final String NODE_END = "end";
     private static final String TASK_PENDING = TaskStatus.PENDING.name().toLowerCase();
     private static final String TASK_CLAIMED = TaskStatus.CLAIMED.name().toLowerCase();
     private static final String TASK_COMPLETED = TaskStatus.COMPLETED.name().toLowerCase();
@@ -62,12 +67,15 @@ public class WorkflowRuntimeService {
     private static final String TASK_TYPE_SINGLE = "single";
     private static final String TASK_TYPE_CANDIDATE = "candidate";
     private static final String ENABLED_STATUS = "enabled";
+    private static final String PUBLISHED_STATUS = "published";
 
     private final CaseInfoMapper caseInfoMapper;
     private final CaseWfInstanceMapper caseWfInstanceMapper;
     private final CaseNodeInstanceMapper caseNodeInstanceMapper;
     private final CaseTaskMapper caseTaskMapper;
+    private final WfDefinitionMapper wfDefinitionMapper;
     private final WfNodeDefMapper wfNodeDefMapper;
+    private final WfTransitionDefMapper wfTransitionDefMapper;
     private final CaseTaskCandidateMapper caseTaskCandidateMapper;
     private final SysRoleMapper sysRoleMapper;
     private final SysUserRoleMapper sysUserRoleMapper;
@@ -77,7 +85,9 @@ public class WorkflowRuntimeService {
             CaseWfInstanceMapper caseWfInstanceMapper,
             CaseNodeInstanceMapper caseNodeInstanceMapper,
             CaseTaskMapper caseTaskMapper,
+            WfDefinitionMapper wfDefinitionMapper,
             WfNodeDefMapper wfNodeDefMapper,
+            WfTransitionDefMapper wfTransitionDefMapper,
             CaseTaskCandidateMapper caseTaskCandidateMapper,
             SysRoleMapper sysRoleMapper,
             SysUserRoleMapper sysUserRoleMapper) {
@@ -85,7 +95,9 @@ public class WorkflowRuntimeService {
         this.caseWfInstanceMapper = caseWfInstanceMapper;
         this.caseNodeInstanceMapper = caseNodeInstanceMapper;
         this.caseTaskMapper = caseTaskMapper;
+        this.wfDefinitionMapper = wfDefinitionMapper;
         this.wfNodeDefMapper = wfNodeDefMapper;
+        this.wfTransitionDefMapper = wfTransitionDefMapper;
         this.caseTaskCandidateMapper = caseTaskCandidateMapper;
         this.sysRoleMapper = sysRoleMapper;
         this.sysUserRoleMapper = sysUserRoleMapper;
@@ -384,6 +396,10 @@ public class WorkflowRuntimeService {
     }
 
     private WorkflowActionResult handleApprove(CaseInfo caseInfo, CaseTask task, WorkflowActionRequest request, LocalDateTime now) {
+        WorkflowActionResult dynamicResult = tryAdvanceByDefinition(caseInfo, task, request, now);
+        if (dynamicResult != null) {
+            return dynamicResult;
+        }
         if (ACCEPT_NODE_CODE.equals(task.getNodeCode())) {
             return moveToNextNode(
                     caseInfo,
@@ -451,6 +467,10 @@ public class WorkflowRuntimeService {
     }
 
     private WorkflowActionResult handleReturn(CaseInfo caseInfo, CaseTask task, WorkflowActionRequest request, LocalDateTime now) {
+        WorkflowActionResult dynamicResult = tryAdvanceByDefinition(caseInfo, task, request, now);
+        if (dynamicResult != null) {
+            return dynamicResult;
+        }
         return moveToNextNode(
                 caseInfo,
                 task,
@@ -526,6 +546,91 @@ public class WorkflowRuntimeService {
         return new WorkflowActionResult(caseInfo.getId(), completedTask.getId(), request.actionCode().name(), true, message);
     }
 
+    private WorkflowActionResult tryAdvanceByDefinition(CaseInfo caseInfo, CaseTask completedTask, WorkflowActionRequest request, LocalDateTime now) {
+        CaseWfInstance wfInstance = requireRunningInstance(caseInfo.getId());
+        List<WfTransitionDef> transitions = wfTransitionDefMapper.selectList(new LambdaQueryWrapper<WfTransitionDef>()
+                .eq(WfTransitionDef::getWfId, wfInstance.getWfId())
+                .eq(WfTransitionDef::getFromNodeCode, completedTask.getNodeCode())
+                .eq(WfTransitionDef::getActionCode, request.actionCode().name())
+                .eq(WfTransitionDef::getEnabled, 1)
+                .orderByAsc(WfTransitionDef::getSortNo)
+                .orderByAsc(WfTransitionDef::getId));
+        if (transitions == null || transitions.isEmpty()) {
+            return null;
+        }
+
+        List<TransitionAdvance> advances = transitions.stream()
+                .map(transition -> createTransitionTarget(caseInfo, wfInstance, completedTask, transition, request, now))
+                .toList();
+        List<CaseTask> createdTasks = advances.stream()
+                .flatMap(advance -> advance.tasks().stream())
+                .toList();
+        boolean finished = advances.stream().anyMatch(TransitionAdvance::finished);
+        if (!finished && createdTasks.isEmpty()) {
+            return null;
+        }
+        if (finished) {
+            return new WorkflowActionResult(caseInfo.getId(), completedTask.getId(), request.actionCode().name(), true, "流程已完成");
+        }
+
+        CaseTask primaryTask = createdTasks.get(0);
+        caseInfo.setCaseStatus(resolveCaseStatusForNode(primaryTask.getNodeCode()).name());
+        caseInfo.setCurrentNodeCode(primaryTask.getNodeCode());
+        caseInfo.setCurrentNodeName(primaryTask.getNodeName());
+        caseInfo.setCurrentHandlerId(primaryTask.getAssigneeId());
+        caseInfo.setCurrentHandlerName(primaryTask.getAssigneeName());
+        caseInfoMapper.updateById(caseInfo);
+
+        wfInstance.setCurrentNodeCode(primaryTask.getNodeCode());
+        wfInstance.setCurrentNodeName(primaryTask.getNodeName());
+        caseWfInstanceMapper.updateById(wfInstance);
+        return new WorkflowActionResult(caseInfo.getId(), completedTask.getId(), request.actionCode().name(), true, "按流程定义完成办理");
+    }
+
+    private TransitionAdvance createTransitionTarget(
+            CaseInfo caseInfo,
+            CaseWfInstance wfInstance,
+            CaseTask completedTask,
+            WfTransitionDef transition,
+            WorkflowActionRequest request,
+            LocalDateTime now) {
+        WfNodeDef targetNode = findNodeDef(wfInstance.getWfId(), transition.getToNodeCode());
+        if (targetNode == null) {
+            throw new BusinessException("流程定义缺少目标节点：" + transition.getToNodeCode());
+        }
+
+        CaseNodeInstance nodeInstance = createNodeInstance(caseInfo.getId(), wfInstance.getId(), targetNode.getNodeCode(), targetNode.getNodeName(), now);
+        if (NODE_END.equalsIgnoreCase(targetNode.getNodeType())) {
+            caseInfo.setCaseStatus(CaseStatus.COMPLETED.name());
+            caseInfo.setCurrentNodeCode(targetNode.getNodeCode());
+            caseInfo.setCurrentNodeName(targetNode.getNodeName());
+            caseInfo.setCurrentHandlerId(null);
+            caseInfo.setCurrentHandlerName(null);
+            caseInfo.setCompletedTime(now);
+            caseInfoMapper.updateById(caseInfo);
+            finishWorkflowInstance(caseInfo.getId(), now);
+            return new TransitionAdvance(List.of(), true);
+        }
+
+        CaseTask nextTask = createNextNodeTask(
+                caseInfo,
+                wfInstance,
+                nodeInstance.getId(),
+                targetNode.getNodeCode(),
+                targetNode.getNodeName(),
+                request,
+                completedTask.getAssigneeId(),
+                completedTask.getAssigneeName(),
+                now);
+        return new TransitionAdvance(List.of(nextTask), false);
+    }
+
+    private record TransitionAdvance(List<CaseTask> tasks, boolean finished) {
+        private TransitionAdvance {
+            tasks = tasks == null ? List.of() : List.copyOf(tasks);
+        }
+    }
+
     private CaseInfo requireCase(Long caseId) {
         CaseInfo caseInfo = caseInfoMapper.selectById(caseId);
         if (caseInfo == null) {
@@ -559,16 +664,36 @@ public class WorkflowRuntimeService {
         if (existing != null) {
             return existing;
         }
+        WfDefinition workflowDefinition = latestPublishedDefinition(MAIN_WF_CODE);
         CaseWfInstance instance = new CaseWfInstance();
         instance.setCaseId(caseInfo.getId());
-        instance.setWfId(1L);
-        instance.setWfCode(MAIN_WF_CODE);
-        instance.setWfName(MAIN_WF_NAME);
+        instance.setWfId(workflowDefinition == null ? 1L : workflowDefinition.getId());
+        instance.setWfCode(workflowDefinition == null ? MAIN_WF_CODE : workflowDefinition.getWfCode());
+        instance.setWfName(workflowDefinition == null ? MAIN_WF_NAME : workflowDefinition.getWfName());
         instance.setStatus(WORKFLOW_RUNNING);
         instance.setStartedBy(operatorId);
         instance.setStartedTime(now);
         caseWfInstanceMapper.insert(instance);
         return instance;
+    }
+
+    private WfDefinition latestPublishedDefinition(String wfCode) {
+        WfDefinition published = wfDefinitionMapper.selectOne(new LambdaQueryWrapper<WfDefinition>()
+                .eq(WfDefinition::getWfCode, wfCode)
+                .eq(WfDefinition::getPublishStatus, PUBLISHED_STATUS)
+                .eq(WfDefinition::getDeleted, 0)
+                .orderByDesc(WfDefinition::getVersionNo)
+                .orderByDesc(WfDefinition::getId)
+                .last("limit 1"));
+        if (published != null) {
+            return published;
+        }
+        return wfDefinitionMapper.selectOne(new LambdaQueryWrapper<WfDefinition>()
+                .eq(WfDefinition::getWfCode, wfCode)
+                .eq(WfDefinition::getDeleted, 0)
+                .orderByDesc(WfDefinition::getVersionNo)
+                .orderByDesc(WfDefinition::getId)
+                .last("limit 1"));
     }
 
     private CaseWfInstance requireRunningInstance(Long caseId) {
@@ -632,7 +757,7 @@ public class WorkflowRuntimeService {
         if (ARCHIVE_NODE_CODE.equals(nodeCode)) {
             return CaseStatus.ARCHIVED;
         }
-        throw new BusinessException("不支持的节点状态映射");
+        return CaseStatus.PROCESSING;
     }
 
     private CaseNodeInstance createNodeInstance(Long caseId, Long wfInstanceId, String nodeCode, String nodeName, LocalDateTime now) {

@@ -1,6 +1,7 @@
 package com.example.judicialappraisal.config;
 
 import com.example.judicialappraisal.auth.dto.CurrentUserInfo;
+import com.example.judicialappraisal.auth.service.AuthService;
 import com.example.judicialappraisal.auth.service.JwtTokenService;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -11,6 +12,7 @@ import java.io.IOException;
 import java.util.List;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,11 +27,14 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenService jwtTokenService;
+    private final AuthService authService;
     private final AuthenticationEntryPoint authenticationEntryPoint;
 
     public JwtAuthenticationFilter(JwtTokenService jwtTokenService,
+                                   AuthService authService,
                                    RestAuthenticationEntryPoint authenticationEntryPoint) {
         this.jwtTokenService = jwtTokenService;
+        this.authService = authService;
         this.authenticationEntryPoint = authenticationEntryPoint;
     }
 
@@ -58,7 +63,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             Authentication currentAuthentication = SecurityContextHolder.getContext().getAuthentication();
                 if (currentAuthentication == null) {
-                    CurrentUserInfo userInfo = jwtTokenService.parseToken(token);
+                    CurrentUserInfo tokenUser = jwtTokenService.parseToken(token);
+                    CurrentUserInfo userInfo = authService.getCurrentUser(tokenUser.id());
                     
                     List<org.springframework.security.core.GrantedAuthority> authorities = new java.util.ArrayList<>();
                     if (userInfo.roles() != null) {
@@ -80,7 +86,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.setContext(context);
             }
             filterChain.doFilter(request, response);
-        } catch (JwtException | IllegalArgumentException ex) {
+        } catch (JwtException | IllegalArgumentException | AuthenticationException ex) {
             SecurityContextHolder.clearContext();
             if (publicPath) {
                 filterChain.doFilter(request, response);

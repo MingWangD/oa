@@ -10,6 +10,7 @@ import com.example.judicialappraisal.organization.dto.AdminUserDto;
 import com.example.judicialappraisal.organization.dto.AdminUserUpdateRequest;
 import com.example.judicialappraisal.organization.dto.OrganizationDeptDto;
 import com.example.judicialappraisal.organization.dto.OrganizationPostDto;
+import com.example.judicialappraisal.organization.dto.RoleDataScopeUpdateRequest;
 import com.example.judicialappraisal.organization.dto.UserRoleAssignRequest;
 import com.example.judicialappraisal.organization.service.OrganizationService;
 import jakarta.validation.Valid;
@@ -76,6 +77,14 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<List<AdminRoleDto>> listRoles(Authentication authentication) {
         return ApiResponse.success(organizationService.listRoles());
+    }
+
+    @PutMapping("/roles/{roleId}/data-scope")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<AdminRoleDto> updateRoleDataScope(@PathVariable Long roleId,
+                                                         @Valid @RequestBody RoleDataScopeUpdateRequest request,
+                                                         Authentication authentication) {
+        return ApiResponse.success(organizationService.updateRoleDataScope(roleId, request));
     }
 
     @GetMapping("/depts")

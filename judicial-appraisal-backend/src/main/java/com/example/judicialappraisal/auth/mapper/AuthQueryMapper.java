@@ -31,15 +31,25 @@ public interface AuthQueryMapper {
     CurrentUserBaseRow selectCurrentUserBaseById(@Param("userId") Long userId);
 
     @Select("""
-            SELECT r.role_code AS code,
-                   r.role_name AS name
+            SELECT r.id,
+                   r.role_code AS code,
+                   r.role_name AS name,
+                   r.data_scope AS dataScope
             FROM sys_user_role ur
             INNER JOIN sys_role r ON r.id = ur.role_id AND r.deleted = 0
             WHERE ur.user_id = #{userId}
               AND r.status = 'enabled'
             ORDER BY r.id
             """)
-    List<CurrentUserRole> selectRolesByUserId(@Param("userId") Long userId);
+    List<CurrentUserRoleRow> selectRolesByUserId(@Param("userId") Long userId);
+
+    @Select("""
+            SELECT dept_id
+            FROM sys_role_data_scope_dept
+            WHERE role_id = #{roleId}
+            ORDER BY dept_id
+            """)
+    List<Long> selectCustomDeptIdsByRoleId(@Param("roleId") Long roleId);
 
     record CurrentUserBaseRow(
             Long id,
@@ -52,6 +62,14 @@ public interface AuthQueryMapper {
             Long postId,
             String postName,
             String status
+    ) {
+    }
+
+    record CurrentUserRoleRow(
+            Long id,
+            String code,
+            String name,
+            String dataScope
     ) {
     }
 }

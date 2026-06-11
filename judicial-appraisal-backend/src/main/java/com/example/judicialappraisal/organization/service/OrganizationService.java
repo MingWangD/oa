@@ -7,6 +7,7 @@ import com.example.judicialappraisal.organization.dto.AdminRoleDto;
 import com.example.judicialappraisal.organization.dto.AdminUserCreateRequest;
 import com.example.judicialappraisal.organization.dto.AdminUserDto;
 import com.example.judicialappraisal.organization.dto.AdminUserUpdateRequest;
+import com.example.judicialappraisal.organization.dto.RoleDataScopeUpdateRequest;
 import com.example.judicialappraisal.organization.dto.OrganizationDeptDto;
 import com.example.judicialappraisal.organization.dto.OrganizationPostDto;
 import com.example.judicialappraisal.organization.entity.SysRole;
@@ -14,6 +15,7 @@ import com.example.judicialappraisal.organization.entity.SysUser;
 import com.example.judicialappraisal.organization.entity.SysUserRole;
 import com.example.judicialappraisal.organization.mapper.AdminQueryMapper;
 import com.example.judicialappraisal.organization.mapper.SysRoleMapper;
+import com.example.judicialappraisal.organization.mapper.SysRoleDataScopeDeptMapper;
 import com.example.judicialappraisal.organization.mapper.SysUserMapper;
 import com.example.judicialappraisal.organization.mapper.SysUserRoleMapper;
 import java.util.HashMap;
@@ -31,15 +33,18 @@ public class OrganizationService extends ServiceImpl<SysUserMapper, SysUser> {
 
     private final AdminQueryMapper adminQueryMapper;
     private final SysRoleMapper sysRoleMapper;
+    private final SysRoleDataScopeDeptMapper sysRoleDataScopeDeptMapper;
     private final SysUserRoleMapper sysUserRoleMapper;
     private final PasswordEncoder passwordEncoder;
 
     public OrganizationService(AdminQueryMapper adminQueryMapper,
                                SysRoleMapper sysRoleMapper,
+                               SysRoleDataScopeDeptMapper sysRoleDataScopeDeptMapper,
                                SysUserRoleMapper sysUserRoleMapper,
                                PasswordEncoder passwordEncoder) {
         this.adminQueryMapper = adminQueryMapper;
         this.sysRoleMapper = sysRoleMapper;
+        this.sysRoleDataScopeDeptMapper = sysRoleDataScopeDeptMapper;
         this.sysUserRoleMapper = sysUserRoleMapper;
         this.passwordEncoder = passwordEncoder;
     }
@@ -79,6 +84,24 @@ public class OrganizationService extends ServiceImpl<SysUserMapper, SysUser> {
         return adminQueryMapper.selectRoles().stream()
                 .map(this::toRoleDto)
                 .toList();
+    }
+
+    @Transactional
+    public AdminRoleDto updateRoleDataScope(Long roleId, RoleDataScopeUpdateRequest request) {
+        SysRole role = sysRoleMapper.selectById(roleId);
+        if (role == null || role.getDeleted() != null && role.getDeleted() != 0) {
+            throw new BusinessException(404, "Role not found");
+        }
+        String scope = normalizeDataScope(request.dataScope());
+        role.setDataScope(scope);
+        sysRoleMapper.updateById(role);
+        sysRoleDataScopeDeptMapper.deleteByRoleId(roleId);
+        if ("custom".equals(scope)) {
+            for (Long deptId : normalizeDeptIds(request.deptIds())) {
+                sysRoleDataScopeDeptMapper.insertRoleDept(roleId, deptId);
+            }
+        }
+        return toRoleDto(new AdminQueryMapper.RoleRow(role.getId(), role.getRoleCode(), role.getRoleName(), role.getStatus(), role.getDataScope()));
     }
 
     @Transactional
@@ -175,11 +198,37 @@ public class OrganizationService extends ServiceImpl<SysUserMapper, SysUser> {
     }
 
     private AdminRoleDto toRoleDto(AdminQueryMapper.RoleRow role) {
-        return new AdminRoleDto(role.id(), role.roleCode(), role.roleName(), role.status());
+        return new AdminRoleDto(
+                role.id(),
+                role.roleCode(),
+                role.roleName(),
+                role.status(),
+                role.dataScope(),
+                sysRoleDataScopeDeptMapper.selectDeptIdsByRoleId(role.id())
+        );
     }
 
     private AdminRoleDto toRoleDto(AdminQueryMapper.UserRoleRow role) {
-        return new AdminRoleDto(role.id(), role.roleCode(), role.roleName(), role.status());
+        return new AdminRoleDto(role.id(), role.roleCode(), role.roleName(), role.status(), null, List.of());
+    }
+
+    private String normalizeDataScope(String dataScope) {
+        String value = trimToNull(dataScope);
+        if (value == null) {
+            return "self";
+        }
+        String normalized = value.toLowerCase();
+        if (List.of("all", "dept", "dept_sub", "self", "custom").contains(normalized)) {
+            return normalized;
+        }
+        throw new BusinessException("Unsupported data scope");
+    }
+
+    private List<Long> normalizeDeptIds(List<Long> deptIds) {
+        if (deptIds == null || deptIds.isEmpty()) {
+            return List.of();
+        }
+        return deptIds.stream().filter(Objects::nonNull).distinct().toList();
     }
 
     private List<Long> normalizeRoleIds(List<Long> roleIds) {

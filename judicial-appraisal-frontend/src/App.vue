@@ -41,15 +41,28 @@ function getIcon(name: string): unknown {
   return (ElementPlusIcons as any)[name] || ElementPlusIcons.Files;
 }
 
+function collectMenuItems(menus: typeof authStore.menus, depth = 0): MenuItem[] {
+  return menus.flatMap((menu) => {
+    const children = collectMenuItems(menu.children || [], depth + 1);
+    if (!menu.path || menu.menuType.toUpperCase() === 'M') {
+      return children;
+    }
+    return [
+      {
+        title: `${'　'.repeat(Math.max(depth - 1, 0))}${menu.menuName}`,
+        path: menu.path,
+        icon: getIcon(menu.icon)
+      },
+      ...children
+    ];
+  });
+}
+
 const menuGroups = computed<MenuGroup[]>(() => {
   if (authStore.menus && authStore.menus.length > 0) {
     return authStore.menus.map((m) => ({
       title: m.menuName,
-      items: (m.children || []).map((c) => ({
-        title: c.menuName,
-        path: c.path,
-        icon: getIcon(c.icon)
-      }))
+      items: collectMenuItems(m.children || [])
     }));
   }
 

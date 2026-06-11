@@ -61,7 +61,17 @@ public class AuthService {
     public CurrentUserInfo getCurrentUser(Long userId) {
         SysUser user = requireEnabledUser(userId);
         AuthQueryMapper.CurrentUserBaseRow row = authQueryMapper.selectCurrentUserBaseById(user.getId());
-        List<CurrentUserRole> roles = authQueryMapper.selectRolesByUserId(user.getId());
+        List<CurrentUserRole> roles = authQueryMapper.selectRolesByUserId(user.getId()).stream()
+                .map(role -> new CurrentUserRole(
+                        role.id(),
+                        role.code(),
+                        role.name(),
+                        role.dataScope(),
+                        "custom".equalsIgnoreCase(role.dataScope())
+                                ? authQueryMapper.selectCustomDeptIdsByRoleId(role.id())
+                                : List.of()
+                ))
+                .toList();
         Set<String> permissions = permissionService.getPermissionsByUserId(user.getId());
 
         if (row == null) {

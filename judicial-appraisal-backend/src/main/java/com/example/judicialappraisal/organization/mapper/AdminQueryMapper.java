@@ -59,7 +59,8 @@ public interface AdminQueryMapper {
             SELECT id,
                    role_code AS roleCode,
                    role_name AS roleName,
-                   status
+                   status,
+                   data_scope AS dataScope
             FROM sys_role
             WHERE deleted = 0
             ORDER BY id
@@ -105,7 +106,7 @@ public interface AdminQueryMapper {
     ) {
     }
 
-    record RoleRow(Long id, String roleCode, String roleName, String status) {
+    record RoleRow(Long id, String roleCode, String roleName, String status, String dataScope) {
     }
 
     record UserRoleRow(Long userId, Long id, String roleCode, String roleName, String status) {

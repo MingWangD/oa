@@ -1,8 +1,11 @@
 import { get, post, put } from './http';
 
 export interface UserRole {
+  id?: number | null;
   code: string;
   name: string;
+  dataScope?: string | null;
+  customDeptIds?: number[];
 }
 
 export interface UserInfo {
@@ -36,6 +39,13 @@ export interface AdminRole {
   roleCode: string;
   roleName: string;
   status: string;
+  dataScope: string | null;
+  customDeptIds: number[];
+}
+
+export interface RoleDataScopePayload {
+  dataScope: string;
+  deptIds?: number[];
 }
 
 export interface AdminUser {
@@ -281,6 +291,149 @@ export interface JudicialCatalog {
   forms: JudicialFormDefinition[];
 }
 
+export interface FormDefinitionDesign {
+  id: number;
+  formCode: string;
+  formName: string;
+  category: string | null;
+  currentPublishedVersion: number;
+  enabled: number;
+  createdTime: string | null;
+  updatedTime: string | null;
+}
+
+export interface FormVersionDesign {
+  id: number;
+  formId: number;
+  formCode: string;
+  formName: string;
+  versionNo: number;
+  status: string;
+  inputFilesJson: string | null;
+  outputFilesJson: string | null;
+  versionedArtifactsJson: string | null;
+  fieldSchemaJson: string | null;
+  layoutSchemaJson: string | null;
+  validationSchemaJson: string | null;
+  permissionSchemaJson: string | null;
+  linkageSchemaJson: string | null;
+  calculationSchemaJson: string | null;
+  attachmentSchemaJson: string | null;
+  subtableSchemaJson: string | null;
+  notesJson: string | null;
+  sourceVersionId: number | null;
+  publishedBy: number | null;
+  publishedTime: string | null;
+  immutableFlag: number;
+  createdTime: string | null;
+  updatedTime: string | null;
+}
+
+export interface FormDesignPayload {
+  formCode: string;
+  formName: string;
+  category?: string;
+  inputFilesJson?: string;
+  outputFilesJson?: string;
+  versionedArtifactsJson?: string;
+  fieldSchemaJson?: string;
+  layoutSchemaJson?: string;
+  validationSchemaJson?: string;
+  permissionSchemaJson?: string;
+  linkageSchemaJson?: string;
+  calculationSchemaJson?: string;
+  attachmentSchemaJson?: string;
+  subtableSchemaJson?: string;
+  notesJson?: string;
+}
+
+export interface WorkflowNodeDesign {
+  id?: number;
+  wfId?: number;
+  nodeCode: string;
+  nodeName: string;
+  nodeType: string;
+  taskType?: string | null;
+  caseStatus?: string | null;
+  handlerDeptRule?: string | null;
+  handlerPostRule?: string | null;
+  handlerRoleRule?: string | null;
+  allowManualAssign?: number | null;
+  timeoutHours?: number | null;
+  configJson?: string | null;
+  assigneeRuleJson?: string | null;
+  formRuleJson?: string | null;
+  permissionJson?: string | null;
+  sortNo?: number | null;
+  enabled?: number | null;
+}
+
+export interface WorkflowTransitionDesign {
+  id?: number;
+  wfId?: number;
+  fromNodeCode: string;
+  toNodeCode: string;
+  actionCode: string;
+  actionName: string;
+  requireReason?: number | null;
+  requireOpinion?: number | null;
+  conditionExpression?: string | null;
+  transitionConfigJson?: string | null;
+  enabled?: number | null;
+  sortNo?: number | null;
+}
+
+export interface WorkflowDefinitionDesign {
+  id: number;
+  wfCode: string;
+  wfName: string;
+  wfType: string;
+  formCode: string | null;
+  versionNo: number;
+  enabled: number;
+  publishStatus: string;
+  remark: string | null;
+  definitionJson: string | null;
+  sourceWfId: number | null;
+  publishedBy: number | null;
+  publishedTime: string | null;
+  immutableFlag: number;
+  createdTime: string | null;
+  updatedTime: string | null;
+  nodes: WorkflowNodeDesign[];
+  transitions: WorkflowTransitionDesign[];
+}
+
+export interface WorkflowVersionDesign {
+  id: number;
+  wfCode: string;
+  wfName: string;
+  wfType: string;
+  formCode: string | null;
+  versionNo: number;
+  enabled: number;
+  publishStatus: string;
+  remark: string | null;
+  definitionJson: string | null;
+  sourceWfId: number | null;
+  publishedBy: number | null;
+  publishedTime: string | null;
+  immutableFlag: number;
+  createdTime: string | null;
+  updatedTime: string | null;
+}
+
+export interface WorkflowDesignPayload {
+  wfCode: string;
+  wfName: string;
+  wfType: string;
+  formCode?: string;
+  remark?: string;
+  definitionJson?: string;
+  nodes: WorkflowNodeDesign[];
+  transitions: WorkflowTransitionDesign[];
+}
+
 export function login(username: string, password: string): Promise<LoginResponse> {
   return post<LoginResponse>('/auth/login', { username, password });
 }
@@ -315,6 +468,10 @@ export function updateAdminUser(userId: number, payload: AdminUserUpdatePayload)
 
 export function assignAdminUserRoles(userId: number, roleIds: number[]): Promise<AdminUser> {
   return put<AdminUser>(`/admin/users/${userId}/roles`, { roleIds });
+}
+
+export function updateRoleDataScope(roleId: number, payload: RoleDataScopePayload): Promise<AdminRole> {
+  return put<AdminRole>(`/admin/roles/${roleId}/data-scope`, payload);
 }
 
 export function fetchAdminDepts(): Promise<OrganizationDept[]> {
@@ -378,4 +535,60 @@ export function fetchReconstructionPlan(): Promise<ReconstructionPhase[]> {
 
 export function fetchJudicialCatalog(): Promise<JudicialCatalog> {
   return get<JudicialCatalog>('/platform/judicial-catalog');
+}
+
+export function fetchFormDesigns(): Promise<FormDefinitionDesign[]> {
+  return get<FormDefinitionDesign[]>('/designer/forms');
+}
+
+export function saveFormDraft(payload: FormDesignPayload): Promise<FormVersionDesign> {
+  return post<FormVersionDesign>('/designer/forms/drafts', payload);
+}
+
+export function fetchFormDraft(formCode: string): Promise<FormVersionDesign> {
+  return get<FormVersionDesign>(`/designer/forms/${formCode}/draft`);
+}
+
+export function fetchFormPreview(formCode: string): Promise<FormVersionDesign> {
+  return get<FormVersionDesign>(`/designer/forms/${formCode}/preview`);
+}
+
+export function fetchFormVersions(formCode: string): Promise<FormVersionDesign[]> {
+  return get<FormVersionDesign[]>(`/designer/forms/${formCode}/versions`);
+}
+
+export function publishForm(formCode: string): Promise<FormVersionDesign> {
+  return post<FormVersionDesign>(`/designer/forms/${formCode}/publish`);
+}
+
+export function restoreFormVersion(formCode: string, versionNo: number): Promise<FormVersionDesign> {
+  return post<FormVersionDesign>(`/designer/forms/${formCode}/versions/${versionNo}/restore`);
+}
+
+export function fetchWorkflowDesigns(): Promise<WorkflowDefinitionDesign[]> {
+  return get<WorkflowDefinitionDesign[]>('/designer/workflows');
+}
+
+export function saveWorkflowDraft(payload: WorkflowDesignPayload): Promise<WorkflowDefinitionDesign> {
+  return post<WorkflowDefinitionDesign>('/designer/workflows/drafts', payload);
+}
+
+export function fetchWorkflowDraft(wfCode: string): Promise<WorkflowDefinitionDesign> {
+  return get<WorkflowDefinitionDesign>(`/designer/workflows/${wfCode}/draft`);
+}
+
+export function fetchWorkflowPreview(wfCode: string): Promise<WorkflowDefinitionDesign> {
+  return get<WorkflowDefinitionDesign>(`/designer/workflows/${wfCode}/preview`);
+}
+
+export function fetchWorkflowVersions(wfCode: string): Promise<WorkflowVersionDesign[]> {
+  return get<WorkflowVersionDesign[]>(`/designer/workflows/${wfCode}/versions`);
+}
+
+export function publishWorkflow(wfCode: string): Promise<WorkflowDefinitionDesign> {
+  return post<WorkflowDefinitionDesign>(`/designer/workflows/${wfCode}/publish`);
+}
+
+export function restoreWorkflowVersion(wfCode: string, versionNo: number): Promise<WorkflowDefinitionDesign> {
+  return post<WorkflowDefinitionDesign>(`/designer/workflows/${wfCode}/versions/${versionNo}/restore`);
 }

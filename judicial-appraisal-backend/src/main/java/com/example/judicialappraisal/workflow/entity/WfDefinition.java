@@ -15,10 +15,19 @@ public class WfDefinition {
     private String wfCode;
     private String wfName;
     private String wfType;
+    private String formCode;
     private Integer versionNo;
     private Integer enabled;
+    private String publishStatus;
     private String remark;
+    private String definitionJson;
+    private Long sourceWfId;
+    private Long publishedBy;
+    private LocalDateTime publishedTime;
+    private Integer immutableFlag;
     private Long createdBy;
     private LocalDateTime createdTime;
+    private Long updatedBy;
     private LocalDateTime updatedTime;
+    private Integer deleted;
 }

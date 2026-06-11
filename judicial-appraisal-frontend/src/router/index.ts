@@ -12,6 +12,8 @@ import PlaceholderView from '../views/PlaceholderView.vue';
 import ProfileView from '../views/ProfileView.vue';
 import UserManagementView from '../views/UserManagementView.vue';
 import WorkbenchView from '../views/WorkbenchView.vue';
+import WorkflowFormDesignerView from '../views/WorkflowFormDesignerView.vue';
+import WorkflowProcessDesignerView from '../views/WorkflowProcessDesignerView.vue';
 
 export const routes: RouteRecordRaw[] = [
   {
@@ -90,6 +92,28 @@ export const routes: RouteRecordRaw[] = [
       title: '知识库',
       tabKey: 'knowledge',
       menuGroup: 'knowledge',
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/workflow/forms',
+    name: 'workflow-form-designer',
+    component: WorkflowFormDesignerView,
+    meta: {
+      title: '设计表单',
+      tabKey: 'workflow-form-designer',
+      menuGroup: 'workflow',
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/workflow/processes',
+    name: 'workflow-process-designer',
+    component: WorkflowProcessDesignerView,
+    meta: {
+      title: '设计流程',
+      tabKey: 'workflow-process-designer',
+      menuGroup: 'workflow',
       requiresAuth: true
     }
   },

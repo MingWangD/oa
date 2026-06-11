@@ -10,6 +10,7 @@ import {
   fetchAdminRoles,
   fetchAdminUsers,
   updateAdminUser,
+  updateRoleDataScope,
   type AdminRole,
   type AdminUser,
   type OrganizationDept,
@@ -20,7 +21,9 @@ const loading = ref(false);
 const saving = ref(false);
 const dialogVisible = ref(false);
 const roleDialogVisible = ref(false);
+const dataScopeDialogVisible = ref(false);
 const editingUser = ref<AdminUser | null>(null);
+const editingRole = ref<AdminRole | null>(null);
 const selectedRoleIds = ref<number[]>([]);
 const formRef = ref<FormInstance>();
 const keyword = ref('');
@@ -28,6 +31,10 @@ const users = ref<AdminUser[]>([]);
 const roles = ref<AdminRole[]>([]);
 const depts = ref<OrganizationDept[]>([]);
 const posts = ref<OrganizationPost[]>([]);
+const dataScopeForm = reactive({
+  dataScope: 'self',
+  deptIds: [] as number[]
+});
 
 const form = reactive({
   username: '',
@@ -159,6 +166,45 @@ async function saveRoles(): Promise<void> {
   }
 }
 
+function scopeLabel(scope: string | null | undefined): string {
+  const value = scope || 'self';
+  const labels: Record<string, string> = {
+    all: '全部数据',
+    dept_sub: '本部门及下级',
+    custom: '自定义组织',
+    dept: '本部门',
+    self: '本人'
+  };
+  return labels[value] || value;
+}
+
+function openDataScope(role: AdminRole): void {
+  editingRole.value = role;
+  dataScopeForm.dataScope = role.dataScope || 'self';
+  dataScopeForm.deptIds = [...(role.customDeptIds || [])];
+  dataScopeDialogVisible.value = true;
+}
+
+async function saveDataScope(): Promise<void> {
+  if (!editingRole.value) {
+    return;
+  }
+  saving.value = true;
+  try {
+    await updateRoleDataScope(editingRole.value.id, {
+      dataScope: dataScopeForm.dataScope,
+      deptIds: dataScopeForm.dataScope === 'custom' ? dataScopeForm.deptIds : []
+    });
+    ElMessage.success('角色数据权限已更新');
+    dataScopeDialogVisible.value = false;
+    await loadData();
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '保存数据权限失败');
+  } finally {
+    saving.value = false;
+  }
+}
+
 onMounted(() => {
   void loadData();
 });
@@ -197,6 +243,30 @@ onMounted(() => {
           <template #default="scope">
             <el-button link type="primary" @click="openEdit(scope.row)">编辑</el-button>
             <el-button link type="primary" @click="openRoles(scope.row)">角色</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+  </section>
+
+  <section class="content-card page-block">
+    <div class="panel-heading">
+      <div>
+        <h3 class="panel-title">角色数据权限</h3>
+        <p class="panel-subtitle">维护 all、dept_sub、custom、dept、self 五类数据范围；custom 可绑定指定组织。</p>
+      </div>
+    </div>
+    <div class="table-frame">
+      <el-table :data="roles" border stripe>
+        <el-table-column prop="roleCode" label="角色编码" min-width="140" />
+        <el-table-column prop="roleName" label="角色名称" min-width="140" />
+        <el-table-column label="数据范围" min-width="140">
+          <template #default="scope">{{ scopeLabel(scope.row.dataScope) }}</template>
+        </el-table-column>
+        <el-table-column prop="status" label="状态" width="110" />
+        <el-table-column label="操作" width="120">
+          <template #default="scope">
+            <el-button link type="primary" @click="openDataScope(scope.row)">设置范围</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -252,6 +322,32 @@ onMounted(() => {
     <template #footer>
       <el-button @click="roleDialogVisible = false">取消</el-button>
       <el-button type="primary" :loading="saving" @click="saveRoles">保存</el-button>
+    </template>
+  </el-dialog>
+
+  <el-dialog v-model="dataScopeDialogVisible" title="设置角色数据权限" width="560px">
+    <el-form label-position="top">
+      <el-form-item label="角色">
+        <el-input :model-value="editingRole ? `${editingRole.roleName}（${editingRole.roleCode}）` : ''" disabled />
+      </el-form-item>
+      <el-form-item label="数据范围">
+        <el-select v-model="dataScopeForm.dataScope">
+          <el-option label="全部数据" value="all" />
+          <el-option label="本部门及下级" value="dept_sub" />
+          <el-option label="自定义组织" value="custom" />
+          <el-option label="本部门" value="dept" />
+          <el-option label="本人" value="self" />
+        </el-select>
+      </el-form-item>
+      <el-form-item v-if="dataScopeForm.dataScope === 'custom'" label="可访问部门">
+        <el-select v-model="dataScopeForm.deptIds" multiple filterable clearable>
+          <el-option v-for="item in depts" :key="item.id" :label="item.deptName" :value="item.id" />
+        </el-select>
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="dataScopeDialogVisible = false">取消</el-button>
+      <el-button type="primary" :loading="saving" @click="saveDataScope">保存</el-button>
     </template>
   </el-dialog>
 </template>

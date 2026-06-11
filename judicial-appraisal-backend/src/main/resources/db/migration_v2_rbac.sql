@@ -48,7 +48,11 @@ INSERT INTO sys_menu (id, parent_id, menu_name, menu_code, path, component, menu
 (8, 7, '用户管理', 'system:user', '/admin/users', 'UserManagementView', 'C', 'User', 10),
 (9, 7, '权限管理', 'system:permission', '/placeholder/system/permission', 'PlaceholderView', 'C', 'Key', 20);
 
--- 为 ADMIN 角色关联所有菜单 (假设 ADMIN 角色的 ID 为 1)
--- 如果 ID 不是 1，后续需要根据实际情况调整
+-- 为 ADMIN 角色关联所有菜单，按角色编码定位，避免依赖固定主键
 INSERT INTO sys_role_menu (role_id, menu_id)
-SELECT 1, id FROM sys_menu;
+SELECT r.id, m.id
+FROM sys_role r
+CROSS JOIN sys_menu m
+WHERE r.role_code = 'ADMIN'
+  AND r.deleted = 0
+  AND m.deleted = 0;
