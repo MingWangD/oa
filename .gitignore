@@ -20,9 +20,9 @@ judicial-appraisal-frontend/dist/
 *.log
 *.tmp
 *.swp
+exports/
 
 # Local environment and secrets
 .env
 .env.*
 !.env.example
-

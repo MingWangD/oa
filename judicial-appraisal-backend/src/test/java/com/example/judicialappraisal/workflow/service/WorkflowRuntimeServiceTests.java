@@ -1,6 +1,7 @@
 package com.example.judicialappraisal.workflow.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -10,6 +11,7 @@ import static org.mockito.Mockito.when;
 import com.example.judicialappraisal.caseinfo.entity.CaseInfo;
 import com.example.judicialappraisal.caseinfo.mapper.CaseInfoMapper;
 import com.example.judicialappraisal.common.enums.CaseStatus;
+import com.example.judicialappraisal.common.exception.BusinessException;
 import com.example.judicialappraisal.knowledge.service.KnowledgeService;
 import com.example.judicialappraisal.workflow.entity.CaseNodeInstance;
 import com.example.judicialappraisal.workflow.entity.CaseSubflowInstance;
@@ -20,6 +22,8 @@ import com.example.judicialappraisal.workflow.entity.WfNodeDef;
 import com.example.judicialappraisal.workflow.entity.WfTransitionDef;
 import com.example.judicialappraisal.workflow.dto.WorkflowActionRequest;
 import com.example.judicialappraisal.common.enums.ActionCode;
+import com.example.judicialappraisal.workflow.design.FormVersion;
+import com.example.judicialappraisal.workflow.design.FormVersionMapper;
 import com.example.judicialappraisal.workflow.mapper.CaseNodeInstanceMapper;
 import com.example.judicialappraisal.workflow.mapper.CaseSubflowInstanceMapper;
 import com.example.judicialappraisal.workflow.mapper.CaseTaskCandidateMapper;
@@ -45,6 +49,7 @@ class WorkflowRuntimeServiceTests {
     private final WfDefinitionMapper wfDefinitionMapper = mock(WfDefinitionMapper.class);
     private final WfNodeDefMapper wfNodeDefMapper = mock(WfNodeDefMapper.class);
     private final WfTransitionDefMapper wfTransitionDefMapper = mock(WfTransitionDefMapper.class);
+    private final FormVersionMapper formVersionMapper = mock(FormVersionMapper.class);
     private final CaseTaskCandidateMapper caseTaskCandidateMapper = mock(CaseTaskCandidateMapper.class);
     private final SysRoleMapper sysRoleMapper = mock(SysRoleMapper.class);
     private final SysUserRoleMapper sysUserRoleMapper = mock(SysUserRoleMapper.class);
@@ -59,6 +64,7 @@ class WorkflowRuntimeServiceTests {
             wfDefinitionMapper,
             wfNodeDefMapper,
             wfTransitionDefMapper,
+            formVersionMapper,
             caseTaskCandidateMapper,
             sysRoleMapper,
             sysUserRoleMapper,
@@ -181,6 +187,62 @@ class WorkflowRuntimeServiceTests {
         verify(caseTaskMapper).insert(taskCaptor.capture());
         assertThat(taskCaptor.getValue().getNodeCode()).isEqualTo("DYNAMIC_REVIEW");
         assertThat(caseInfo.getCurrentNodeCode()).isEqualTo("DYNAMIC_REVIEW");
+    }
+
+    @Test
+    void completeTaskRejectsMissingRequiredFieldsFromPublishedFormSchema() {
+        CaseInfo caseInfo = new CaseInfo();
+        caseInfo.setId(88L);
+        caseInfo.setCaseTitle("测试案件");
+        caseInfo.setCaseStatus(CaseStatus.PROCESSING.name());
+
+        CaseTask currentTask = new CaseTask();
+        currentTask.setId(701L);
+        currentTask.setCaseId(88L);
+        currentTask.setWfInstanceId(501L);
+        currentTask.setNodeInstanceId(601L);
+        currentTask.setNodeCode("INIT_FILL");
+        currentTask.setNodeName("发起者填写委托信息");
+        currentTask.setStatus("pending");
+
+        CaseWfInstance wfInstance = new CaseWfInstance();
+        wfInstance.setId(501L);
+        wfInstance.setCaseId(88L);
+        wfInstance.setWfId(77L);
+        wfInstance.setStatus("running");
+
+        WfDefinition definition = new WfDefinition();
+        definition.setId(77L);
+        definition.setFormCode("received-entrust");
+
+        FormVersion formVersion = new FormVersion();
+        formVersion.setFormCode("received-entrust");
+        formVersion.setStatus("published");
+        formVersion.setFieldSchemaJson("""
+                [
+                  {"field":"caseNo","label":"案件号","type":"text","required":true},
+                  {"field":"entrustAccepted","label":"委托审查是否受理","type":"boolean","required":true}
+                ]
+                """);
+
+        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+        when(caseTaskMapper.selectById(701L)).thenReturn(currentTask);
+        when(caseWfInstanceMapper.selectOne(any())).thenReturn(wfInstance);
+        when(wfDefinitionMapper.selectById(77L)).thenReturn(definition);
+        when(formVersionMapper.selectOne(any())).thenReturn(formVersion);
+
+        assertThatThrownBy(() -> service.completeTask(88L, new WorkflowActionRequest(
+                701L,
+                ActionCode.APPROVE,
+                "通过",
+                null,
+                null,
+                null,
+                Map.of("entrustAccepted", true),
+                null
+        )))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("必填字段未填写：案件号");
     }
 
     @Test

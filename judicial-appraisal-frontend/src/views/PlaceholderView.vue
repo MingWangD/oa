@@ -271,6 +271,16 @@ const statusLabels = computed<Record<string, string>>(() => ({
   failed: '失败'
 }));
 const statusButtons = computed(() => ledgerBoard.value?.statusOptions ?? ['all']);
+const sourceTag = computed(() => {
+  const sourceType = ledgerBoard.value?.sourceType;
+  if (sourceType === 'live') {
+    return { type: 'success' as const, label: '实时数据' };
+  }
+  if (sourceType === 'structured') {
+    return { type: 'primary' as const, label: '结构化看板' };
+  }
+  return { type: 'warning' as const, label: '示例台账' };
+});
 const filterSummary = computed(() => {
   const parts: string[] = [];
   if (keyword.value.trim()) {
@@ -683,9 +693,7 @@ watch([keyword, statusFilter], () => {
         <p class="panel-subtitle">{{ ledgerBoard.description }}</p>
       </div>
       <div class="inline-actions">
-        <el-tag :type="ledgerBoard.sourceType === 'live' ? 'success' : 'warning'" effect="plain">
-          {{ ledgerBoard.sourceType === 'live' ? '实时案件派生' : '示例台账' }}
-        </el-tag>
+        <el-tag :type="sourceTag.type" effect="plain">{{ sourceTag.label }}</el-tag>
         <el-button :loading="exporting" @click="exportBoard">导出 CSV</el-button>
       </div>
     </div>

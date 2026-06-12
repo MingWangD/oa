@@ -1,4 +1,4 @@
-import { get, getBlob, post, put } from './http';
+import { get, getBlob, post, postForm, put } from './http';
 
 export interface UserRole {
   id?: number | null;
@@ -354,6 +354,35 @@ export interface JudicialConfigImportResult {
   messages: string[];
 }
 
+export interface JudicialWorkflowVerification {
+  code: string;
+  name: string;
+  formCode: string;
+  entryMode: string;
+  published: boolean;
+  publishedVersion: number | null;
+  formPublished: boolean;
+  nodeCount: number;
+  transitionCount: number;
+  hasStart: boolean;
+  hasEnd: boolean;
+  hasActionableNode: boolean;
+  hasReturnPath: boolean;
+  hasEndPath: boolean;
+  subflowTargets: string[];
+  missingSubflowTargets: string[];
+  issues: string[];
+  passed: boolean;
+}
+
+export interface JudicialWorkflowVerificationReport {
+  expectedWorkflowCount: number;
+  checkedWorkflowCount: number;
+  passedWorkflowCount: number;
+  failedWorkflowCount: number;
+  workflows: JudicialWorkflowVerification[];
+}
+
 export interface KnowledgeDirectory {
   id: number;
   parentId: number | null;
@@ -378,6 +407,20 @@ export interface KnowledgeDocument {
   currentVersionNo: number;
   status: string;
   updatedTime: string | null;
+}
+
+export interface FileUploadResponse {
+  fileId: number;
+  originalName: string;
+  contentType: string | null;
+  fileSize: number;
+  md5: string | null;
+  versionNo: number;
+  duplicate: boolean;
+  duplicateOfFileId: number | null;
+  duplicateCount: number | null;
+  virusScanStatus: string | null;
+  previewWatermarkEnabled: boolean;
 }
 
 export interface FormDefinitionDesign {
@@ -614,6 +657,28 @@ export function fetchCaseSubflows(caseId: number): Promise<CaseSubflowSummary[]>
   return get<CaseSubflowSummary[]>(`/cases/${caseId}/subflows`);
 }
 
+export function uploadWorkflowFile(payload: {
+  file: File;
+  caseId?: number;
+  nodeCode?: string;
+  taskId?: number;
+  artifactCode?: string;
+  artifactName?: string;
+  changeNote?: string;
+}): Promise<FileUploadResponse> {
+  const body = new FormData();
+  body.set('file', payload.file);
+  body.set('bizType', 'workflow');
+  if (payload.caseId) body.set('caseId', String(payload.caseId));
+  if (payload.caseId) body.set('bizId', String(payload.caseId));
+  if (payload.nodeCode) body.set('nodeCode', payload.nodeCode);
+  if (payload.taskId) body.set('taskId', String(payload.taskId));
+  if (payload.artifactCode) body.set('artifactCode', payload.artifactCode);
+  if (payload.artifactName) body.set('artifactName', payload.artifactName);
+  if (payload.changeNote) body.set('changeNote', payload.changeNote);
+  return postForm<FileUploadResponse>('/files/upload', body);
+}
+
 export function fetchPlatformMenus(): Promise<MenuDto[]> {
   return get<MenuDto[]>('/platform/menus');
 }
@@ -639,6 +704,10 @@ export function fetchJudicialCatalog(): Promise<JudicialCatalog> {
 
 export function importJudicialCatalog(forceNewVersion = false): Promise<JudicialConfigImportResult> {
   return post<JudicialConfigImportResult>(`/platform/judicial-catalog/import?forceNewVersion=${forceNewVersion}`);
+}
+
+export function fetchJudicialWorkflowVerification(): Promise<JudicialWorkflowVerificationReport> {
+  return get<JudicialWorkflowVerificationReport>('/platform/judicial-catalog/verification');
 }
 
 export function fetchKnowledgeDirectories(caseId?: number): Promise<KnowledgeDirectory[]> {

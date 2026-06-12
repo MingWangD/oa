@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { ChatDotRound, InfoFilled, Search, Share } from '@element-plus/icons-vue';
+import { Document, InfoFilled, Search, Share } from '@element-plus/icons-vue';
 
 import {
   createCaseDraft,
@@ -23,24 +23,63 @@ const loading = ref(false);
 const creatingCode = ref('');
 const keyword = ref('');
 const activeCategory = ref('common');
+const activeRole = ref('all');
 const viewMode = ref<'task' | 'list' | 'overview'>('task');
 const workflows = ref<JudicialWorkflowDefinition[]>([]);
+const judicialRoles = ref<string[]>([]);
+
+const fallbackJudicialRoles = [
+  '部门负责人',
+  '项目负责人',
+  '项目辅助人',
+  '档案管理员',
+  '中心档案管理员',
+  '技术负责人',
+  '审阅所长',
+  '综合业务部',
+  '财务',
+  '收案员'
+];
+
+const manualCreateCodes = new Set([
+  'received-entrust',
+  'court-letter',
+  'court-appearance',
+  'withdraw-case-letter',
+  'seal-application',
+  'expense-reimbursement'
+]);
+
+const linkedCreateCodes = new Set(['court-letter', 'court-appearance', 'withdraw-case-letter']);
+
+const subflowOnlyCodes = new Set([
+  'preliminary-survey',
+  'payment-notice',
+  'quality-control',
+  'field-survey',
+  'material-receive-return',
+  'draft-opinion-review',
+  'final-opinion-review',
+  'issue-opinion',
+  'issue-draft-opinion',
+  'reject-acceptance',
+  'refund',
+  'terminate-appraisal',
+  'archive',
+  'case-suspension'
+]);
 
 const categories: WorkCategory[] = [
   {
     key: 'common',
     label: '常用工作',
     workflowCodes: [
-      'payment-notice',
-      'material-receive-return',
-      'case-suspension',
       'received-entrust',
-      'preliminary-survey',
-      'reject-acceptance',
-      'issue-draft-opinion',
-      'final-opinion-review',
       'court-letter',
-      'terminate-appraisal'
+      'court-appearance',
+      'withdraw-case-letter',
+      'seal-application',
+      'expense-reimbursement'
     ]
   },
   { key: 'all', label: '全部工作' },
@@ -51,6 +90,8 @@ const categories: WorkCategory[] = [
       'received-entrust',
       'preliminary-survey',
       'payment-notice',
+      'quality-control',
+      'field-survey',
       'material-receive-return',
       'draft-opinion-review',
       'final-opinion-review',
@@ -67,11 +108,32 @@ const categories: WorkCategory[] = [
       'expense-reimbursement',
       'case-suspension'
     ]
+  },
+  {
+    key: 'subflow',
+    label: '系统触发',
+    workflowCodes: [
+      'preliminary-survey',
+      'payment-notice',
+      'quality-control',
+      'field-survey',
+      'material-receive-return',
+      'draft-opinion-review',
+      'final-opinion-review',
+      'issue-opinion',
+      'issue-draft-opinion',
+      'reject-acceptance',
+      'refund',
+      'terminate-appraisal',
+      'archive',
+      'case-suspension'
+    ]
   }
 ];
 
 const userRoleNames = computed(() => authStore.roleNames);
 const isAdmin = computed(() => authStore.isAdmin);
+const roleFilterOptions = computed(() => ['all', ...(judicialRoles.value.length ? judicialRoles.value : fallbackJudicialRoles)]);
 
 const visibleWorkflows = computed(() => {
   const selectedCategory = categories.find((item) => item.key === activeCategory.value);
@@ -81,6 +143,7 @@ const visibleWorkflows = computed(() => {
   return workflows.value
     .filter((workflow) => canCreateWorkflow(workflow))
     .filter((workflow) => !categoryCodes || categoryCodes.includes(workflow.code))
+    .filter((workflow) => activeRole.value === 'all' || workflow.roles.includes(activeRole.value))
     .filter((workflow) => {
       if (!query) {
         return true;
@@ -91,6 +154,14 @@ const visibleWorkflows = computed(() => {
         workflow.formCode,
         workflow.roles.join(' ')
       ].some((value) => value.toLowerCase().includes(query));
+    })
+    .sort((left, right) => {
+      if (!categoryCodes) {
+        return left.name.localeCompare(right.name, 'zh-Hans-CN');
+      }
+      const leftIndex = categoryCodes.indexOf(left.code);
+      const rightIndex = categoryCodes.indexOf(right.code);
+      return (leftIndex === -1 ? 999 : leftIndex) - (rightIndex === -1 ? 999 : rightIndex);
     });
 });
 
@@ -98,19 +169,14 @@ const activeCategoryLabel = computed(
   () => categories.find((item) => item.key === activeCategory.value)?.label ?? '全部工作'
 );
 
-const todoHint = computed(() => {
-  const first = visibleWorkflows.value[0];
-  if (!first) {
-    return '当前角色暂无可新建工作';
-  }
-  return `${first.name} 等 ${visibleWorkflows.value.length} 项`;
-});
+const activeRoleLabel = computed(() => activeRole.value === 'all' ? '全部角色' : activeRole.value);
 
 onMounted(async () => {
   loading.value = true;
   try {
     const catalog = await fetchJudicialCatalog();
     workflows.value = catalog.workflows;
+    judicialRoles.value = catalog.dedicatedRoles;
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : '加载可新建工作失败');
   } finally {
@@ -126,35 +192,71 @@ function canCreateWorkflow(workflow: JudicialWorkflowDefinition): boolean {
     return true;
   }
   const roleNames = userRoleNames.value;
-  return workflow.roles.some((role) => roleNames.includes(role));
+  return workflow.roles.some((role) => roleNames.some((name) => roleMatches(name, role)));
+}
+
+function roleMatches(userRole: string, workflowRole: string): boolean {
+  return userRole === workflowRole || userRole.includes(workflowRole) || workflowRole.includes(userRole);
+}
+
+function roleCount(role: string): number {
+  if (role === 'all') {
+    return workflows.value.filter((workflow) => canCreateWorkflow(workflow)).length;
+  }
+  return workflows.value.filter((workflow) => canCreateWorkflow(workflow) && workflow.roles.includes(role)).length;
+}
+
+function canUseRoleFilter(role: string): boolean {
+  if (role === 'all' || isAdmin.value) {
+    return true;
+  }
+  return userRoleNames.value.some((userRole) => roleMatches(userRole, role));
+}
+
+function canManualCreate(workflow: JudicialWorkflowDefinition): boolean {
+  return manualCreateCodes.has(workflow.code) || workflow.entryMode === 'direct' || workflow.entryMode.includes('direct');
+}
+
+function isLinkedCreate(workflow: JudicialWorkflowDefinition): boolean {
+  return linkedCreateCodes.has(workflow.code) || workflow.entryMode.includes('linked');
+}
+
+function entryModeLabel(workflow: JudicialWorkflowDefinition): string {
+  if (workflow.code === 'received-entrust') {
+    return '主流程直接发起';
+  }
+  if (isLinkedCreate(workflow)) {
+    return '直接或关联原流程';
+  }
+  if (workflow.code === 'seal-application') {
+    return '用章可独立发起，也可由父流程触发';
+  }
+  if (workflow.code === 'expense-reimbursement') {
+    return '独立财务流程';
+  }
+  if (subflowOnlyCodes.has(workflow.code) || workflow.entryMode === 'subflow') {
+    return '由办理页流转触发';
+  }
+  return workflow.entryMode;
 }
 
 function workflowSummary(workflow: JudicialWorkflowDefinition): string {
-  const prefix = workflow.entryMode === 'direct' || workflow.entryMode.includes('direct') ? '可直接发起' : '按角色发起';
+  const prefix = entryModeLabel(workflow);
   const next = workflow.nextFlows.length ? `，后续：${workflow.nextFlows.slice(0, 2).join('、')}` : '';
   return `${prefix}${next}`;
 }
 
-function workflowTypeLabel(workflow: JudicialWorkflowDefinition): string {
-  if (workflow.entryMode === 'direct') {
-    return '直接发起';
-  }
-  if (workflow.entryMode.includes('linked')) {
-    return '关联发起';
-  }
-  if (workflow.entryMode.includes('subflow')) {
-    return '子流程';
-  }
-  return '流程';
-}
-
 async function quickCreate(workflow: JudicialWorkflowDefinition): Promise<void> {
+  if (!canManualCreate(workflow)) {
+    ElMessage.warning('该流程按使用手册应从父流程办理页流转触发，请先进入相关案件办理。');
+    return;
+  }
   creatingCode.value = workflow.code;
   try {
     const created = await createCaseDraft({
       caseTitle: workflow.name,
       caseType: workflow.name,
-      entrustOrgName: workflow.entryMode.includes('linked') ? '关联流程待补' : undefined,
+      entrustOrgName: isLinkedCreate(workflow) ? '关联流程待补' : undefined,
       acceptDeptId: null
     });
     ElMessage.success('工作草稿已创建');
@@ -170,6 +272,7 @@ async function openGuide(workflow: JudicialWorkflowDefinition): Promise<void> {
   await ElMessageBox.alert(
     [
       `可发起角色：${workflow.roles.join('、') || '不限'}`,
+      `入口规则：${entryModeLabel(workflow)}`,
       `关联表单：${workflow.formCode}`,
       `关键规则：${workflow.keyRules.join('；') || '暂无'}`,
       `后续流程：${workflow.nextFlows.join('、') || '流程结束'}`
@@ -186,7 +289,10 @@ async function openGuide(workflow: JudicialWorkflowDefinition): Promise<void> {
 <template>
   <section class="new-work-page">
     <div class="new-work-header">
-      <h1>新建工作</h1>
+      <div>
+        <div class="new-work-path">全部 &gt;&gt; {{ activeCategoryLabel }}</div>
+        <h1>新建工作</h1>
+      </div>
       <div class="new-work-tools">
         <el-input
           v-model="keyword"
@@ -197,7 +303,7 @@ async function openGuide(workflow: JudicialWorkflowDefinition): Promise<void> {
         />
         <el-button type="primary">查询</el-button>
         <el-radio-group v-model="viewMode" class="view-switch">
-          <el-radio-button label="task">任务视图</el-radio-button>
+          <el-radio-button label="task">表单列表</el-radio-button>
           <el-radio-button label="list">列表视图</el-radio-button>
           <el-radio-button label="overview">总览视图</el-radio-button>
         </el-radio-group>
@@ -217,63 +323,68 @@ async function openGuide(workflow: JudicialWorkflowDefinition): Promise<void> {
           <span class="category-mail" />
           {{ category.label }}
         </button>
+
+        <div class="role-filter-title">司法鉴定角色</div>
+        <button
+          v-for="role in roleFilterOptions"
+          :key="role"
+          class="role-filter"
+          :class="{ 'role-filter--active': activeRole === role }"
+          :disabled="!canUseRoleFilter(role)"
+          type="button"
+          @click="activeRole = role"
+        >
+          <span class="role-avatar" />
+          <span class="role-name">{{ role === 'all' ? '全部角色' : role }}</span>
+          <em>{{ roleCount(role) }}</em>
+        </button>
       </aside>
 
       <main class="work-list-panel">
         <div class="work-list-title">
           <strong>{{ activeCategoryLabel }}</strong>
-          <span>根据当前角色显示可新建工作</span>
+          <span>共 {{ visibleWorkflows.length }} 张表单，当前角色：{{ activeRoleLabel }}</span>
         </div>
 
         <el-empty v-if="!loading && visibleWorkflows.length === 0" description="当前角色暂无可新建工作" />
 
         <div v-loading="loading" class="work-list">
-          <article v-for="workflow in visibleWorkflows" :key="workflow.code" class="work-row">
+          <article
+            v-for="workflow in visibleWorkflows"
+            :key="workflow.code"
+            class="work-row"
+            :class="{
+              'work-row--creating': creatingCode === workflow.code,
+              'work-row--subflow': !canManualCreate(workflow)
+            }"
+          >
             <div class="work-main">
-              <div class="work-name">{{ workflow.name }}</div>
+              <el-icon class="form-icon"><Document /></el-icon>
+              <button
+                class="work-name"
+                type="button"
+                :title="canManualCreate(workflow) ? '新建工作草稿' : '该流程需由父流程流转触发'"
+                @click="quickCreate(workflow)"
+              >
+                {{ workflow.name }}
+              </button>
               <div class="work-summary">{{ workflowSummary(workflow) }}</div>
             </div>
 
-            <div class="work-meta">
+            <button class="work-meta" type="button" @click="openGuide(workflow)">
               <span class="workflow-icon">
                 <el-icon><Share /></el-icon>
               </span>
               <span>流程设计图</span>
-            </div>
+            </button>
 
             <button class="work-info" type="button" @click="openGuide(workflow)">
               <el-icon><InfoFilled /></el-icon>
               <span>流程说明</span>
             </button>
-
-            <div class="work-tags">
-              <el-tag size="small" effect="plain">{{ workflowTypeLabel(workflow) }}</el-tag>
-              <el-tag v-if="isAdmin" size="small" type="info" effect="plain">管理员可见</el-tag>
-            </div>
-
-            <div class="work-actions">
-              <el-button
-                type="primary"
-                size="small"
-                :loading="creatingCode === workflow.code"
-                @click="quickCreate(workflow)"
-              >
-                快速新建
-              </el-button>
-              <el-button size="small" type="warning" @click="quickCreate(workflow)">新建向导</el-button>
-            </div>
           </article>
         </div>
       </main>
-
-      <aside class="new-work-float">
-        <el-icon><ChatDotRound /></el-icon>
-        <div>
-          <strong>{{ authStore.displayName }}</strong>
-          <span>{{ todoHint }}</span>
-        </div>
-        <em>{{ visibleWorkflows.length }}</em>
-      </aside>
     </div>
   </section>
 </template>
@@ -294,6 +405,12 @@ async function openGuide(workflow: JudicialWorkflowDefinition): Promise<void> {
   padding: 0 38px;
   background: linear-gradient(#ffffff, #f4f4f4);
   border-bottom: 1px solid #d7d7d7;
+}
+
+.new-work-path {
+  margin-bottom: 4px;
+  color: #566273;
+  font-size: 13px;
 }
 
 .new-work-header h1 {
@@ -373,6 +490,87 @@ async function openGuide(workflow: JudicialWorkflowDefinition): Promise<void> {
   transform-origin: center;
 }
 
+.role-filter-title {
+  margin: 18px 18px 8px;
+  padding-top: 14px;
+  border-top: 1px solid #e3e3e3;
+  color: #8994a3;
+  font-size: 12px;
+}
+
+.role-filter {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 36px;
+  padding: 0 14px 0 38px;
+  border: 0;
+  border-left: 3px solid transparent;
+  background: transparent;
+  color: #415064;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.role-filter:disabled {
+  color: #b3bbc6;
+  cursor: not-allowed;
+}
+
+.role-filter--active {
+  border-left-color: #3b8cff;
+  background: #ffffff;
+  color: #1677ff;
+  font-weight: 600;
+}
+
+.role-avatar {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #d9e3f5;
+}
+
+.role-avatar::before {
+  position: absolute;
+  top: 2px;
+  left: 5px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #8ea2c4;
+  content: '';
+}
+
+.role-avatar::after {
+  position: absolute;
+  right: 3px;
+  bottom: 2px;
+  left: 3px;
+  height: 6px;
+  border-radius: 6px 6px 3px 3px;
+  background: #ffffff;
+  content: '';
+}
+
+.role-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.role-filter em {
+  min-width: 18px;
+  color: #9aa5b5;
+  font-size: 12px;
+  font-style: normal;
+  text-align: right;
+}
+
 .work-list-panel {
   padding: 14px 16px 24px;
   background: #ffffff;
@@ -402,10 +600,10 @@ async function openGuide(workflow: JudicialWorkflowDefinition): Promise<void> {
 
 .work-row {
   display: grid;
-  grid-template-columns: minmax(280px, 1fr) 148px 142px minmax(130px, 190px) 178px;
+  grid-template-columns: minmax(360px, 1fr) 180px 180px;
   align-items: center;
-  min-height: 78px;
-  padding: 0 38px 0 12px;
+  min-height: 88px;
+  padding: 0 28px 0 12px;
   border: 1px solid #dedede;
   border-left: 3px solid #4d9bff;
   background: #ffffff;
@@ -415,14 +613,55 @@ async function openGuide(workflow: JudicialWorkflowDefinition): Promise<void> {
   margin-top: 6px;
 }
 
+.work-row--creating {
+  opacity: 0.72;
+}
+
+.work-row--subflow {
+  border-left-color: #b9c2cf;
+  background: #fbfcfe;
+}
+
+.work-main {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  column-gap: 10px;
+  align-items: center;
+}
+
+.form-icon {
+  grid-row: 1 / span 2;
+  color: #8795a8;
+  font-size: 16px;
+}
+
 .work-name {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: #697586;
   font-size: 14px;
   font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.work-name:hover {
+  color: #1677ff;
+}
+
+.work-row--subflow .work-name {
+  color: #7d8795;
+}
+
+.work-row--subflow .work-name:hover {
+  color: #d47900;
 }
 
 .work-summary {
-  width: min(520px, 100%);
   margin-top: 8px;
   overflow: hidden;
   color: #718096;
@@ -436,14 +675,17 @@ async function openGuide(workflow: JudicialWorkflowDefinition): Promise<void> {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  color: #73808f;
-  font-size: 14px;
-}
-
-.work-info {
+  width: fit-content;
   border: 0;
   background: transparent;
+  color: #73808f;
+  font-size: 14px;
   cursor: pointer;
+}
+
+.work-meta:hover,
+.work-info:hover {
+  color: #1677ff;
 }
 
 .workflow-icon,
@@ -457,69 +699,6 @@ async function openGuide(workflow: JudicialWorkflowDefinition): Promise<void> {
   border-radius: 4px;
   color: #9b9b9b;
   font-size: 24px;
-}
-
-.work-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.work-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
-
-.new-work-float {
-  position: absolute;
-  top: 38px;
-  right: 66px;
-  display: grid;
-  grid-template-columns: 34px minmax(140px, 1fr) 24px;
-  align-items: center;
-  gap: 10px;
-  min-width: 240px;
-  padding: 10px 12px;
-  border: 1px solid #d9d9d9;
-  border-radius: 4px;
-  background: #ffffff;
-  box-shadow: 0 2px 12px rgb(0 0 0 / 12%);
-}
-
-.new-work-float .el-icon {
-  color: #1683ff;
-  font-size: 30px;
-}
-
-.new-work-float strong,
-.new-work-float span {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.new-work-float strong {
-  color: #303642;
-  font-size: 13px;
-}
-
-.new-work-float span {
-  margin-top: 3px;
-  color: #667281;
-  font-size: 12px;
-}
-
-.new-work-float em {
-  min-width: 24px;
-  padding: 2px 5px;
-  border-radius: 3px;
-  background: #f52f5b;
-  color: #ffffff;
-  font-size: 12px;
-  font-style: normal;
-  text-align: center;
 }
 
 @media (max-width: 1180px) {
@@ -542,14 +721,6 @@ async function openGuide(workflow: JudicialWorkflowDefinition): Promise<void> {
     grid-template-columns: 1fr;
     gap: 12px;
     padding: 14px;
-  }
-
-  .work-actions {
-    justify-content: flex-start;
-  }
-
-  .new-work-float {
-    display: none;
   }
 }
 
@@ -576,6 +747,11 @@ async function openGuide(workflow: JudicialWorkflowDefinition): Promise<void> {
 
   .work-category--active {
     border-bottom-color: #3b8cff;
+  }
+
+  .role-filter-title,
+  .role-filter {
+    display: none;
   }
 }
 </style>

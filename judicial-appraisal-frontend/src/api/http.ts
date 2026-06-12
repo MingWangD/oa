@@ -164,6 +164,13 @@ export function put<T>(path: string, body?: unknown): Promise<T> {
   });
 }
 
+export function postForm<T>(path: string, body: FormData): Promise<T> {
+  return request<T>(path, {
+    method: 'POST',
+    body
+  });
+}
+
 export async function getBlob(path: string, params?: QueryParams): Promise<{ blob: Blob; filename: string }> {
   const token = getAccessToken();
   const headers = new Headers();

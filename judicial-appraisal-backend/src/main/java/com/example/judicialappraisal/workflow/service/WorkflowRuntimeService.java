@@ -13,6 +13,8 @@ import com.example.judicialappraisal.knowledge.service.KnowledgeService;
 import com.example.judicialappraisal.organization.entity.SysRole;
 import com.example.judicialappraisal.organization.mapper.SysRoleMapper;
 import com.example.judicialappraisal.organization.mapper.SysUserRoleMapper;
+import com.example.judicialappraisal.workflow.design.FormVersion;
+import com.example.judicialappraisal.workflow.design.FormVersionMapper;
 import com.example.judicialappraisal.workflow.dto.WorkflowActionRequest;
 import com.example.judicialappraisal.workflow.dto.WorkflowActionResult;
 import com.example.judicialappraisal.workflow.entity.CaseNodeInstance;
@@ -84,6 +86,7 @@ public class WorkflowRuntimeService {
     private final WfDefinitionMapper wfDefinitionMapper;
     private final WfNodeDefMapper wfNodeDefMapper;
     private final WfTransitionDefMapper wfTransitionDefMapper;
+    private final FormVersionMapper formVersionMapper;
     private final CaseTaskCandidateMapper caseTaskCandidateMapper;
     private final SysRoleMapper sysRoleMapper;
     private final SysUserRoleMapper sysUserRoleMapper;
@@ -99,6 +102,7 @@ public class WorkflowRuntimeService {
             WfDefinitionMapper wfDefinitionMapper,
             WfNodeDefMapper wfNodeDefMapper,
             WfTransitionDefMapper wfTransitionDefMapper,
+            FormVersionMapper formVersionMapper,
             CaseTaskCandidateMapper caseTaskCandidateMapper,
             SysRoleMapper sysRoleMapper,
             SysUserRoleMapper sysUserRoleMapper,
@@ -112,6 +116,7 @@ public class WorkflowRuntimeService {
         this.wfDefinitionMapper = wfDefinitionMapper;
         this.wfNodeDefMapper = wfNodeDefMapper;
         this.wfTransitionDefMapper = wfTransitionDefMapper;
+        this.formVersionMapper = formVersionMapper;
         this.caseTaskCandidateMapper = caseTaskCandidateMapper;
         this.sysRoleMapper = sysRoleMapper;
         this.sysUserRoleMapper = sysUserRoleMapper;
@@ -170,6 +175,7 @@ public class WorkflowRuntimeService {
         CaseInfo caseInfo = requireCase(caseId);
         CaseTask task = requireTask(caseId, request.taskId());
         validateTaskCanProcess(task);
+        validateRequiredFormFields(task, request);
 
         LocalDateTime now = LocalDateTime.now();
         return switch (request.actionCode()) {
@@ -203,7 +209,7 @@ public class WorkflowRuntimeService {
         if (request.actionCode() != ActionCode.SUBMIT && request.taskId() == null) {
             throw new BusinessException("任务ID不能为空");
         }
-        if (requiresReason(request.actionCode()) && isBlank(request.reason())) {
+        if (requiresReason(request.actionCode()) && isBlank(request.reason()) && isBlank(request.opinion())) {
             throw new BusinessException("原因不能为空");
         }
         if (requiresAssignee(request.actionCode()) && request.assigneeId() == null) {
@@ -220,6 +226,73 @@ public class WorkflowRuntimeService {
 
     private boolean requiresAssignee(ActionCode actionCode) {
         return actionCode == ActionCode.CLAIM || actionCode == ActionCode.ASSIGN;
+    }
+
+    private void validateRequiredFormFields(CaseTask task, WorkflowActionRequest request) {
+        if (!shouldValidateRequiredFormFields(request.actionCode())) {
+            return;
+        }
+        CaseWfInstance wfInstance = requireRunningInstance(task.getCaseId());
+        Long activeWfId = resolveActiveDefinitionWfId(wfInstance, task);
+        WfDefinition definition = wfDefinitionMapper.selectById(activeWfId);
+        if (definition == null || isBlank(definition.getFormCode())) {
+            return;
+        }
+        FormVersion formVersion = formVersionMapper.selectOne(new LambdaQueryWrapper<FormVersion>()
+                .eq(FormVersion::getFormCode, definition.getFormCode())
+                .eq(FormVersion::getStatus, PUBLISHED_STATUS)
+                .eq(FormVersion::getDeleted, 0)
+                .orderByDesc(FormVersion::getVersionNo)
+                .orderByDesc(FormVersion::getId)
+                .last("limit 1"));
+        if (formVersion == null || isBlank(formVersion.getFieldSchemaJson())) {
+            return;
+        }
+        List<Map<String, Object>> fields = parseFieldSchema(formVersion.getFieldSchemaJson());
+        List<String> missingFields = fields.stream()
+                .filter(field -> Boolean.TRUE.equals(toBoolean(field.get("required"))))
+                .filter(field -> !Boolean.TRUE.equals(toBoolean(field.get("readonly"))))
+                .filter(field -> isMissingFormValue(request.formData(), stringValue(field.get("field"))))
+                .map(field -> {
+                    String label = stringValue(field.get("label"));
+                    return isBlank(label) ? stringValue(field.get("field")) : label;
+                })
+                .filter(label -> !isBlank(label))
+                .toList();
+        if (!missingFields.isEmpty()) {
+            throw new BusinessException("必填字段未填写：" + String.join("、", missingFields));
+        }
+    }
+
+    private boolean shouldValidateRequiredFormFields(ActionCode actionCode) {
+        return actionCode != ActionCode.CLAIM
+                && actionCode != ActionCode.ASSIGN
+                && actionCode != ActionCode.WITHDRAW
+                && actionCode != ActionCode.RETURN
+                && actionCode != ActionCode.TERMINATE
+                && actionCode != ActionCode.REOPEN;
+    }
+
+    private List<Map<String, Object>> parseFieldSchema(String fieldSchemaJson) {
+        try {
+            return objectMapper.readValue(fieldSchemaJson, new TypeReference<>() {});
+        } catch (JsonProcessingException e) {
+            throw new BusinessException("表单字段配置不是合法 JSON");
+        }
+    }
+
+    private boolean isMissingFormValue(Map<String, Object> formData, String field) {
+        if (isBlank(field)) {
+            return false;
+        }
+        if (formData == null || !formData.containsKey(field)) {
+            return true;
+        }
+        Object value = formData.get(field);
+        if (value instanceof Boolean) {
+            return false;
+        }
+        return value == null || isBlank(String.valueOf(value));
     }
 
     private WorkflowActionResult handleClaim(CaseInfo caseInfo, CaseTask task, WorkflowActionRequest request, LocalDateTime now) {
