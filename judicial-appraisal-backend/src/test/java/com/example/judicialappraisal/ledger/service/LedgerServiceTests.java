@@ -155,6 +155,62 @@ class LedgerServiceTests {
         assertThat(board.rows().get(0).relatedPath()).isEqualTo("/case/22");
     }
 
+    @Test
+    void noticeBoardProvidesStructuredStatusFiltering() {
+        when(caseInfoMapper.selectList(any())).thenReturn(List.of());
+
+        LedgerBoardDto board = ledgerService.board("notice", null, "draft", 10);
+
+        assertThat(board.sourceType()).isEqualTo("structured");
+        assertThat(board.statusOptions()).contains("all", "published", "draft", "pending");
+        assertThat(board.rows()).hasSize(1);
+        assertThat(board.rows().get(0).statusLabel()).isEqualTo("草稿");
+        assertThat(board.rows().get(0).facts()).anyMatch(item -> item.contains("发布对象"));
+    }
+
+    @Test
+    void attendanceBoardProvidesExceptionAndLeaveFilters() {
+        when(caseInfoMapper.selectList(any())).thenReturn(List.of());
+
+        LedgerBoardDto board = ledgerService.board("attendance", null, "exception", 10);
+
+        assertThat(board.sourceType()).isEqualTo("structured");
+        assertThat(board.statusOptions()).contains("all", "normal", "exception", "leave");
+        assertThat(board.rows()).hasSize(1);
+        assertThat(board.rows().get(0).primaryText()).isEqualTo("李经理");
+        assertThat(board.rows().get(0).facts()).contains("异常类型：漏打卡");
+    }
+
+    @Test
+    void openApiBoardProvidesWarningIntegrationFacts() {
+        when(caseInfoMapper.selectList(any())).thenReturn(List.of());
+
+        LedgerBoardDto board = ledgerService.board("open-api", null, "warning", 10);
+
+        assertThat(board.sourceType()).isEqualTo("structured");
+        assertThat(board.statusOptions()).contains("all", "online", "warning", "draft");
+        assertThat(board.rows()).hasSize(1);
+        assertThat(board.rows().get(0).statusLabel()).isEqualTo("预警");
+        assertThat(board.rows().get(0).facts()).contains("关联流程：seal-application");
+    }
+
+    @Test
+    void warehouseAndRiskBoardsSupportStatusFiltering() {
+        when(caseInfoMapper.selectList(any())).thenReturn(List.of(
+                caseInfo(10L, "沪司鉴-010", "设备损坏鉴定", "PROCESSING", "某律所", "司法鉴定二部", "王主管", 1, LocalDateTime.now().minusDays(1))
+        ));
+
+        LedgerBoardDto warehouse = ledgerService.board("warehouse", null, "borrowed", 10);
+        LedgerBoardDto risk = ledgerService.board("risk", null, "overdue", 10);
+
+        assertThat(warehouse.statusOptions()).contains("borrowed", "inbound", "stock");
+        assertThat(warehouse.rows()).hasSize(1);
+        assertThat(warehouse.rows().get(0).statusLabel()).isEqualTo("待归还");
+        assertThat(risk.statusOptions()).contains("all", "overdue", "urgent");
+        assertThat(risk.rows()).hasSize(1);
+        assertThat(risk.rows().get(0).statusLabel()).isEqualTo("预警中");
+    }
+
     private CaseInfo caseInfo(Long id, String caseNo, String caseTitle, String status, String entrustOrgName,
                               String acceptDeptName, String currentHandlerName, Integer urgentFlag,
                               LocalDateTime deadlineTime) {

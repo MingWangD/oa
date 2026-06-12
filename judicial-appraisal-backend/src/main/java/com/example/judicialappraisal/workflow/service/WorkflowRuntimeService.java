@@ -48,8 +48,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class WorkflowRuntimeService {
 
-    private static final String MAIN_WF_CODE = "JUDICIAL_MAIN";
-    private static final String MAIN_WF_NAME = "司法鉴定主流程";
+    private static final String MAIN_WF_CODE = "received-entrust";
+    private static final String MAIN_WF_NAME = "收到委托书";
     private static final String ACCEPT_NODE_CODE = "ACCEPT_REVIEW";
     private static final String ACCEPT_NODE_NAME = "受理审查";
     private static final String PROCESS_NODE_CODE = "PROCESSING";
@@ -131,21 +131,24 @@ public class WorkflowRuntimeService {
 
         LocalDateTime now = LocalDateTime.now();
         CaseWfInstance wfInstance = createOrReuseWfInstance(caseInfo, operatorId, now);
-        CaseNodeInstance nodeInstance = createNodeInstance(caseId, wfInstance.getId(), null, ACCEPT_NODE_CODE, ACCEPT_NODE_NAME, now);
+        WfNodeDef firstNode = findFirstActionableNode(wfInstance.getWfId());
+        String nodeCode = firstNode == null ? ACCEPT_NODE_CODE : firstNode.getNodeCode();
+        String nodeName = firstNode == null ? ACCEPT_NODE_NAME : firstNode.getNodeName();
+        CaseNodeInstance nodeInstance = createNodeInstance(caseId, wfInstance.getId(), null, nodeCode, nodeName, now);
         CaseTask task = createTask(
                 caseInfo,
                 wfInstance.getId(),
                 null,
                 nodeInstance.getId(),
-                ACCEPT_NODE_CODE,
-                ACCEPT_NODE_NAME,
+                nodeCode,
+                nodeName,
                 operatorId,
                 defaultName(operatorName),
                 now);
 
-        caseInfo.setCaseStatus(CaseStatus.TO_ACCEPT.name());
-        caseInfo.setCurrentNodeCode(ACCEPT_NODE_CODE);
-        caseInfo.setCurrentNodeName(ACCEPT_NODE_NAME);
+        caseInfo.setCaseStatus(resolveCaseStatusForNode(nodeCode).name());
+        caseInfo.setCurrentNodeCode(nodeCode);
+        caseInfo.setCurrentNodeName(nodeName);
         caseInfo.setCurrentHandlerId(task.getAssigneeId());
         caseInfo.setCurrentHandlerName(task.getAssigneeName());
         caseInfo.setSubmittedTime(now);
@@ -154,8 +157,8 @@ public class WorkflowRuntimeService {
         }
         caseInfoMapper.updateById(caseInfo);
 
-        wfInstance.setCurrentNodeCode(ACCEPT_NODE_CODE);
-        wfInstance.setCurrentNodeName(ACCEPT_NODE_NAME);
+        wfInstance.setCurrentNodeCode(nodeCode);
+        wfInstance.setCurrentNodeName(nodeName);
         caseWfInstanceMapper.updateById(wfInstance);
         return new WorkflowActionResult(caseId, task.getId(), ActionCode.SUBMIT.name(), true, "提交成功");
     }
@@ -1082,7 +1085,8 @@ public class WorkflowRuntimeService {
             String inheritedAssigneeName,
             LocalDateTime now) {
         if (request.assigneeId() != null) {
-            return createTask(caseInfo, wfInstance.getId(), subflowInstanceId, nodeInstanceId, nodeCode, nodeName, inheritedAssigneeId, inheritedAssigneeName, now);
+            return createTask(caseInfo, wfInstance.getId(), subflowInstanceId, nodeInstanceId, nodeCode, nodeName,
+                    request.assigneeId(), defaultName(request.assigneeName()), now);
         }
 
         WfNodeDef nodeDef = findNodeDef(activeWfId, nodeCode);

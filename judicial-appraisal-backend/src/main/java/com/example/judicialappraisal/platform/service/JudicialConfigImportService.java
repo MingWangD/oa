@@ -1991,6 +1991,7 @@ public class JudicialConfigImportService {
                         subflowConfig("refund", "撤案后需要退费，自动进入退费流程")),
                 transition("PROJECT_DECISION", "TERMINATE_APPRAISAL", "APPROVE", "无需退费，进入终止鉴定", "form.refundRequired == false", 1, 31,
                         subflowConfig("terminate-appraisal", "撤案后无需退费，自动进入终止鉴定")),
+                transition("PROJECT_DECISION", "LETTER_REGISTER", "RETURN", "退回补充撤案函登记", null, 1, 32),
                 transition("REFUND", "END", "COMPLETE", "退费子流程已触发", null, 1, 40),
                 transition("TERMINATE_APPRAISAL", "END", "COMPLETE", "终止鉴定子流程已触发", null, 1, 41)
         );

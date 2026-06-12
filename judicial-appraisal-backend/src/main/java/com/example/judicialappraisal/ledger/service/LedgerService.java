@@ -102,21 +102,21 @@ public class LedgerService {
             case "performance" -> performanceBoard(cases, rowLimit);
             case "contract" -> contractBoard(cases, normalizedStatus, rowLimit);
             case "project" -> projectBoard(cases, normalizedStatus, rowLimit);
-            case "warehouse" -> warehouseBoard();
-            case "risk" -> riskBoard(cases, rowLimit);
-            case "notice" -> noticeBoard();
-            case "meeting" -> meetingBoard();
-            case "asset" -> assetBoard();
+            case "warehouse" -> warehouseBoard(normalizedStatus);
+            case "risk" -> riskBoard(cases, normalizedStatus, rowLimit);
+            case "notice" -> noticeBoard(normalizedStatus, rowLimit);
+            case "meeting" -> meetingBoard(normalizedStatus, rowLimit);
+            case "asset" -> assetBoard(normalizedStatus, rowLimit);
             case "hr" -> hrBoard(rowLimit);
-            case "attendance" -> attendanceBoard();
-            case "official-doc" -> officialDocBoard();
+            case "attendance" -> attendanceBoard(normalizedStatus, rowLimit);
+            case "official-doc" -> officialDocBoard(normalizedStatus, rowLimit);
             case "archive" -> archiveBoard(normalizedStatus, rowLimit);
-            case "community" -> communityBoard();
+            case "community" -> communityBoard(normalizedStatus, rowLimit);
             case "supervision" -> supervisionBoard(cases, rowLimit);
             case "portal" -> portalBoard(cases);
             case "report-center" -> reportCenterBoard(cases);
-            case "open-api" -> openApiBoard();
-            case "sso" -> ssoBoard();
+            case "open-api" -> openApiBoard(normalizedStatus, rowLimit);
+            case "sso" -> ssoBoard(normalizedStatus, rowLimit);
             case "unified-todo" -> unifiedTodoBoard(cases, rowLimit);
             case "system-permission" -> systemPermissionBoard(normalizedStatus, rowLimit);
             case "system-log" -> systemLogBoard(normalizedStatus, rowLimit);
@@ -514,20 +514,27 @@ public class LedgerService {
                 List.of("补评分规则", "补部门/人员对比", "接入导出报表"));
     }
 
-    private LedgerBoardDto warehouseBoard() {
-        return sampleBoard("warehouse", "仓库", "先承接材料出入库、设备领用与归还台账。", List.of(
-                new LedgerMetricDto("库存台账", "12", false), new LedgerMetricDto("待归还设备", "2", true), new LedgerMetricDto("待入库材料", "3", false), new LedgerMetricDto("异常记录", "1", true)),
+    private LedgerBoardDto warehouseBoard(String status) {
+        List<LedgerRowDto> rows = List.of(
+                row("warehouse-1", "现场勘验设备箱", "库位：A-03", "设备", "档案管理员", "待归还", "关联现场勘验任务",
+                        "归还后需补状态拍照", "后续接材料接收与返还流程", nowMinusHours(5), nowPlusDays(1), List.of("设备", "借出"), List.of("领用人：项目辅助人", "建议补二维码", "建议接入归还签收")),
+                row("warehouse-2", "纸质卷宗材料", "库位：B-12", "档案", "档案管理员", "待入库", "等待中心档案确认",
+                        "入库后同步归档结果", "后续接归档流程", nowMinusDays(1), nowPlusDays(2), List.of("卷宗", "归档"), List.of("关联案件：医疗损害责任鉴定", "建议补扫描件链接", "建议接入邮寄回执")),
+                row("warehouse-3", "移动硬盘证据材料", "库位：介质柜 M-02", "电子介质", "项目辅助人", "在库", "已完成介质登记",
+                        "等待项目负责人确认下一步", "后续接材料返还和审计", nowMinusDays(2), null, List.of("介质", "在库"), List.of("介质编号：M-2026-018", "保管人：档案管理员", "建议接入介质借阅"))
+        );
+        return moduleWorkBoard("warehouse", "仓库", "承接材料出入库、设备领用、介质保管和归还台账。",
+                List.of("all", "borrowed", "inbound", "stock"),
                 List.of(
-                        row("warehouse-1", "现场勘验设备箱", "库位：A-03", "设备", "档案管理员", "待归还", "关联现场勘验任务",
-                                "归还后需补状态拍照", "后续接材料接收与返还流程", nowMinusHours(5), nowPlusDays(1), List.of("设备", "借出"), List.of("领用人：项目辅助人", "建议补二维码", "建议接入归还签收")),
-                        row("warehouse-2", "纸质卷宗材料", "库位：B-12", "档案", "档案管理员", "待入库", "等待中心档案确认",
-                                "入库后同步归档结果", "后续接归档流程", nowMinusDays(1), nowPlusDays(2), List.of("卷宗", "归档"), List.of("关联案件：医疗损害责任鉴定", "建议补扫描件链接", "建议接入邮寄回执"))),
+                new LedgerMetricDto("库存台账", "12", false), new LedgerMetricDto("待归还设备", "2", true), new LedgerMetricDto("待入库材料", "3", false), new LedgerMetricDto("异常记录", "1", true)),
+                rows.stream().filter(row -> moduleStatusMatches("warehouse", row, status)).toList(),
                 List.of("补设备台账", "补出入库留痕", "接入材料与归档联动"));
     }
 
-    private LedgerBoardDto riskBoard(List<CaseInfo> cases, int rowLimit) {
+    private LedgerBoardDto riskBoard(List<CaseInfo> cases, String status, int rowLimit) {
         List<CaseInfo> risky = (cases.isEmpty() ? sampleCases() : cases).stream()
                 .filter(item -> isOverdue(item) || Objects.equals(item.getUrgentFlag(), 1))
+                .filter(item -> riskMatchesStatus(item, status))
                 .limit(rowLimit)
                 .toList();
         List<LedgerRowDto> rows = risky.stream().map(item -> row(
@@ -545,21 +552,118 @@ public class LedgerService {
                 projectTags(item),
                 List.of("案件状态：" + statusName(item.getCaseStatus()), "承接部门：" + fallback(item.getAcceptDeptName(), "待补"), "建议补风险处置记录"))
         ).toList();
-        return sampleBoard("risk", "安全风险", "从紧急与超期案件派生风险看板，后续补正式风险台账。",
+        return new LedgerBoardDto("risk", "安全风险", "从紧急与超期案件派生风险看板，后续补正式风险台账。",
+                cases.isEmpty() ? "sample" : "live",
+                List.of("all", "overdue", "urgent"),
                 List.of(new LedgerMetricDto("风险事项", String.valueOf(risky.size()), true), new LedgerMetricDto("超期", String.valueOf(risky.stream().filter(this::isOverdue).count()), true),
                         new LedgerMetricDto("紧急", String.valueOf(risky.stream().filter(item -> Objects.equals(item.getUrgentFlag(), 1)).count()), true), new LedgerMetricDto("待处置", String.valueOf(risky.size()), false)),
                 rows,
                 List.of("补风险级别", "补处置记录", "接入复盘与审计"));
     }
 
-    private LedgerBoardDto noticeBoard() { return simpleOfficeBoard("notice", "公告新闻", "承接通知公告、新闻发布与阅读跟踪。"); }
-    private LedgerBoardDto meetingBoard() { return simpleOfficeBoard("meeting", "会议", "承接会议安排、签到、纪要和跟进事项。"); }
-    private LedgerBoardDto assetBoard() { return simpleOfficeBoard("asset", "资产", "承接资产台账、领用、归还和盘点。"); }
-    private LedgerBoardDto attendanceBoard() { return simpleOfficeBoard("attendance", "考勤", "承接排班、打卡异常、请假和出差登记。"); }
-    private LedgerBoardDto officialDocBoard() { return simpleOfficeBoard("official-doc", "公文", "承接收文、发文、流转和归档。"); }
-    private LedgerBoardDto communityBoard() { return simpleOfficeBoard("community", "交流园地", "承接内部论坛、经验分享和通知互动。"); }
-    private LedgerBoardDto openApiBoard() { return simpleOfficeBoard("open-api", "外部系统集成", "承接接口清单、认证方式和回调状态。"); }
-    private LedgerBoardDto ssoBoard() { return simpleOfficeBoard("sso", "SSO", "承接单点登录接入、映射规则和回调验证。"); }
+    private LedgerBoardDto noticeBoard(String status, int rowLimit) {
+        List<LedgerRowDto> rows = List.of(
+                row("notice-1", "五一值班与窗口安排", "行政办公", "通知公告", "综合业务部", "已发布", "阅读率 82%", "已同步首页门户", "补阅读回执和未读提醒", nowMinusHours(7), nowPlusDays(5), List.of("公告", "门户"), List.of("发布范围：全员", "需回执部门：综合业务部", "建议接入消息中心")),
+                row("notice-2", "司法鉴定材料流转规范", "制度新闻", "制度草稿", "质量管理", "草稿", "待部门负责人审核", "已完成正文初稿", "补附件版本和发布范围", nowMinusDays(1), nowPlusDays(2), List.of("制度", "草稿"), List.of("附件：材料流转规范.docx", "发布对象：鉴定业务部门", "建议接知识库制度目录")),
+                row("notice-3", "办公室安全检查通报", "行政办公", "新闻审核", "行政", "待审核", "待综合业务部确认", "图片和正文已补齐", "审核后同步门户", nowMinusHours(4), nowPlusDays(1), List.of("新闻", "审核"), List.of("关联风险：办公区域用电", "建议补审核意见", "可同步督查督办"))
+        );
+        return moduleWorkBoard("notice", "公告新闻", "承接通知公告、新闻发布、制度草稿与阅读跟踪。",
+                List.of("all", "published", "draft", "pending"),
+                List.of(new LedgerMetricDto("公告新闻", "18", false), new LedgerMetricDto("待审核", "3", true), new LedgerMetricDto("草稿", "4", false), new LedgerMetricDto("本周发布", "5", false)),
+                rows.stream().filter(row -> moduleStatusMatches("notice", row, status)).limit(rowLimit).toList(),
+                List.of("补发布审批", "补阅读回执", "接入门户和知识库"));
+    }
+
+    private LedgerBoardDto meetingBoard(String status, int rowLimit) {
+        List<LedgerRowDto> rows = List.of(
+                row("meeting-1", "司法鉴定周例会", "会议室 A", "部门会议", "综合业务部", "待召开", "12 人参会", "议题已收集", "会后补纪要和待办", nowMinusHours(2), nowPlusHours(6), List.of("会议", "待召开"), List.of("主持人：部门负责人", "议题：第四阶段联调验收", "建议接统一待办")),
+                row("meeting-2", "质量控制复盘会", "线上会议", "专题会议", "质量管理", "待纪要", "纪要草稿未提交", "已完成签到", "补纪要和行动项负责人", nowMinusDays(1), nowPlusHours(10), List.of("质量", "纪要"), List.of("参会：项目负责人/技术负责人", "待办项：3 条", "建议同步知识库")),
+                row("meeting-3", "行政资产盘点会", "会议室 B", "行政会议", "行政", "已完成", "纪要已归档", "行动项 2 条", "跟踪资产盘点闭环", nowMinusDays(3), null, List.of("行政", "完成"), List.of("关联资产：设备箱", "归档目录：行政会议", "建议同步督办"))
+        );
+        return moduleWorkBoard("meeting", "会议", "承接会议安排、签到、纪要和跟进事项。",
+                List.of("all", "scheduled", "minutes", "done"),
+                List.of(new LedgerMetricDto("本周会议", "9", false), new LedgerMetricDto("待召开", "4", true), new LedgerMetricDto("待纪要", "2", true), new LedgerMetricDto("行动项", "7", false)),
+                rows.stream().filter(row -> moduleStatusMatches("meeting", row, status)).limit(rowLimit).toList(),
+                List.of("补签到和纪要模板", "补行动项跟踪", "接入统一待办"));
+    }
+
+    private LedgerBoardDto assetBoard(String status, int rowLimit) {
+        List<LedgerRowDto> rows = List.of(
+                row("asset-1", "便携式扫描仪", "资产编号：ZC-2026-019", "办公设备", "行政", "在用", "领用人：档案管理员", "用于卷宗扫描", "补归还周期和维保记录", nowMinusDays(2), nowPlusDays(30), List.of("设备", "在用"), List.of("当前位置：档案室", "最近盘点：正常", "建议接入维修流程")),
+                row("asset-2", "勘验相机", "资产编号：ZC-2026-006", "专业设备", "项目辅助人", "维修中", "镜头校准中", "预计 2 天后返还", "同步风险和仓库状态", nowMinusHours(8), nowPlusDays(2), List.of("维修", "勘验"), List.of("维修单：WX-2026-010", "影响流程：现场勘验", "建议提示替代设备")),
+                row("asset-3", "备用显示器", "资产编号：ZC-2026-031", "办公设备", "行政", "闲置", "可调拨", "待新员工领用", "补调拨审批和领用记录", nowMinusDays(5), null, List.of("闲置", "可调拨"), List.of("库位：C-01", "状态：完好", "建议接入领用审批"))
+        );
+        return moduleWorkBoard("asset", "资产", "承接资产台账、领用、归还、维修和盘点。",
+                List.of("all", "in-use", "idle", "maintenance"),
+                List.of(new LedgerMetricDto("资产台账", "46", false), new LedgerMetricDto("在用", "31", false), new LedgerMetricDto("维修中", "2", true), new LedgerMetricDto("闲置可调拨", "6", false)),
+                rows.stream().filter(row -> moduleStatusMatches("asset", row, status)).limit(rowLimit).toList(),
+                List.of("补领用审批", "补维修闭环", "接入仓库与盘点"));
+    }
+
+    private LedgerBoardDto attendanceBoard(String status, int rowLimit) {
+        List<LedgerRowDto> rows = List.of(
+                row("attendance-1", "张主任", "综合业务部", "今日考勤", "张主任", "正常", "09:02 已打卡", "外勤审批已同步", "后续接移动打卡", nowMinusHours(6), null, List.of("正常", "外勤"), List.of("班次：行政班", "定位：办公区", "关联日程：客户回访")),
+                row("attendance-2", "李经理", "司法鉴定一部", "异常打卡", "李经理", "异常", "缺少下班卡", "待本人补卡说明", "同步个人事务提醒", nowMinusHours(2), nowPlusHours(8), List.of("异常", "补卡"), List.of("异常类型：漏打卡", "处理人：部门负责人", "建议接补卡流程")),
+                row("attendance-3", "王主管", "司法鉴定二部", "请假登记", "王主管", "请假", "年假 1 天", "已通过审批", "同步排班和任务代理", nowMinusDays(1), nowPlusDays(1), List.of("请假", "审批"), List.of("假别：年假", "代理人：项目负责人", "建议接工作委托"))
+        );
+        return moduleWorkBoard("attendance", "考勤", "承接排班、打卡异常、请假和出差登记。",
+                List.of("all", "normal", "exception", "leave"),
+                List.of(new LedgerMetricDto("今日出勤", "36", false), new LedgerMetricDto("异常", "3", true), new LedgerMetricDto("请假", "2", false), new LedgerMetricDto("待审批", "4", true)),
+                rows.stream().filter(row -> moduleStatusMatches("attendance", row, status)).limit(rowLimit).toList(),
+                List.of("补补卡流程", "补排班规则", "接入工作委托"));
+    }
+
+    private LedgerBoardDto officialDocBoard(String status, int rowLimit) {
+        List<LedgerRowDto> rows = List.of(
+                row("official-doc-1", "关于司法鉴定流程联调的通知", "发文拟稿", "发文", "综合业务部", "流转中", "待部门负责人核稿", "正文和附件已上传", "补套红和归档", nowMinusHours(5), nowPlusDays(1), List.of("发文", "核稿"), List.of("文号草案：司鉴办〔2026〕12号", "当前节点：部门负责人核稿", "建议接入用章流程")),
+                row("official-doc-2", "法院来函办理单", "收文登记", "收文", "档案管理员", "已发布", "已分派项目负责人", "已关联法院函件流程", "跟踪回函期限", nowMinusDays(1), nowPlusDays(3), List.of("收文", "法院"), List.of("来文单位：上海市某法院", "关联流程：court-letter", "建议接案件详情")),
+                row("official-doc-3", "行政制度修订稿", "制度文件", "公文草稿", "行政", "草稿", "待补修订说明", "正文已保存", "补审批链和发布范围", nowMinusDays(2), nowPlusDays(5), List.of("制度", "草稿"), List.of("发布范围：全员", "版本：V2", "建议接知识库制度目录"))
+        );
+        return moduleWorkBoard("official-doc", "公文", "承接收文、发文、流转、用章和归档。",
+                List.of("all", "draft", "reviewing", "published"),
+                List.of(new LedgerMetricDto("公文", "22", false), new LedgerMetricDto("流转中", "6", true), new LedgerMetricDto("草稿", "5", false), new LedgerMetricDto("已发布", "11", false)),
+                rows.stream().filter(row -> moduleStatusMatches("official-doc", row, status)).limit(rowLimit).toList(),
+                List.of("补发文/收文流程", "补套红和用章", "接入档案归档"));
+    }
+
+    private LedgerBoardDto communityBoard(String status, int rowLimit) {
+        List<LedgerRowDto> rows = List.of(
+                row("community-1", "现场勘验经验分享", "经验交流", "帖子", "项目辅助人", "热门", "阅读 128 次", "评论活跃", "沉淀到知识库最佳实践", nowMinusHours(9), null, List.of("经验", "热门"), List.of("关联模块：现场勘验", "评论：12 条", "建议转知识文档")),
+                row("community-2", "新员工入职问答", "交流园地", "问答", "人资", "已分享", "已采纳 3 条", "持续更新中", "补常见问题标签", nowMinusDays(2), null, List.of("问答", "HR"), List.of("关联模块：人力资源", "采纳答案：3 条", "建议接门户推荐")),
+                row("community-3", "费用报销注意事项", "财务交流", "待审核", "财务", "待审核", "待财务负责人确认", "内容已提交", "审核后同步知识库", nowMinusHours(4), nowPlusDays(1), List.of("财务", "审核"), List.of("关联流程：expense-reimbursement", "附件：报销样例", "建议加审核意见"))
+        );
+        return moduleWorkBoard("community", "交流园地", "承接内部论坛、经验分享、问答和通知互动。",
+                List.of("all", "hot", "shared", "pending"),
+                List.of(new LedgerMetricDto("帖子", "34", false), new LedgerMetricDto("热门", "5", true), new LedgerMetricDto("待审核", "3", true), new LedgerMetricDto("已沉淀", "8", false)),
+                rows.stream().filter(row -> moduleStatusMatches("community", row, status)).limit(rowLimit).toList(),
+                List.of("补审核规则", "补知识沉淀", "接入门户推荐"));
+    }
+
+    private LedgerBoardDto openApiBoard(String status, int rowLimit) {
+        List<LedgerRowDto> rows = List.of(
+                row("open-api-1", "统一待办推送接口", "POST /open/todo/push", "接口", "集成平台", "在线", "成功率 99.2%", "已接入鉴权", "补幂等键和重试监控", nowMinusHours(1), null, List.of("API", "在线"), List.of("认证：AK/SK", "回调：已配置", "建议接入调用日志")),
+                row("open-api-2", "电子签章回调", "POST /open/seal/callback", "回调", "集成平台", "预警", "最近失败 2 次", "验签通过但业务状态缺失", "优先补失败重试和告警", nowMinusHours(3), nowPlusHours(4), List.of("回调", "预警"), List.of("关联流程：seal-application", "失败原因：缺少文件ID", "建议接系统日志")),
+                row("open-api-3", "档案系统同步接口", "POST /open/archive/sync", "接口草稿", "档案管理员", "草稿", "字段映射待确认", "已完成数据项清单", "补验签和同步结果", nowMinusDays(1), nowPlusDays(3), List.of("档案", "草稿"), List.of("目标系统：中心档案", "映射字段：12 个", "建议补沙箱联调"))
+        );
+        return moduleWorkBoard("open-api", "外部系统集成", "承接接口清单、认证方式、回调状态和集成监控。",
+                List.of("all", "online", "warning", "draft"),
+                List.of(new LedgerMetricDto("接口", "14", false), new LedgerMetricDto("在线", "9", false), new LedgerMetricDto("预警", "2", true), new LedgerMetricDto("草稿", "3", false)),
+                rows.stream().filter(row -> moduleStatusMatches("open-api", row, status)).limit(rowLimit).toList(),
+                List.of("补接口认证", "补调用日志", "接入告警和重试"));
+    }
+
+    private LedgerBoardDto ssoBoard(String status, int rowLimit) {
+        List<LedgerRowDto> rows = List.of(
+                row("sso-1", "OA 管理后台", "OIDC Client", "单点登录", "系统管理员", "已启用", "最近登录 42 次", "角色映射正常", "补登出回调", nowMinusHours(2), null, List.of("OIDC", "启用"), List.of("ClientId：oa-admin", "映射角色：ADMIN", "建议补会话审计")),
+                row("sso-2", "移动端入口", "SAML 应用", "单点登录", "集成平台", "待配置", "证书待上传", "元数据已生成", "补证书和回调地址", nowMinusDays(1), nowPlusDays(2), List.of("SAML", "配置"), List.of("回调地址：待确认", "证书：未上传", "建议接移动端联调")),
+                row("sso-3", "档案中心", "CAS 接入", "单点登录", "系统管理员", "预警", "票据校验偶发失败", "等待第三方确认", "补失败日志和重试策略", nowMinusHours(6), nowPlusDays(1), List.of("CAS", "预警"), List.of("第三方：中心档案", "失败次数：2", "建议接系统日志"))
+        );
+        return moduleWorkBoard("sso", "SSO", "承接单点登录接入、账号映射、回调验证和会话审计。",
+                List.of("all", "enabled", "pending", "warning"),
+                List.of(new LedgerMetricDto("接入应用", "6", false), new LedgerMetricDto("已启用", "4", false), new LedgerMetricDto("待配置", "1", true), new LedgerMetricDto("预警", "1", true)),
+                rows.stream().filter(row -> moduleStatusMatches("sso", row, status)).limit(rowLimit).toList(),
+                List.of("补账号映射", "补登出回调", "接入会话审计"));
+    }
 
     private LedgerBoardDto systemDatasourceBoard() {
         if (environment == null) {
@@ -781,6 +885,78 @@ public class LedgerService {
         };
     }
 
+    private boolean riskMatchesStatus(CaseInfo item, String status) {
+        return switch (status) {
+            case "overdue" -> isOverdue(item);
+            case "urgent" -> Objects.equals(item.getUrgentFlag(), 1);
+            default -> true;
+        };
+    }
+
+    private boolean moduleStatusMatches(String moduleCode, LedgerRowDto row, String status) {
+        if (!hasText(status) || "all".equals(status)) {
+            return true;
+        }
+        String label = fallback(row.statusLabel(), "");
+        return switch (moduleCode) {
+            case "warehouse" -> switch (status) {
+                case "borrowed" -> label.contains("归还");
+                case "inbound" -> label.contains("入库");
+                case "stock" -> label.contains("在库");
+                default -> true;
+            };
+            case "notice" -> switch (status) {
+                case "published" -> label.contains("已发布");
+                case "draft" -> label.contains("草稿");
+                case "pending" -> label.contains("待审核");
+                default -> true;
+            };
+            case "meeting" -> switch (status) {
+                case "scheduled" -> label.contains("待召开");
+                case "minutes" -> label.contains("纪要");
+                case "done" -> label.contains("已完成");
+                default -> true;
+            };
+            case "asset" -> switch (status) {
+                case "in-use" -> label.contains("在用");
+                case "idle" -> label.contains("闲置");
+                case "maintenance" -> label.contains("维修");
+                default -> true;
+            };
+            case "attendance" -> switch (status) {
+                case "normal" -> label.contains("正常");
+                case "exception" -> label.contains("异常");
+                case "leave" -> label.contains("请假");
+                default -> true;
+            };
+            case "official-doc" -> switch (status) {
+                case "draft" -> label.contains("草稿");
+                case "reviewing" -> label.contains("流转");
+                case "published" -> label.contains("已发布");
+                default -> true;
+            };
+            case "community" -> switch (status) {
+                case "hot" -> label.contains("热门");
+                case "shared" -> label.contains("已分享");
+                case "pending" -> label.contains("待审核");
+                default -> true;
+            };
+            case "open-api" -> switch (status) {
+                case "online" -> label.contains("在线");
+                case "warning" -> label.contains("预警");
+                case "draft" -> label.contains("草稿");
+                default -> true;
+            };
+            case "sso" -> switch (status) {
+                case "enabled" -> label.contains("启用");
+                case "pending" -> label.contains("待配置");
+                case "warning" -> label.contains("预警");
+                default -> true;
+            };
+            default -> true;
+        };
+    }
+
     private String archiveStatusLabel(String status) {
         return "archived".equalsIgnoreCase(status) ? "已入库" : "待补充";
     }
@@ -904,6 +1080,14 @@ public class LedgerService {
                                        List<LedgerRowDto> rows,
                                        List<String> nextActions) {
         return new LedgerBoardDto(code, name, description, "sample", List.of("all"), metrics, rows, nextActions);
+    }
+
+    private LedgerBoardDto moduleWorkBoard(String code, String name, String description,
+                                           List<String> statusOptions,
+                                           List<LedgerMetricDto> metrics,
+                                           List<LedgerRowDto> rows,
+                                           List<String> nextActions) {
+        return new LedgerBoardDto(code, name, description, "structured", statusOptions, metrics, rows, nextActions);
     }
 
     private LedgerRowDto row(String rowKey,

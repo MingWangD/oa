@@ -75,14 +75,21 @@ class WorkflowRuntimeServiceTests {
 
         WfDefinition definition = new WfDefinition();
         definition.setId(77L);
-        definition.setWfCode("JUDICIAL_MAIN");
-        definition.setWfName("司法鉴定主流程 v2");
+        definition.setWfCode("received-entrust");
+        definition.setWfName("收到委托书 v2");
         definition.setVersionNo(2);
         definition.setPublishStatus("published");
+
+        WfNodeDef firstNode = new WfNodeDef();
+        firstNode.setNodeCode("INIT_FILL");
+        firstNode.setNodeName("发起者填写委托信息");
+        firstNode.setNodeType("task");
+        firstNode.setEnabled(1);
 
         when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
         when(caseWfInstanceMapper.selectOne(any())).thenReturn(null);
         when(wfDefinitionMapper.selectOne(any())).thenReturn(definition);
+        when(wfNodeDefMapper.selectOne(any())).thenReturn(firstNode);
         doAnswer(invocation -> {
             CaseWfInstance instance = invocation.getArgument(0);
             instance.setId(501L);
@@ -104,7 +111,8 @@ class WorkflowRuntimeServiceTests {
         ArgumentCaptor<CaseWfInstance> captor = ArgumentCaptor.forClass(CaseWfInstance.class);
         verify(caseWfInstanceMapper).insert(captor.capture());
         assertThat(captor.getValue().getWfId()).isEqualTo(77L);
-        assertThat(captor.getValue().getWfName()).isEqualTo("司法鉴定主流程 v2");
+        assertThat(captor.getValue().getWfName()).isEqualTo("收到委托书 v2");
+        assertThat(caseInfo.getCurrentNodeCode()).isEqualTo("INIT_FILL");
     }
 
     @Test

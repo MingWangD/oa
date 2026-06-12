@@ -209,8 +209,7 @@ public class WorkflowDesignService {
             definition.setUpdatedBy(currentUserId());
             definition.setUpdatedTime(LocalDateTime.now());
             wfDefinitionMapper.updateById(definition);
-            wfNodeDefMapper.delete(new LambdaQueryWrapper<WfNodeDef>().eq(WfNodeDef::getWfId, definition.getId()));
-            wfTransitionDefMapper.delete(new LambdaQueryWrapper<WfTransitionDef>().eq(WfTransitionDef::getWfId, definition.getId()));
+            deleteDefinitionChildren(definition.getId());
         }
         return definition;
     }
@@ -359,10 +358,14 @@ public class WorkflowDesignService {
                 .eq(WfDefinition::getPublishStatus, STATUS_DRAFT)
                 .eq(WfDefinition::getDeleted, 0));
         for (WfDefinition draft : drafts) {
-            wfNodeDefMapper.delete(new LambdaQueryWrapper<WfNodeDef>().eq(WfNodeDef::getWfId, draft.getId()));
-            wfTransitionDefMapper.delete(new LambdaQueryWrapper<WfTransitionDef>().eq(WfTransitionDef::getWfId, draft.getId()));
+            deleteDefinitionChildren(draft.getId());
             wfDefinitionMapper.deleteById(draft.getId());
         }
+    }
+
+    private void deleteDefinitionChildren(Long wfId) {
+        wfNodeDefMapper.physicalDeleteByWfId(wfId);
+        wfTransitionDefMapper.physicalDeleteByWfId(wfId);
     }
 
     private void validateGraph(List<WfNodeDef> nodes, List<WfTransitionDef> transitions) {

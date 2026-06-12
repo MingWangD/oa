@@ -6,10 +6,12 @@ import com.example.judicialappraisal.organization.dto.MenuDto;
 import com.example.judicialappraisal.organization.service.PermissionService;
 import com.example.judicialappraisal.platform.dto.JudicialCatalogDto;
 import com.example.judicialappraisal.platform.dto.JudicialConfigImportResult;
+import com.example.judicialappraisal.platform.dto.JudicialWorkflowVerificationReportDto;
 import com.example.judicialappraisal.platform.dto.OaMenuItemDto;
 import com.example.judicialappraisal.platform.dto.OaModuleDto;
 import com.example.judicialappraisal.platform.dto.ReconstructionPhaseDto;
 import com.example.judicialappraisal.platform.service.JudicialConfigImportService;
+import com.example.judicialappraisal.platform.service.JudicialWorkflowVerificationService;
 import com.example.judicialappraisal.platform.service.PlatformCatalogService;
 import java.util.List;
 import org.springframework.security.core.Authentication;
@@ -26,13 +28,16 @@ public class PlatformController {
     private final PlatformCatalogService platformCatalogService;
     private final PermissionService permissionService;
     private final JudicialConfigImportService judicialConfigImportService;
+    private final JudicialWorkflowVerificationService judicialWorkflowVerificationService;
 
     public PlatformController(PlatformCatalogService platformCatalogService,
                               PermissionService permissionService,
-                              JudicialConfigImportService judicialConfigImportService) {
+                              JudicialConfigImportService judicialConfigImportService,
+                              JudicialWorkflowVerificationService judicialWorkflowVerificationService) {
         this.platformCatalogService = platformCatalogService;
         this.permissionService = permissionService;
         this.judicialConfigImportService = judicialConfigImportService;
+        this.judicialWorkflowVerificationService = judicialWorkflowVerificationService;
     }
 
     @GetMapping("/menus")
@@ -56,6 +61,11 @@ public class PlatformController {
     @PostMapping("/judicial-catalog/import")
     public ApiResponse<JudicialConfigImportResult> importJudicialCatalog(@RequestParam(defaultValue = "false") boolean forceNewVersion) {
         return ApiResponse.success(judicialConfigImportService.importCatalog(forceNewVersion));
+    }
+
+    @GetMapping("/judicial-catalog/verification")
+    public ApiResponse<JudicialWorkflowVerificationReportDto> verifyJudicialCatalog() {
+        return ApiResponse.success(judicialWorkflowVerificationService.verifyCatalog());
     }
 
     @GetMapping("/reconstruction-plan")
