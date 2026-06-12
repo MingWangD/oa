@@ -125,11 +125,13 @@ public class WorkflowRuntimeService {
     }
 
     @Transactional
-    public WorkflowActionResult submitCase(Long caseId, Long operatorId, String operatorName, String opinion) {
+    public WorkflowActionResult submitCase(Long caseId, WorkflowActionRequest request) {
         CaseInfo caseInfo = requireCase(caseId);
         if (!CaseStatus.DRAFT.name().equals(caseInfo.getCaseStatus())) {
             throw new BusinessException("仅草稿案件允许提交");
         }
+        Long operatorId = request.assigneeId();
+        String operatorName = request.assigneeName();
         if (operatorId == null) {
             throw new BusinessException("提交人不能为空");
         }
@@ -151,6 +153,8 @@ public class WorkflowRuntimeService {
                 defaultName(operatorName),
                 now);
 
+        updateCaseFormData(caseInfo, request.formData());
+
         caseInfo.setCaseStatus(resolveCaseStatusForNode(nodeCode).name());
         caseInfo.setCurrentNodeCode(nodeCode);
         caseInfo.setCurrentNodeName(nodeName);
@@ -167,6 +171,21 @@ public class WorkflowRuntimeService {
         caseWfInstanceMapper.updateById(wfInstance);
         return new WorkflowActionResult(caseId, task.getId(), ActionCode.SUBMIT.name(), true, "提交成功");
     }
+
+    private void updateCaseFormData(CaseInfo caseInfo, Map<String, Object> incomingFormData) {
+        if (incomingFormData == null || incomingFormData.isEmpty()) {
+            return;
+        }
+        Map<String, Object> existing = caseInfo.getFormData();
+        if (existing == null) {
+            existing = new LinkedHashMap<>();
+        } else {
+            existing = new LinkedHashMap<>(existing);
+        }
+        existing.putAll(incomingFormData);
+        caseInfo.setFormData(existing);
+    }
+
 
     @Transactional
     public WorkflowActionResult completeTask(Long caseId, WorkflowActionRequest request) {
@@ -469,8 +488,15 @@ public class WorkflowRuntimeService {
             nodeInstance.setHandlerName(resolveOperatorName(request, task));
             nodeInstance.setResultAction(request.actionCode().name());
             nodeInstance.setResultOpinion(resolveOutcomeOpinion(request));
+            nodeInstance.setFormData(request.formData());
             caseNodeInstanceMapper.updateById(nodeInstance);
             archiveCompletedNode(task, nodeInstance, request);
+        }
+
+        CaseInfo caseInfo = caseInfoMapper.selectById(task.getCaseId());
+        if (caseInfo != null) {
+            updateCaseFormData(caseInfo, request.formData());
+            caseInfoMapper.updateById(caseInfo);
         }
     }
 

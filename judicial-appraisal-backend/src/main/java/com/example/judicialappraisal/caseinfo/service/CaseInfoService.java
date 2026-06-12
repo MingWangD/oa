@@ -48,7 +48,11 @@ public class CaseInfoService extends ServiceImpl<CaseInfoMapper, CaseInfo> {
     }
 
     public WorkflowActionResult submitCase(Long caseId, CaseSubmitRequest request) {
-        return workflowRuntimeService.submitCase(caseId, request.operatorId(), request.operatorName(), request.opinion());
+        com.example.judicialappraisal.common.enums.ActionCode submitCode = com.example.judicialappraisal.common.enums.ActionCode.SUBMIT;
+        com.example.judicialappraisal.workflow.dto.WorkflowActionRequest actionRequest = 
+            new com.example.judicialappraisal.workflow.dto.WorkflowActionRequest(
+                null, submitCode, request.opinion(), null, request.operatorId(), request.operatorName(), null, null);
+        return workflowRuntimeService.submitCase(caseId, actionRequest);
     }
 
     public CaseInfo getDetail(Long caseId) {

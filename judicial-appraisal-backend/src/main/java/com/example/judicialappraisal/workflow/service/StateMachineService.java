@@ -16,7 +16,7 @@ public class StateMachineService {
 
     public WorkflowActionResult processAction(Long caseId, WorkflowActionRequest request) {
         if (request.actionCode() == ActionCode.SUBMIT && request.taskId() == null) {
-            return workflowRuntimeService.submitCase(caseId, request.assigneeId(), request.assigneeName(), request.opinion());
+            return workflowRuntimeService.submitCase(caseId, request);
         }
         return workflowRuntimeService.completeTask(caseId, request);
     }

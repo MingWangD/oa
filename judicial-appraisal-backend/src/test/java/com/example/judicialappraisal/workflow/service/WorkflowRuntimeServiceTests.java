@@ -112,7 +112,7 @@ class WorkflowRuntimeServiceTests {
             return 1;
         }).when(caseTaskMapper).insert(any(CaseTask.class));
 
-        service.submitCase(88L, 9L, "管理员", "提交");
+        service.submitCase(88L, new WorkflowActionRequest(null, ActionCode.SUBMIT, "提交", null, 9L, "管理员", null, null));
 
         ArgumentCaptor<CaseWfInstance> captor = ArgumentCaptor.forClass(CaseWfInstance.class);
         verify(caseWfInstanceMapper).insert(captor.capture());

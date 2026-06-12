@@ -3,12 +3,15 @@ package com.example.judicialappraisal.caseinfo.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Data
-@TableName("case_info")
+@TableName(value = "case_info", autoResultMap = true)
 public class CaseInfo {
     @TableId(type = IdType.AUTO)
     private Long id;
@@ -26,6 +29,10 @@ public class CaseInfo {
     private LocalDateTime deadlineTime;
     private Integer urgentFlag;
     private Integer overtimeFlag;
+    
+    @TableField(typeHandler = JacksonTypeHandler.class)
+    private Map<String, Object> formData;
+
     private LocalDateTime submittedTime;
     private LocalDateTime completedTime;
     private LocalDateTime createdTime;
