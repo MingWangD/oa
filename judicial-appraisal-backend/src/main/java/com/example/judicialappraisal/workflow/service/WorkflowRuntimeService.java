@@ -824,7 +824,7 @@ public class WorkflowRuntimeService {
             Long activeWfId) {
         Map<String, Object> transitionConfig = parseTransitionConfig(transition.getTransitionConfigJson());
         if (Boolean.TRUE.equals(toBoolean(transitionConfig.get("launchSubflow")))) {
-            return createLaunchedSubflowTarget(caseInfo, wfInstance, completedTask, transition, request, now, transitionConfig);
+            return createLaunchedSubflowTarget(caseInfo, wfInstance, completedTask, transition, request, now, transitionConfig, activeWfId);
         }
 
         WfNodeDef targetNode = findNodeDef(activeWfId, transition.getToNodeCode());
@@ -909,8 +909,34 @@ public class WorkflowRuntimeService {
             WfTransitionDef transition,
             WorkflowActionRequest request,
             LocalDateTime now,
-            Map<String, Object> transitionConfig) {
-        CaseSubflowInstance subflowInstance = maybeCreateSubflowInstance(caseInfo, wfInstance, completedTask, transition, request, now, transitionConfig);
+            Map<String, Object> transitionConfig,
+            Long activeWfId) {
+        
+        WfNodeDef targetNode = findNodeDef(activeWfId, transition.getToNodeCode());
+        if (targetNode == null) {
+            throw new BusinessException("流程定义缺少子流程挂载节点：" + transition.getToNodeCode());
+        }
+
+        CaseNodeInstance parentNodeInstance = createNodeInstance(caseInfo.getId(), wfInstance.getId(), completedTask.getSubflowInstanceId(),
+                targetNode.getNodeCode(), targetNode.getNodeName(), now);
+        
+        CaseTask parentTask = createNextNodeTask(
+                caseInfo,
+                wfInstance,
+                activeWfId,
+                completedTask.getSubflowInstanceId(),
+                parentNodeInstance.getId(),
+                targetNode.getNodeCode(),
+                targetNode.getNodeName(),
+                request,
+                completedTask.getAssigneeId(),
+                completedTask.getAssigneeName(),
+                now);
+        parentTask.setStatus("subflow_running");
+        caseTaskMapper.updateById(parentTask);
+
+        CaseSubflowInstance subflowInstance = maybeCreateSubflowInstance(caseInfo, wfInstance, parentTask, transition, request, now, transitionConfig);
+        
         WfNodeDef firstNode = findFirstActionableNode(subflowInstance.getWfId());
         if (firstNode == null) {
             throw new BusinessException("子流程缺少可办理节点：" + subflowInstance.getWfCode());
@@ -935,6 +961,19 @@ public class WorkflowRuntimeService {
     private TransitionAdvance handleEndTransition(CaseInfo caseInfo, CaseWfInstance wfInstance, CaseTask completedTask, LocalDateTime now) {
         if (completedTask.getSubflowInstanceId() != null) {
             finishSubflowInstance(completedTask.getSubflowInstanceId(), now);
+            CaseSubflowInstance subflowInstance = caseSubflowInstanceMapper.selectById(completedTask.getSubflowInstanceId());
+            if (subflowInstance != null && subflowInstance.getParentTaskId() != null) {
+                CaseTask parentTask = caseTaskMapper.selectById(subflowInstance.getParentTaskId());
+                if (parentTask != null && "subflow_running".equals(parentTask.getStatus())) {
+                    WorkflowActionRequest completeRequest = new WorkflowActionRequest(
+                            parentTask.getId(), ActionCode.COMPLETE, "子流程已结束", null, null, null, null, null);
+                    completeCurrentTaskAndNode(parentTask, completeRequest, now);
+                    WorkflowActionResult advanceResult = tryAdvanceByDefinition(caseInfo, parentTask, completeRequest, now);
+                    if (advanceResult != null && "流程已完成".equals(advanceResult.message())) {
+                        return new TransitionAdvance(List.of(), true, true);
+                    }
+                }
+            }
         }
         CaseTask nextActiveTask = findLatestActiveTask(caseInfo.getId(), wfInstance.getId());
         if (nextActiveTask != null) {

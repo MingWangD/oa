@@ -418,13 +418,16 @@ class WorkflowRuntimeServiceTests {
         ArgumentCaptor<CaseSubflowInstance> subflowCaptor = ArgumentCaptor.forClass(CaseSubflowInstance.class);
         verify(caseSubflowInstanceMapper).insert(subflowCaptor.capture());
         assertThat(subflowCaptor.getValue().getWfCode()).isEqualTo("preliminary-survey");
-        assertThat(subflowCaptor.getValue().getParentTaskId()).isEqualTo(701L);
-        assertThat(subflowCaptor.getValue().getParentNodeCode()).isEqualTo("PROJECT_DECISION");
+        assertThat(subflowCaptor.getValue().getParentTaskId()).isEqualTo(702L);
+        assertThat(subflowCaptor.getValue().getParentNodeCode()).isEqualTo("PRELIMINARY_SURVEY");
 
         ArgumentCaptor<CaseTask> taskCaptor = ArgumentCaptor.forClass(CaseTask.class);
-        verify(caseTaskMapper).insert(taskCaptor.capture());
-        assertThat(taskCaptor.getValue().getSubflowInstanceId()).isEqualTo(801L);
-        assertThat(taskCaptor.getValue().getNodeCode()).isEqualTo("PRELIMINARY_SURVEY");
+        verify(caseTaskMapper, org.mockito.Mockito.times(2)).insert(taskCaptor.capture());
+        java.util.List<CaseTask> createdTasks = taskCaptor.getAllValues();
+        assertThat(createdTasks.get(0).getNodeCode()).isEqualTo("PRELIMINARY_SURVEY");
+        assertThat(createdTasks.get(0).getStatus()).isEqualTo("subflow_running");
+        assertThat(createdTasks.get(1).getSubflowInstanceId()).isEqualTo(801L);
+        assertThat(createdTasks.get(1).getNodeCode()).isEqualTo("PRELIMINARY_SURVEY");
     }
 
     @Test
