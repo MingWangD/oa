@@ -218,6 +218,73 @@ public class KnowledgeService {
         return toDocumentDto(document);
     }
 
+    @Transactional
+    public KnowledgeDocumentDto archiveBusinessDocument(
+            String bizType,
+            Long bizId,
+            String title,
+            String artifactCode,
+            Map<String, Object> formData,
+            List<Long> fileIds,
+            String archiveSummary) {
+        if (bizId == null) {
+            throw new BusinessException("业务对象ID不能为空");
+        }
+        ensureBaseDirectories();
+        KnowledgeDirectory directory = ensureDirectory(
+                null,
+                "contract-archive",
+                "合同档案",
+                "public",
+                null,
+                null,
+                null,
+                "/合同档案",
+                40);
+        String effectiveArtifactCode = businessArtifactCode(bizType, bizId, artifactCode);
+        Long fileId = fileIds == null || fileIds.isEmpty() ? null : fileIds.get(fileIds.size() - 1);
+        Integer nextVersion = nextBusinessDocumentVersion(effectiveArtifactCode);
+        String formSnapshot = toJson(formData == null ? Map.of() : formData);
+        Map<String, Object> archiveResultMap = new java.util.LinkedHashMap<>();
+        archiveResultMap.put("bizType", valueOrEmpty(bizType));
+        archiveResultMap.put("bizId", bizId);
+        archiveResultMap.put("fileIds", fileIds == null ? List.of() : fileIds);
+        archiveResultMap.put("summary", valueOrEmpty(archiveSummary));
+        String archiveResult = toJson(archiveResultMap);
+
+        CurrentUserInfo user = currentUserOrNull();
+        KnowledgeDocument document = new KnowledgeDocument();
+        document.setDirectoryId(directory.getId());
+        document.setTitle(title == null || title.isBlank() ? "业务归档-" + bizId : title);
+        document.setArtifactCode(effectiveArtifactCode);
+        document.setSourceType(SOURCE_ARCHIVE);
+        document.setCurrentFileId(fileId);
+        document.setCurrentVersionNo(nextVersion);
+        document.setFormSnapshotJson(formSnapshot);
+        document.setArchiveResultJson(archiveResult);
+        document.setStatus("active");
+        document.setCreatedBy(user == null ? null : user.id());
+        document.setUpdatedBy(user == null ? null : user.id());
+        document.setCreatedTime(LocalDateTime.now());
+        document.setUpdatedTime(LocalDateTime.now());
+        document.setDeleted(0);
+        documentMapper.insert(document);
+
+        KnowledgeDocumentVersion version = new KnowledgeDocumentVersion();
+        version.setDocumentId(document.getId());
+        version.setVersionNo(nextVersion);
+        version.setFileId(fileId);
+        version.setFormSnapshotJson(formSnapshot);
+        version.setArchiveResultJson(archiveResult);
+        version.setChangeNote(archiveSummary);
+        version.setCreatedBy(user == null ? null : user.id());
+        version.setCreatedTime(LocalDateTime.now());
+        versionMapper.insert(version);
+
+        auditLogService.record("BUSINESS_AUTO_ARCHIVE", "业务对象自动归档", "knowledge_document", document.getId(), null, archiveResult);
+        return toDocumentDto(document);
+    }
+
     public void ensureBaseDirectories() {
         ensureDirectory(null, "public", "公共知识库", "public", null, null, null, "/公共知识库", 10);
         ensureDirectory(null, "department", "部门知识库", "dept", null, null, null, "/部门知识库", 20);
@@ -230,6 +297,23 @@ public class KnowledgeService {
         String name = caseInfo.getCaseNo() == null || caseInfo.getCaseNo().isBlank() ? "案件-" + caseInfo.getId() : caseInfo.getCaseNo();
         return ensureDirectory(root.getId(), caseCode, name, "case", caseInfo.getId(), caseInfo.getAcceptDeptId(), null,
                 root.getPath() + "/" + name, 0);
+    }
+
+    private String businessArtifactCode(String bizType, Long bizId, String artifactCode) {
+        return artifactCode == null || artifactCode.isBlank() ? valueOrEmpty(bizType) + "-" + bizId : artifactCode;
+    }
+
+    private Integer nextBusinessDocumentVersion(String artifactCode) {
+        return documentMapper.selectList(new LambdaQueryWrapper<KnowledgeDocument>()
+                        .eq(KnowledgeDocument::getSourceType, SOURCE_ARCHIVE)
+                        .eq(KnowledgeDocument::getArtifactCode, artifactCode)
+                        .eq(KnowledgeDocument::getDeleted, 0)
+                        .orderByDesc(KnowledgeDocument::getCurrentVersionNo)
+                        .last("limit 1"))
+                .stream()
+                .findFirst()
+                .map(KnowledgeDocument::getCurrentVersionNo)
+                .orElse(0) + 1;
     }
 
     private boolean matchesKeyword(KnowledgeDocument document, String keyword) {

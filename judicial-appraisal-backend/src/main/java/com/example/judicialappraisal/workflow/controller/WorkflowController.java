@@ -1,5 +1,6 @@
 package com.example.judicialappraisal.workflow.controller;
 
+import com.example.judicialappraisal.auth.dto.CurrentUserInfo;
 import com.example.judicialappraisal.common.ApiResponse;
 import com.example.judicialappraisal.workflow.dto.CaseSubflowSummaryResponse;
 import com.example.judicialappraisal.workflow.dto.WorkflowActionRequest;
@@ -8,6 +9,8 @@ import com.example.judicialappraisal.workflow.service.CaseSubflowQueryService;
 import com.example.judicialappraisal.workflow.service.StateMachineService;
 import jakarta.validation.Valid;
 import java.util.List;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,12 +33,32 @@ public class WorkflowController {
 
     @PostMapping("/{caseId}/actions")
     public ApiResponse<WorkflowActionResult> processAction(@PathVariable Long caseId,
-                                                           @Valid @RequestBody WorkflowActionRequest request) {
-        return ApiResponse.success(stateMachineService.processAction(caseId, request));
+                                                           @Valid @RequestBody WorkflowActionRequest request,
+                                                           Authentication authentication) {
+        CurrentUserInfo currentUser = currentUser(authentication);
+        return ApiResponse.success(stateMachineService.processAction(
+                caseId,
+                request,
+                currentUser.id(),
+                displayName(currentUser)));
     }
 
     @GetMapping("/{caseId}/subflows")
     public ApiResponse<List<CaseSubflowSummaryResponse>> listSubflows(@PathVariable Long caseId) {
         return ApiResponse.success(caseSubflowQueryService.listByCaseId(caseId));
+    }
+
+    private CurrentUserInfo currentUser(Authentication authentication) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof CurrentUserInfo userInfo)) {
+            throw new AuthenticationCredentialsNotFoundException("Unauthorized");
+        }
+        return userInfo;
+    }
+
+    private String displayName(CurrentUserInfo userInfo) {
+        if (userInfo.realName() != null && !userInfo.realName().isBlank()) {
+            return userInfo.realName();
+        }
+        return userInfo.username();
     }
 }

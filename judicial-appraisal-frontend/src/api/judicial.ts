@@ -225,7 +225,11 @@ export interface WorkflowActionPayload {
   actionCode: WorkflowActionCode;
   opinion?: string;
   reason?: string;
+  nextAssigneeId?: number;
+  nextAssigneeName?: string;
+  /** @deprecated Use nextAssigneeId. This field no longer represents the current operator. */
   assigneeId?: number;
+  /** @deprecated Use nextAssigneeName. This field no longer represents the current operator. */
   assigneeName?: string;
   formData?: Record<string, unknown>;
   fileIds?: number[];
@@ -421,6 +425,67 @@ export interface FileUploadResponse {
   duplicateCount: number | null;
   virusScanStatus: string | null;
   previewWatermarkEnabled: boolean;
+}
+
+export interface ContractAttachment {
+  id: number;
+  fileId: number;
+  fileName: string | null;
+  artifactCode: string | null;
+  createdAt: string | null;
+}
+
+export interface ContractVersion {
+  id: number;
+  versionNo: number;
+  title: string;
+  content: string | null;
+  changeNote: string | null;
+  createdAt: string | null;
+}
+
+export interface ContractItem {
+  id: number;
+  contractNo: string;
+  contractName: string;
+  customerName: string;
+  relatedCaseId: number | null;
+  amount: number;
+  ownerId: number | null;
+  ownerName: string | null;
+  departmentId: number | null;
+  departmentName: string | null;
+  status: string;
+  statusName: string;
+  archiveDocumentId: number | null;
+  reviewOpinion: string | null;
+  submittedAt: string | null;
+  approvedAt: string | null;
+  archivedAt: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+  latestVersion: ContractVersion | null;
+  attachments: ContractAttachment[];
+}
+
+export interface ContractQuery {
+  keyword?: string;
+  status?: string;
+  relatedCaseId?: number;
+  pageNo?: number;
+  pageSize?: number;
+}
+
+export interface ContractPayload {
+  contractName: string;
+  customerName: string;
+  relatedCaseId?: number | null;
+  amount: number;
+  departmentId?: number | null;
+  departmentName?: string | null;
+  content: string;
+  changeNote?: string | null;
+  fileIds?: number[];
 }
 
 export interface FormDefinitionDesign {
@@ -679,6 +744,16 @@ export function uploadWorkflowFile(payload: {
   return postForm<FileUploadResponse>('/files/upload', body);
 }
 
+export function uploadContractFile(file: File, contractId?: number): Promise<FileUploadResponse> {
+  const body = new FormData();
+  body.set('file', file);
+  body.set('bizType', 'contract');
+  if (contractId) body.set('bizId', String(contractId));
+  body.set('artifactCode', 'CONTRACT_ATTACHMENT');
+  body.set('artifactName', '合同附件');
+  return postForm<FileUploadResponse>('/files/upload', body);
+}
+
 export function fetchPlatformMenus(): Promise<MenuDto[]> {
   return get<MenuDto[]>('/platform/menus');
 }
@@ -728,6 +803,34 @@ export function downloadKnowledgeDocument(documentId: number): Promise<{ blob: B
 
 export function previewKnowledgeDocument(documentId: number): Promise<{ blob: Blob; filename: string }> {
   return getBlob(`/knowledge/documents/${documentId}/preview`);
+}
+
+export function fetchContracts(query: ContractQuery): Promise<PageResult<ContractItem>> {
+  return get<PageResult<ContractItem>>('/contracts', { ...query });
+}
+
+export function fetchContractDetail(contractId: number): Promise<ContractItem> {
+  return get<ContractItem>(`/contracts/${contractId}`);
+}
+
+export function createContract(payload: ContractPayload): Promise<ContractItem> {
+  return post<ContractItem>('/contracts', payload);
+}
+
+export function updateContract(contractId: number, payload: ContractPayload): Promise<ContractItem> {
+  return put<ContractItem>(`/contracts/${contractId}`, payload);
+}
+
+export function submitContract(contractId: number): Promise<ContractItem> {
+  return post<ContractItem>(`/contracts/${contractId}/submit`);
+}
+
+export function approveContract(contractId: number, opinion?: string): Promise<ContractItem> {
+  return post<ContractItem>(`/contracts/${contractId}/approve`, { opinion });
+}
+
+export function rejectContract(contractId: number, opinion?: string): Promise<ContractItem> {
+  return post<ContractItem>(`/contracts/${contractId}/reject`, { opinion });
 }
 
 export function fetchFormDesigns(): Promise<FormDefinitionDesign[]> {

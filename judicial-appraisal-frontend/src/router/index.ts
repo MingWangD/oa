@@ -10,6 +10,7 @@ const CaseDetailView = () => import('../views/CaseDetailView.vue');
 const WorkbenchView = () => import('../views/WorkbenchView.vue');
 const CaseListView = () => import('../views/CaseListView.vue');
 const KnowledgeBaseView = () => import('../views/KnowledgeBaseView.vue');
+const ContractManagementView = () => import('../views/ContractManagementView.vue');
 const WorkflowFormDesignerView = () => import('../views/WorkflowFormDesignerView.vue');
 const WorkflowProcessDesignerView = () => import('../views/WorkflowProcessDesignerView.vue');
 const UserManagementView = () => import('../views/UserManagementView.vue');
@@ -93,6 +94,17 @@ export const routes: RouteRecordRaw[] = [
       title: '知识库',
       tabKey: 'knowledge',
       menuGroup: 'knowledge',
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/placeholder/contract',
+    name: 'contract-management',
+    component: ContractManagementView,
+    meta: {
+      title: '合同管理',
+      tabKey: 'contract-management',
+      menuGroup: 'business-suite',
       requiresAuth: true
     }
   },

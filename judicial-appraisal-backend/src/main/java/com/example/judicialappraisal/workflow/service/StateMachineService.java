@@ -14,10 +14,10 @@ public class StateMachineService {
         this.workflowRuntimeService = workflowRuntimeService;
     }
 
-    public WorkflowActionResult processAction(Long caseId, WorkflowActionRequest request) {
+    public WorkflowActionResult processAction(Long caseId, WorkflowActionRequest request, Long currentUserId, String currentUserName) {
         if (request.actionCode() == ActionCode.SUBMIT && request.taskId() == null) {
-            return workflowRuntimeService.submitCase(caseId, request);
+            return workflowRuntimeService.submitCase(caseId, request, currentUserId, currentUserName);
         }
-        return workflowRuntimeService.completeTask(caseId, request);
+        return workflowRuntimeService.completeTask(caseId, request, currentUserId, currentUserName);
     }
 }

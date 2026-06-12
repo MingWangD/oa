@@ -6,18 +6,23 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.judicialappraisal.caseinfo.dto.CaseCreateRequest;
 import com.example.judicialappraisal.caseinfo.dto.CaseSubmitRequest;
 import com.example.judicialappraisal.caseinfo.entity.CaseInfo;
+import com.example.judicialappraisal.caseinfo.mapper.CaseInfoMapper;
 import com.example.judicialappraisal.caseinfo.service.CaseInfoService;
 import com.example.judicialappraisal.common.enums.ActionCode;
 import com.example.judicialappraisal.common.enums.CaseStatus;
 import com.example.judicialappraisal.platform.service.JudicialConfigImportService;
 import com.example.judicialappraisal.workflow.dto.WorkflowActionRequest;
 import com.example.judicialappraisal.workflow.dto.WorkflowActionResult;
+import com.example.judicialappraisal.workflow.entity.CaseNodeInstance;
 import com.example.judicialappraisal.workflow.entity.CaseSubflowInstance;
 import com.example.judicialappraisal.workflow.entity.CaseTask;
 import com.example.judicialappraisal.workflow.entity.CaseWfInstance;
+import com.example.judicialappraisal.workflow.entity.WfDefinition;
+import com.example.judicialappraisal.workflow.mapper.CaseNodeInstanceMapper;
 import com.example.judicialappraisal.workflow.mapper.CaseSubflowInstanceMapper;
 import com.example.judicialappraisal.workflow.mapper.CaseTaskMapper;
 import com.example.judicialappraisal.workflow.mapper.CaseWfInstanceMapper;
+import com.example.judicialappraisal.workflow.mapper.WfDefinitionMapper;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,7 +42,13 @@ class ReceivedEntrustToArchiveE2ETest {
     private CaseInfoService caseInfoService;
 
     @Autowired
+    private CaseInfoMapper caseInfoMapper;
+
+    @Autowired
     private WorkflowRuntimeService workflowRuntimeService;
+
+    @Autowired
+    private CaseNodeInstanceMapper caseNodeInstanceMapper;
 
     @Autowired
     private CaseTaskMapper caseTaskMapper;
@@ -46,10 +57,16 @@ class ReceivedEntrustToArchiveE2ETest {
     private CaseWfInstanceMapper caseWfInstanceMapper;
 
     @Autowired
+    private WfDefinitionMapper wfDefinitionMapper;
+
+    @Autowired
     private CaseSubflowInstanceMapper caseSubflowInstanceMapper;
 
     @Autowired
     private com.example.judicialappraisal.organization.mapper.SysRoleMapper sysRoleMapper;
+
+    @Autowired
+    private com.example.judicialappraisal.organization.mapper.SysUserRoleMapper sysUserRoleMapper;
 
     @Autowired
     private com.example.judicialappraisal.platform.service.PlatformCatalogService platformCatalogService;
@@ -57,7 +74,8 @@ class ReceivedEntrustToArchiveE2ETest {
     @BeforeEach
     void setUp() {
         // Ensure roles exist in DB
-        List<String> roles = platformCatalogService.judicialCatalog().dedicatedRoles();
+        List<String> roles = new java.util.ArrayList<>(platformCatalogService.judicialCatalog().dedicatedRoles());
+        roles.addAll(List.of("发起者", "申请人", "盖章经办人", "邮寄人员"));
         for (String roleName : roles) {
             com.example.judicialappraisal.organization.entity.SysRole existing = sysRoleMapper.selectOne(
                     new LambdaQueryWrapper<com.example.judicialappraisal.organization.entity.SysRole>()
@@ -68,8 +86,20 @@ class ReceivedEntrustToArchiveE2ETest {
                 role.setRoleCode(roleName);
                 role.setStatus("enabled");
                 role.setDataScope("all");
+                role.setDeleted(0);
                 sysRoleMapper.insert(role);
             }
+        }
+
+        List<com.example.judicialappraisal.organization.entity.SysRole> enabledRoles = sysRoleMapper.selectList(
+                new LambdaQueryWrapper<com.example.judicialappraisal.organization.entity.SysRole>()
+                        .eq(com.example.judicialappraisal.organization.entity.SysRole::getStatus, "enabled")
+                        .eq(com.example.judicialappraisal.organization.entity.SysRole::getDeleted, 0));
+        for (com.example.judicialappraisal.organization.entity.SysRole role : enabledRoles) {
+            com.example.judicialappraisal.organization.entity.SysUserRole userRole = new com.example.judicialappraisal.organization.entity.SysUserRole();
+            userRole.setUserId(9L);
+            userRole.setRoleId(role.getId());
+            sysUserRoleMapper.insert(userRole);
         }
 
         // Ensure configs are imported and force refresh
@@ -84,7 +114,7 @@ class ReceivedEntrustToArchiveE2ETest {
 
         // 2. Submit Case
         CaseSubmitRequest submitRequest = new CaseSubmitRequest(9L, "管理员", "发起流程");
-        WorkflowActionResult submitResult = caseInfoService.submitCase(caseId, submitRequest);
+        WorkflowActionResult submitResult = caseInfoService.submitCase(caseId, submitRequest, 9L, "管理员");
         assertThat(submitResult.success()).isTrue();
 
         // Check main wf instance
@@ -325,6 +355,69 @@ class ReceivedEntrustToArchiveE2ETest {
         assertThat(caseInfo.getFormData().get("clientName")).isEqualTo("E2E委托人");
         assertThat(caseInfo.getFormData().get("paymentReceived")).isEqualTo(true);
         assertThat(caseInfo.getFormData().get("invoiceIssued")).isEqualTo(true);
+        assertThat(caseInfo.getCurrentNodeCode()).isNull();
+        assertThat(caseInfo.getCurrentNodeName()).isNull();
+        assertThat(caseInfo.getCurrentHandlerId()).isNull();
+        assertThat(caseInfo.getCurrentHandlerName()).isNull();
+        assertThat(mainWf.getCurrentNodeCode()).isNull();
+        assertThat(mainWf.getCurrentNodeName()).isNull();
+    }
+
+    @Test
+    void issueOpinionShouldWaitForSealSubflowWhenInvoiceCompletesFirst() {
+        Long caseId = startIssueOpinionSubflowCase("E2E出具意见书等待用章和开票");
+
+        completeTask(caseId, "PROJECT_SUPPLEMENT", Map.ofEntries(
+                Map.entry("caseNo", "JA-WAIT-1"),
+                Map.entry("projectLeaderId", 3L),
+                Map.entry("archivistId", 4L),
+                Map.entry("financeId", 5L),
+                Map.entry("commitmentDrafted", true),
+                Map.entry("reviewOpinionDrafted", true),
+                Map.entry("sealRequired", true),
+                Map.entry("sealedOpinionUploaded", true),
+                Map.entry("invoiceRequired", true),
+                Map.entry("invoiceIssued", true),
+                Map.entry("deliveryMethod", "电子送达"),
+                Map.entry("archiveConfirmed", true)
+        ));
+
+        assertThat(getRunningSubflow(caseId, "seal-application")).isNotNull();
+        completeTask(caseId, "FINANCE_INVOICE", Map.of("invoiceIssued", true));
+        assertThat(countActiveTasks(caseId, "DELIVERY_ARCHIVE")).isZero();
+
+        completeSealApplicationSubflow(caseId);
+        completeTask(caseId, "SEALED_UPLOAD", Map.of("sealedOpinionUploaded", true));
+
+        assertThat(countActiveTasks(caseId, "DELIVERY_ARCHIVE")).isEqualTo(1L);
+    }
+
+    @Test
+    void issueOpinionShouldWaitForSealSubflowWhenInvoiceNotRequired() {
+        Long caseId = startIssueOpinionSubflowCase("E2E出具意见书等待用章免开票");
+
+        completeTask(caseId, "PROJECT_SUPPLEMENT", Map.ofEntries(
+                Map.entry("caseNo", "JA-WAIT-2"),
+                Map.entry("projectLeaderId", 3L),
+                Map.entry("archivistId", 4L),
+                Map.entry("financeId", 5L),
+                Map.entry("commitmentDrafted", true),
+                Map.entry("reviewOpinionDrafted", true),
+                Map.entry("sealRequired", true),
+                Map.entry("sealedOpinionUploaded", true),
+                Map.entry("invoiceRequired", false),
+                Map.entry("invoiceIssued", false),
+                Map.entry("deliveryMethod", "电子送达"),
+                Map.entry("archiveConfirmed", true)
+        ));
+
+        assertThat(getRunningSubflow(caseId, "seal-application")).isNotNull();
+        assertThat(countActiveTasks(caseId, "DELIVERY_ARCHIVE")).isZero();
+
+        completeSealApplicationSubflow(caseId);
+        completeTask(caseId, "SEALED_UPLOAD", Map.of("sealedOpinionUploaded", true));
+
+        assertThat(countActiveTasks(caseId, "DELIVERY_ARCHIVE")).isEqualTo(1L);
     }
 
     private CaseSubflowInstance getRunningSubflow(Long caseId, String wfCode) {
@@ -334,6 +427,80 @@ class ReceivedEntrustToArchiveE2ETest {
                 .eq(CaseSubflowInstance::getStatus, "running")
                 .orderByDesc(CaseSubflowInstance::getId)
                 .last("LIMIT 1"));
+    }
+
+    private Long startIssueOpinionSubflowCase(String title) {
+        CaseInfo caseInfo = caseInfoService.createDraft(new CaseCreateRequest(title, "出具鉴定意见书", "测试法院", 1L));
+        caseInfo.setCaseStatus(CaseStatus.PROCESSING.name());
+        caseInfoMapper.updateById(caseInfo);
+
+        WfDefinition definition = wfDefinitionMapper.selectOne(new LambdaQueryWrapper<WfDefinition>()
+                .eq(WfDefinition::getWfCode, "issue-opinion")
+                .eq(WfDefinition::getPublishStatus, "published")
+                .eq(WfDefinition::getDeleted, 0)
+                .orderByDesc(WfDefinition::getVersionNo)
+                .orderByDesc(WfDefinition::getId)
+                .last("LIMIT 1"));
+        assertThat(definition).isNotNull();
+
+        CaseWfInstance wfInstance = new CaseWfInstance();
+        wfInstance.setCaseId(caseInfo.getId());
+        wfInstance.setWfId(definition.getId());
+        wfInstance.setWfCode(definition.getWfCode());
+        wfInstance.setWfName(definition.getWfName());
+        wfInstance.setStatus("running");
+        wfInstance.setCurrentNodeCode("PROJECT_SUPPLEMENT");
+        wfInstance.setCurrentNodeName("项目负责人补充承诺书与复核意见");
+        caseWfInstanceMapper.insert(wfInstance);
+
+        CaseNodeInstance nodeInstance = new CaseNodeInstance();
+        nodeInstance.setCaseId(caseInfo.getId());
+        nodeInstance.setWfInstanceId(wfInstance.getId());
+        nodeInstance.setNodeCode("PROJECT_SUPPLEMENT");
+        nodeInstance.setNodeName("项目负责人补充承诺书与复核意见");
+        nodeInstance.setStatus("running");
+        caseNodeInstanceMapper.insert(nodeInstance);
+
+        CaseTask task = new CaseTask();
+        task.setCaseId(caseInfo.getId());
+        task.setWfInstanceId(wfInstance.getId());
+        task.setNodeInstanceId(nodeInstance.getId());
+        task.setTaskType("candidate");
+        task.setTaskTitle(title + " - 项目负责人补充承诺书与复核意见");
+        task.setNodeCode("PROJECT_SUPPLEMENT");
+        task.setNodeName("项目负责人补充承诺书与复核意见");
+        task.setStatus("pending");
+        task.setAssigneeId(9L);
+        task.setAssigneeName("管理员");
+        task.setOvertimeFlag(0);
+        caseTaskMapper.insert(task);
+
+        return caseInfo.getId();
+    }
+
+    private void completeSealApplicationSubflow(Long caseId) {
+        completeTask(caseId, "APPLICANT_SUBMIT", Map.of(
+                "caseNo", "JA-SEAL",
+                "applicantId", 3L,
+                "archivistId", 4L,
+                "sealOperatorId", 6L,
+                "applicationReason", "鉴定意见书用章",
+                "sealMode", "线下盖章",
+                "applicationFilesPrepared", true,
+                "archivistReviewed", true,
+                "sealCompleted", true,
+                "sealedScanUploaded", true
+        ));
+        completeTask(caseId, "ARCHIVIST_REVIEW", Map.of("archivistReviewed", true));
+        completeTask(caseId, "SEAL_OPERATOR", Map.of("sealCompleted", true));
+        completeTask(caseId, "ARCHIVIST_UPLOAD", Map.of("sealedScanUploaded", true));
+    }
+
+    private long countActiveTasks(Long caseId, String nodeCode) {
+        return caseTaskMapper.selectCount(new LambdaQueryWrapper<CaseTask>()
+                .eq(CaseTask::getCaseId, caseId)
+                .eq(CaseTask::getNodeCode, nodeCode)
+                .in(CaseTask::getStatus, "pending", "claimed", "processing", "subflow_running"));
     }
 
     private void completeTask(Long caseId, String nodeCode, Map<String, Object> formData) {
@@ -346,7 +513,7 @@ class ReceivedEntrustToArchiveE2ETest {
         assertThat(task).withFailMessage("Task not found or not active: " + nodeCode).isNotNull();
 
         WorkflowActionRequest request = new WorkflowActionRequest(
-                task.getId(), ActionCode.APPROVE, "自动E2E执行", null, 9L, "系统", formData, null);
-        workflowRuntimeService.completeTask(caseId, request);
+                task.getId(), ActionCode.APPROVE, "自动E2E执行", null, null, null, formData, null);
+        workflowRuntimeService.completeTask(caseId, request, 9L, "管理员");
     }
 }

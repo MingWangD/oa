@@ -16,6 +16,7 @@ import com.example.judicialappraisal.knowledge.service.KnowledgeService;
 import com.example.judicialappraisal.workflow.entity.CaseNodeInstance;
 import com.example.judicialappraisal.workflow.entity.CaseSubflowInstance;
 import com.example.judicialappraisal.workflow.entity.CaseTask;
+import com.example.judicialappraisal.workflow.entity.CaseTaskCandidate;
 import com.example.judicialappraisal.workflow.entity.CaseWfInstance;
 import com.example.judicialappraisal.workflow.entity.WfDefinition;
 import com.example.judicialappraisal.workflow.entity.WfNodeDef;
@@ -32,6 +33,7 @@ import com.example.judicialappraisal.workflow.mapper.CaseWfInstanceMapper;
 import com.example.judicialappraisal.workflow.mapper.WfDefinitionMapper;
 import com.example.judicialappraisal.workflow.mapper.WfNodeDefMapper;
 import com.example.judicialappraisal.workflow.mapper.WfTransitionDefMapper;
+import com.example.judicialappraisal.organization.entity.SysRole;
 import com.example.judicialappraisal.organization.mapper.SysRoleMapper;
 import com.example.judicialappraisal.organization.mapper.SysUserRoleMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -112,7 +114,7 @@ class WorkflowRuntimeServiceTests {
             return 1;
         }).when(caseTaskMapper).insert(any(CaseTask.class));
 
-        service.submitCase(88L, new WorkflowActionRequest(null, ActionCode.SUBMIT, "提交", null, 9L, "管理员", null, null));
+        service.submitCase(88L, new WorkflowActionRequest(null, ActionCode.SUBMIT, "提交", null, 9L, "管理员", null, null), 9L, "管理员");
 
         ArgumentCaptor<CaseWfInstance> captor = ArgumentCaptor.forClass(CaseWfInstance.class);
         verify(caseWfInstanceMapper).insert(captor.capture());
@@ -181,12 +183,367 @@ class WorkflowRuntimeServiceTests {
             return 1;
         }).when(caseTaskMapper).insert(any(CaseTask.class));
 
-        service.completeTask(88L, new WorkflowActionRequest(701L, ActionCode.APPROVE, "通过", null, null, null, null, null));
+        complete(new WorkflowActionRequest(701L, ActionCode.APPROVE, "通过", null, null, null, null, null));
 
         ArgumentCaptor<CaseTask> taskCaptor = ArgumentCaptor.forClass(CaseTask.class);
         verify(caseTaskMapper).insert(taskCaptor.capture());
         assertThat(taskCaptor.getValue().getNodeCode()).isEqualTo("DYNAMIC_REVIEW");
         assertThat(caseInfo.getCurrentNodeCode()).isEqualTo("DYNAMIC_REVIEW");
+    }
+
+    @Test
+    void completingTaskCreatesCandidateTaskWhenTargetNodeHasRoleRuleEvenIfRequestHasAssignee() {
+        CaseInfo caseInfo = new CaseInfo();
+        caseInfo.setId(88L);
+        caseInfo.setCaseTitle("角色候选测试");
+        caseInfo.setCaseStatus(CaseStatus.PROCESSING.name());
+
+        CaseTask currentTask = new CaseTask();
+        currentTask.setId(701L);
+        currentTask.setCaseId(88L);
+        currentTask.setWfInstanceId(501L);
+        currentTask.setNodeInstanceId(601L);
+        currentTask.setNodeCode("CURRENT");
+        currentTask.setNodeName("当前节点");
+        currentTask.setAssigneeId(9L);
+        currentTask.setStatus("pending");
+
+        CaseNodeInstance currentNode = new CaseNodeInstance();
+        currentNode.setId(601L);
+        currentNode.setCaseId(88L);
+        currentNode.setStatus("running");
+
+        CaseWfInstance wfInstance = new CaseWfInstance();
+        wfInstance.setId(501L);
+        wfInstance.setCaseId(88L);
+        wfInstance.setWfId(77L);
+        wfInstance.setStatus("running");
+
+        WfTransitionDef transition = new WfTransitionDef();
+        transition.setToNodeCode("FINANCE_REVIEW");
+        transition.setActionCode("APPROVE");
+
+        WfNodeDef targetNode = new WfNodeDef();
+        targetNode.setNodeCode("FINANCE_REVIEW");
+        targetNode.setNodeName("财务审核");
+        targetNode.setNodeType("task");
+        targetNode.setTaskType("candidate");
+        targetNode.setHandlerRoleRule("FINANCE");
+        targetNode.setEnabled(1);
+
+        SysRole financeRole = new SysRole();
+        financeRole.setId(22L);
+        financeRole.setRoleCode("FINANCE");
+
+        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+        when(caseTaskMapper.selectById(701L)).thenReturn(currentTask);
+        when(caseNodeInstanceMapper.selectById(601L)).thenReturn(currentNode);
+        when(caseWfInstanceMapper.selectOne(any())).thenReturn(wfInstance);
+        when(wfTransitionDefMapper.selectList(any())).thenReturn(java.util.List.of(transition));
+        when(wfNodeDefMapper.selectOne(any())).thenReturn(targetNode);
+        when(sysRoleMapper.selectList(any())).thenReturn(java.util.List.of(financeRole));
+        when(sysUserRoleMapper.selectEnabledUserRoleCandidates(java.util.List.of(22L)))
+                .thenReturn(java.util.List.of(new SysUserRoleMapper.UserRoleCandidateRow(18L, 22L)));
+        doAnswer(invocation -> {
+            CaseNodeInstance node = invocation.getArgument(0);
+            node.setId(602L);
+            return 1;
+        }).when(caseNodeInstanceMapper).insert(any(CaseNodeInstance.class));
+        doAnswer(invocation -> {
+            CaseTask task = invocation.getArgument(0);
+            task.setId(702L);
+            return 1;
+        }).when(caseTaskMapper).insert(any(CaseTask.class));
+
+        complete(new WorkflowActionRequest(
+                701L,
+                ActionCode.APPROVE,
+                "通过",
+                null,
+                9L,
+                "当前用户",
+                Map.of(),
+                null));
+
+        ArgumentCaptor<CaseTask> taskCaptor = ArgumentCaptor.forClass(CaseTask.class);
+        verify(caseTaskMapper).insert(taskCaptor.capture());
+        assertThat(taskCaptor.getValue().getTaskType()).isEqualTo("candidate");
+        assertThat(taskCaptor.getValue().getAssigneeId()).isNull();
+
+        ArgumentCaptor<CaseTaskCandidate> candidateCaptor = ArgumentCaptor.forClass(CaseTaskCandidate.class);
+        verify(caseTaskCandidateMapper).insert(candidateCaptor.capture());
+        assertThat(candidateCaptor.getValue().getCandidateUserId()).isEqualTo(18L);
+        assertThat(candidateCaptor.getValue().getCandidateRoleId()).isEqualTo(22L);
+    }
+
+    @Test
+    void manualNextAssigneeMustMatchTargetNodeCandidateRole() {
+        CaseInfo caseInfo = new CaseInfo();
+        caseInfo.setId(88L);
+        caseInfo.setCaseTitle("人工指定测试");
+        caseInfo.setCaseStatus(CaseStatus.PROCESSING.name());
+
+        CaseTask currentTask = new CaseTask();
+        currentTask.setId(701L);
+        currentTask.setCaseId(88L);
+        currentTask.setWfInstanceId(501L);
+        currentTask.setNodeInstanceId(601L);
+        currentTask.setNodeCode("CURRENT");
+        currentTask.setNodeName("当前节点");
+        currentTask.setAssigneeId(9L);
+        currentTask.setStatus("pending");
+
+        CaseNodeInstance currentNode = new CaseNodeInstance();
+        currentNode.setId(601L);
+        currentNode.setCaseId(88L);
+        currentNode.setStatus("running");
+
+        CaseWfInstance wfInstance = new CaseWfInstance();
+        wfInstance.setId(501L);
+        wfInstance.setCaseId(88L);
+        wfInstance.setWfId(77L);
+        wfInstance.setStatus("running");
+
+        WfTransitionDef transition = new WfTransitionDef();
+        transition.setToNodeCode("FINANCE_REVIEW");
+        transition.setActionCode("APPROVE");
+
+        WfNodeDef targetNode = new WfNodeDef();
+        targetNode.setNodeCode("FINANCE_REVIEW");
+        targetNode.setNodeName("财务审核");
+        targetNode.setNodeType("task");
+        targetNode.setHandlerRoleRule("FINANCE");
+        targetNode.setAllowManualAssign(1);
+        targetNode.setEnabled(1);
+
+        SysRole financeRole = new SysRole();
+        financeRole.setId(22L);
+        financeRole.setRoleCode("FINANCE");
+
+        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+        when(caseTaskMapper.selectById(701L)).thenReturn(currentTask);
+        when(caseNodeInstanceMapper.selectById(601L)).thenReturn(currentNode);
+        when(caseWfInstanceMapper.selectOne(any())).thenReturn(wfInstance);
+        when(wfTransitionDefMapper.selectList(any())).thenReturn(java.util.List.of(transition));
+        when(wfNodeDefMapper.selectOne(any())).thenReturn(targetNode);
+        when(sysRoleMapper.selectList(any())).thenReturn(java.util.List.of(financeRole));
+        when(sysUserRoleMapper.selectEnabledRoleIdsByUserId(9L)).thenReturn(java.util.List.of());
+        doAnswer(invocation -> {
+            CaseNodeInstance node = invocation.getArgument(0);
+            node.setId(602L);
+            return 1;
+        }).when(caseNodeInstanceMapper).insert(any(CaseNodeInstance.class));
+
+        assertThatThrownBy(() -> complete(new WorkflowActionRequest(
+                701L,
+                ActionCode.APPROVE,
+                "通过",
+                null,
+                null,
+                null,
+                9L,
+                "指定财务",
+                Map.of(),
+                null)))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("指定承办人不在目标节点候选角色范围内");
+    }
+
+    @Test
+    void currentUserCannotCompleteAssignedTaskWhenRequestHasNoAssigneeId() {
+        CaseInfo caseInfo = new CaseInfo();
+        caseInfo.setId(88L);
+
+        CaseTask currentTask = new CaseTask();
+        currentTask.setId(701L);
+        currentTask.setCaseId(88L);
+        currentTask.setAssigneeId(10L);
+        currentTask.setStatus("pending");
+
+        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+        when(caseTaskMapper.selectById(701L)).thenReturn(currentTask);
+
+        assertThatThrownBy(() -> complete(new WorkflowActionRequest(
+                701L,
+                ActionCode.APPROVE,
+                "通过",
+                null,
+                null,
+                null,
+                null,
+                null)))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("当前用户不是任务主办人");
+    }
+
+    @Test
+    void forgedAssigneeIdCannotBypassCurrentUserPermission() {
+        CaseInfo caseInfo = new CaseInfo();
+        caseInfo.setId(88L);
+
+        CaseTask currentTask = new CaseTask();
+        currentTask.setId(701L);
+        currentTask.setCaseId(88L);
+        currentTask.setAssigneeId(10L);
+        currentTask.setStatus("pending");
+
+        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+        when(caseTaskMapper.selectById(701L)).thenReturn(currentTask);
+
+        assertThatThrownBy(() -> complete(new WorkflowActionRequest(
+                701L,
+                ActionCode.APPROVE,
+                "通过",
+                null,
+                10L,
+                "任务负责人",
+                null,
+                null)))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("当前用户不是任务主办人");
+    }
+
+    @Test
+    void currentUserCannotCompleteCandidateTaskOutsideCandidateScope() {
+        CaseInfo caseInfo = new CaseInfo();
+        caseInfo.setId(88L);
+
+        CaseTask currentTask = new CaseTask();
+        currentTask.setId(701L);
+        currentTask.setCaseId(88L);
+        currentTask.setAssigneeId(null);
+        currentTask.setStatus("pending");
+
+        CaseTaskCandidate candidate = new CaseTaskCandidate();
+        candidate.setTaskId(701L);
+        candidate.setCandidateRoleId(22L);
+
+        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+        when(caseTaskMapper.selectById(701L)).thenReturn(currentTask);
+        when(caseTaskCandidateMapper.selectList(any())).thenReturn(java.util.List.of(candidate));
+        when(sysUserRoleMapper.selectEnabledRoleIdsByUserId(9L)).thenReturn(java.util.List.of());
+
+        assertThatThrownBy(() -> complete(new WorkflowActionRequest(
+                701L,
+                ActionCode.APPROVE,
+                "通过",
+                null,
+                9L,
+                "非候选用户",
+                null,
+                null)))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("当前用户不在任务候选范围内");
+    }
+
+    @Test
+    void assignedCurrentUserCanCompleteTaskWithoutOperatorInRequest() {
+        CaseInfo caseInfo = new CaseInfo();
+        caseInfo.setId(88L);
+
+        CaseTask currentTask = new CaseTask();
+        currentTask.setId(701L);
+        currentTask.setCaseId(88L);
+        currentTask.setWfInstanceId(501L);
+        currentTask.setNodeInstanceId(601L);
+        currentTask.setNodeCode("CUSTOM_NODE");
+        currentTask.setNodeName("自定义节点");
+        currentTask.setAssigneeId(9L);
+        currentTask.setStatus("pending");
+
+        CaseNodeInstance currentNode = new CaseNodeInstance();
+        currentNode.setId(601L);
+        currentNode.setCaseId(88L);
+        currentNode.setStatus("running");
+
+        CaseWfInstance wfInstance = new CaseWfInstance();
+        wfInstance.setId(501L);
+        wfInstance.setCaseId(88L);
+        wfInstance.setWfId(77L);
+        wfInstance.setStatus("running");
+
+        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+        when(caseTaskMapper.selectById(701L)).thenReturn(currentTask);
+        when(caseNodeInstanceMapper.selectById(601L)).thenReturn(currentNode);
+        when(caseWfInstanceMapper.selectOne(any())).thenReturn(wfInstance);
+        when(wfTransitionDefMapper.selectList(any())).thenReturn(java.util.List.of());
+
+        complete(new WorkflowActionRequest(
+                701L,
+                ActionCode.APPROVE,
+                "通过",
+                null,
+                null,
+                null,
+                null,
+                null));
+
+        assertThat(currentTask.getStatus()).isEqualTo("completed");
+    }
+
+    @Test
+    void candidateUserCanClaimAndCompleteCandidateTask() {
+        CaseInfo caseInfo = new CaseInfo();
+        caseInfo.setId(88L);
+
+        CaseTask currentTask = new CaseTask();
+        currentTask.setId(701L);
+        currentTask.setCaseId(88L);
+        currentTask.setWfInstanceId(501L);
+        currentTask.setNodeInstanceId(601L);
+        currentTask.setNodeCode("CANDIDATE_NODE");
+        currentTask.setNodeName("候选节点");
+        currentTask.setAssigneeId(null);
+        currentTask.setStatus("pending");
+
+        CaseTaskCandidate candidate = new CaseTaskCandidate();
+        candidate.setTaskId(701L);
+        candidate.setCandidateRoleId(22L);
+
+        CaseNodeInstance currentNode = new CaseNodeInstance();
+        currentNode.setId(601L);
+        currentNode.setCaseId(88L);
+        currentNode.setStatus("running");
+
+        CaseWfInstance wfInstance = new CaseWfInstance();
+        wfInstance.setId(501L);
+        wfInstance.setCaseId(88L);
+        wfInstance.setWfId(77L);
+        wfInstance.setStatus("running");
+
+        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+        when(caseTaskMapper.selectById(701L)).thenReturn(currentTask);
+        when(caseNodeInstanceMapper.selectById(601L)).thenReturn(currentNode);
+        when(caseWfInstanceMapper.selectOne(any())).thenReturn(wfInstance);
+        when(wfTransitionDefMapper.selectList(any())).thenReturn(java.util.List.of());
+        when(caseTaskCandidateMapper.selectList(any())).thenReturn(java.util.List.of(candidate));
+        when(sysUserRoleMapper.selectEnabledRoleIdsByUserId(9L)).thenReturn(java.util.List.of(22L));
+
+        complete(new WorkflowActionRequest(
+                701L,
+                ActionCode.CLAIM,
+                "认领",
+                null,
+                null,
+                null,
+                null,
+                null));
+
+        assertThat(currentTask.getStatus()).isEqualTo("claimed");
+        assertThat(currentTask.getAssigneeId()).isEqualTo(9L);
+        assertThat(currentTask.getClaimedBy()).isEqualTo(9L);
+
+        complete(new WorkflowActionRequest(
+                701L,
+                ActionCode.APPROVE,
+                "通过",
+                null,
+                null,
+                null,
+                null,
+                null));
+
+        assertThat(currentTask.getStatus()).isEqualTo("completed");
     }
 
     @Test
@@ -203,6 +560,7 @@ class WorkflowRuntimeServiceTests {
         currentTask.setNodeInstanceId(601L);
         currentTask.setNodeCode("INIT_FILL");
         currentTask.setNodeName("发起者填写委托信息");
+        currentTask.setAssigneeId(9L);
         currentTask.setStatus("pending");
 
         CaseWfInstance wfInstance = new CaseWfInstance();
@@ -231,7 +589,7 @@ class WorkflowRuntimeServiceTests {
         when(wfDefinitionMapper.selectById(77L)).thenReturn(definition);
         when(formVersionMapper.selectOne(any())).thenReturn(formVersion);
 
-        assertThatThrownBy(() -> service.completeTask(88L, new WorkflowActionRequest(
+        assertThatThrownBy(() -> complete(new WorkflowActionRequest(
                 701L,
                 ActionCode.APPROVE,
                 "通过",
@@ -312,7 +670,7 @@ class WorkflowRuntimeServiceTests {
             return 1;
         }).when(caseTaskMapper).insert(any(CaseTask.class));
 
-        service.completeTask(88L, new WorkflowActionRequest(
+        complete(new WorkflowActionRequest(
                 701L,
                 ActionCode.APPROVE,
                 "不受理",
@@ -405,7 +763,7 @@ class WorkflowRuntimeServiceTests {
             return 1;
         }).when(caseTaskMapper).insert(any(CaseTask.class));
 
-        service.completeTask(88L, new WorkflowActionRequest(
+        complete(new WorkflowActionRequest(
                 701L,
                 ActionCode.APPROVE,
                 "进入初勘",
@@ -500,7 +858,7 @@ class WorkflowRuntimeServiceTests {
         when(caseSubflowInstanceMapper.selectById(801L)).thenReturn(subflowInstance);
         when(caseTaskMapper.selectOne(any())).thenReturn(remainingTask);
 
-        service.completeTask(88L, new WorkflowActionRequest(
+        complete(new WorkflowActionRequest(
                 702L,
                 ActionCode.COMPLETE,
                 "初勘结束",
@@ -612,7 +970,7 @@ class WorkflowRuntimeServiceTests {
         // Mock counting active tasks to 0 (for gateway check, though parallel split doesn't wait)
         when(caseTaskMapper.selectCount(any())).thenReturn(0L);
 
-        service.completeTask(88L, new WorkflowActionRequest(
+        complete(new WorkflowActionRequest(
                 701L,
                 ActionCode.APPROVE,
                 "同意",
@@ -680,7 +1038,7 @@ class WorkflowRuntimeServiceTests {
         // Mock counting active tasks to 1 (meaning another task like FINANCE_INVOICE is still running)
         when(caseTaskMapper.selectCount(any())).thenReturn(1L);
 
-        service.completeTask(88L, new WorkflowActionRequest(
+        complete(new WorkflowActionRequest(
                 701L,
                 ActionCode.APPROVE,
                 "同意",
@@ -696,5 +1054,9 @@ class WorkflowRuntimeServiceTests {
         ArgumentCaptor<CaseTask> taskCaptor = ArgumentCaptor.forClass(CaseTask.class);
         verify(caseTaskMapper).updateById(taskCaptor.capture());
         assertThat(taskCaptor.getValue().getStatus()).isEqualTo("completed");
+    }
+
+    private void complete(WorkflowActionRequest request) {
+        service.completeTask(88L, request, 9L, "当前用户");
     }
 }

@@ -1,6 +1,7 @@
 package com.example.judicialappraisal.workflow.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.example.judicialappraisal.auth.dto.CurrentUserInfo;
 import com.example.judicialappraisal.caseinfo.entity.CaseInfo;
 import com.example.judicialappraisal.caseinfo.mapper.CaseInfoMapper;
 import com.example.judicialappraisal.common.enums.ActionCode;
@@ -44,6 +45,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -73,6 +77,7 @@ public class WorkflowRuntimeService {
     private static final String TASK_CLAIMED = TaskStatus.CLAIMED.name().toLowerCase();
     private static final String TASK_COMPLETED = TaskStatus.COMPLETED.name().toLowerCase();
     private static final String TASK_CANCELLED = TaskStatus.CANCELLED.name().toLowerCase();
+    private static final String TASK_SUBFLOW_RUNNING = "subflow_running";
     private static final String TASK_TYPE_SINGLE = "single";
     private static final String TASK_TYPE_CANDIDATE = "candidate";
     private static final String ENABLED_STATUS = "enabled";
@@ -126,18 +131,20 @@ public class WorkflowRuntimeService {
 
     @Transactional
     public WorkflowActionResult submitCase(Long caseId, WorkflowActionRequest request) {
+        CurrentOperator currentOperator = currentOperatorFromSecurityContext();
+        return submitCase(caseId, request, currentOperator.id(), currentOperator.name());
+    }
+
+    @Transactional
+    public WorkflowActionResult submitCase(Long caseId, WorkflowActionRequest request, Long currentUserId, String currentUserName) {
         CaseInfo caseInfo = requireCase(caseId);
         if (!CaseStatus.DRAFT.name().equals(caseInfo.getCaseStatus())) {
             throw new BusinessException("仅草稿案件允许提交");
         }
-        Long operatorId = request.assigneeId();
-        String operatorName = request.assigneeName();
-        if (operatorId == null) {
-            throw new BusinessException("提交人不能为空");
-        }
+        requireCurrentUser(currentUserId);
 
         LocalDateTime now = LocalDateTime.now();
-        CaseWfInstance wfInstance = createOrReuseWfInstance(caseInfo, operatorId, now);
+        CaseWfInstance wfInstance = createOrReuseWfInstance(caseInfo, currentUserId, now);
         WfNodeDef firstNode = findFirstActionableNode(wfInstance.getWfId());
         String nodeCode = firstNode == null ? ACCEPT_NODE_CODE : firstNode.getNodeCode();
         String nodeName = firstNode == null ? ACCEPT_NODE_NAME : firstNode.getNodeName();
@@ -149,8 +156,8 @@ public class WorkflowRuntimeService {
                 nodeInstance.getId(),
                 nodeCode,
                 nodeName,
-                operatorId,
-                defaultName(operatorName),
+                currentUserId,
+                defaultName(currentUserName),
                 now);
 
         updateCaseFormData(caseInfo, request.formData());
@@ -189,11 +196,19 @@ public class WorkflowRuntimeService {
 
     @Transactional
     public WorkflowActionResult completeTask(Long caseId, WorkflowActionRequest request) {
+        CurrentOperator currentOperator = currentOperatorFromSecurityContext();
+        return completeTask(caseId, request, currentOperator.id(), currentOperator.name());
+    }
+
+    @Transactional
+    public WorkflowActionResult completeTask(Long caseId, WorkflowActionRequest request, Long currentUserId, String currentUserName) {
         validateTaskActionRequest(request);
+        requireCurrentUser(currentUserId);
 
         CaseInfo caseInfo = requireCase(caseId);
         CaseTask task = requireTask(caseId, request.taskId());
         validateTaskCanProcess(task);
+        validateTaskOperator(task, currentUserId);
         
         // Merge incoming form data for validation
         Map<String, Object> mergedFormData = new LinkedHashMap<>();
@@ -206,31 +221,30 @@ public class WorkflowRuntimeService {
         validateRequiredFormFields(mergedFormData, task, request);
 
         LocalDateTime now = LocalDateTime.now();
-        return switch (request.actionCode()) {
-            case CLAIM -> handleClaim(caseInfo, task, request, now);
-            case ASSIGN -> handleAssign(caseInfo, task, request, now);
-            case WITHDRAW -> handleWithdraw(caseInfo, task, request, now);
-            case APPROVE, COMPLETE -> {
-                completeCurrentTaskAndNode(caseInfo, task, request, now);
-                yield handleApprove(caseInfo, task, request, now);
-            }
-            case RETURN -> {
-                completeCurrentTaskAndNode(caseInfo, task, request, now);
-                yield handleReturn(caseInfo, task, request, now);
-            }
-            case TERMINATE -> {
-                completeCurrentTaskAndNode(caseInfo, task, request, now);
-                yield handleTerminate(caseInfo, task, request, now);
-            }
-            case REOPEN -> {
-                completeCurrentTaskAndNode(caseInfo, task, request, now);
-                yield handleReopen(caseInfo, task, request, now);
-            }
-            default -> {
-                completeCurrentTaskAndNode(caseInfo, task, request, now);
-                yield new WorkflowActionResult(caseInfo.getId(), task.getId(), request.actionCode().name(), true, "办理成功");
-            }
-        };
+        switch (request.actionCode()) {
+            case CLAIM:
+                return handleClaim(caseInfo, task, request, currentUserId, currentUserName, now);
+            case ASSIGN:
+                return handleAssign(caseInfo, task, request, now);
+            case WITHDRAW:
+                return handleWithdraw(caseInfo, task, request, now);
+            case APPROVE:
+            case COMPLETE:
+                completeCurrentTaskAndNode(caseInfo, task, request, currentUserId, currentUserName, now);
+                return handleApprove(caseInfo, task, request, now);
+            case RETURN:
+                completeCurrentTaskAndNode(caseInfo, task, request, currentUserId, currentUserName, now);
+                return handleReturn(caseInfo, task, request, now);
+            case TERMINATE:
+                completeCurrentTaskAndNode(caseInfo, task, request, currentUserId, currentUserName, now);
+                return handleTerminate(caseInfo, task, request, now);
+            case REOPEN:
+                completeCurrentTaskAndNode(caseInfo, task, request, currentUserId, currentUserName, now);
+                return handleReopen(caseInfo, task, request, now);
+            default:
+                completeCurrentTaskAndNode(caseInfo, task, request, currentUserId, currentUserName, now);
+                return new WorkflowActionResult(caseInfo.getId(), task.getId(), request.actionCode().name(), true, "办理成功");
+        }
     }
 
     private void validateTaskActionRequest(WorkflowActionRequest request) {
@@ -240,7 +254,7 @@ public class WorkflowRuntimeService {
         if (requiresReason(request.actionCode()) && isBlank(request.reason()) && isBlank(request.opinion())) {
             throw new BusinessException("原因不能为空");
         }
-        if (requiresAssignee(request.actionCode()) && request.assigneeId() == null) {
+        if (requiresAssignee(request.actionCode()) && request.resolvedNextAssigneeId() == null) {
             throw new BusinessException("承办人不能为空");
         }
     }
@@ -253,7 +267,7 @@ public class WorkflowRuntimeService {
     }
 
     private boolean requiresAssignee(ActionCode actionCode) {
-        return actionCode == ActionCode.CLAIM || actionCode == ActionCode.ASSIGN;
+        return actionCode == ActionCode.ASSIGN;
     }
 
     private void validateRequiredFormFields(Map<String, Object> formData, CaseTask task, WorkflowActionRequest request) {
@@ -323,16 +337,16 @@ public class WorkflowRuntimeService {
         return value == null || isBlank(String.valueOf(value));
     }
 
-    private WorkflowActionResult handleClaim(CaseInfo caseInfo, CaseTask task, WorkflowActionRequest request, LocalDateTime now) {
-        validateClaimEligibility(task, request.assigneeId());
-        updateActiveTaskAssignee(task, request, TASK_CLAIMED, now);
+    private WorkflowActionResult handleClaim(CaseInfo caseInfo, CaseTask task, WorkflowActionRequest request, Long currentUserId, String currentUserName, LocalDateTime now) {
+        validateClaimEligibility(task, currentUserId);
+        updateActiveTaskAssignee(task, currentUserId, currentUserName, TASK_CLAIMED, now);
         updateNodeHandler(task.getNodeInstanceId(), task.getAssigneeId(), task.getAssigneeName());
         syncCaseCurrentHandler(caseInfo, task.getAssigneeId(), task.getAssigneeName());
         return new WorkflowActionResult(caseInfo.getId(), task.getId(), request.actionCode().name(), true, "认领成功");
     }
 
     private WorkflowActionResult handleAssign(CaseInfo caseInfo, CaseTask task, WorkflowActionRequest request, LocalDateTime now) {
-        updateActiveTaskAssignee(task, request, TASK_PENDING, now);
+        updateActiveTaskAssignee(task, request.resolvedNextAssigneeId(), request.resolvedNextAssigneeName(), TASK_PENDING, now);
         clearCandidateRows(task.getId());
         updateNodeHandler(task.getNodeInstanceId(), task.getAssigneeId(), task.getAssigneeName());
         syncCaseCurrentHandler(caseInfo, task.getAssigneeId(), task.getAssigneeName());
@@ -355,23 +369,44 @@ public class WorkflowRuntimeService {
             throw new BusinessException("\u4efb\u52a1\u5df2\u5206\u914d\u7ed9\u5176\u4ed6\u7528\u6237");
         }
 
-        boolean matchedByUser = candidates.stream()
-                .anyMatch(candidate -> Objects.equals(candidate.getCandidateUserId(), assigneeId));
-        if (matchedByUser) {
+        if (isUserInCandidateScope(candidates, assigneeId)) {
             return;
         }
 
+        throw new BusinessException("当前用户不在任务候选范围内");
+    }
+
+    private boolean isUserInCandidateScope(List<CaseTaskCandidate> candidates, Long userId) {
+        if (userId == null) {
+            return false;
+        }
+        boolean matchedByUser = candidates.stream()
+                .anyMatch(candidate -> Objects.equals(candidate.getCandidateUserId(), userId));
+        if (matchedByUser) {
+            return true;
+        }
         Set<Long> candidateRoleIds = candidates.stream()
                 .map(CaseTaskCandidate::getCandidateRoleId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
         if (candidateRoleIds.isEmpty()) {
-            throw new BusinessException("当前用户不在任务候选范围内");
+            return false;
         }
+        return selectUserRoleIds(userId).stream().anyMatch(candidateRoleIds::contains);
+    }
 
-        boolean matchedByRole = selectUserRoleIds(assigneeId).stream().anyMatch(candidateRoleIds::contains);
-        if (!matchedByRole) {
-            throw new BusinessException("当前用户不在任务候选范围内");
+    private void validateManualAssigneeMatchesNodeRole(WfNodeDef nodeDef, Long assigneeId) {
+        List<SysRole> roles = resolveHandlerRoles(nodeDef.getHandlerRoleRule());
+        Set<Long> nodeRoleIds = roles.stream()
+                .map(SysRole::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        if (nodeRoleIds.isEmpty()) {
+            throw new BusinessException("流程节点承办角色规则未匹配到启用角色");
+        }
+        boolean matched = selectUserRoleIds(assigneeId).stream().anyMatch(nodeRoleIds::contains);
+        if (!matched) {
+            throw new BusinessException("指定承办人不在目标节点候选角色范围内");
         }
     }
 
@@ -450,13 +485,13 @@ public class WorkflowRuntimeService {
         return new WorkflowActionResult(caseInfo.getId(), task.getId(), request.actionCode().name(), true, "撤回成功");
     }
 
-    private void updateActiveTaskAssignee(CaseTask task, WorkflowActionRequest request, String taskStatus, LocalDateTime now) {
+    private void updateActiveTaskAssignee(CaseTask task, Long assigneeId, String assigneeName, String taskStatus, LocalDateTime now) {
         task.setStatus(taskStatus);
-        task.setAssigneeId(request.assigneeId());
-        task.setAssigneeName(resolveRequestedAssigneeName(request, task));
+        task.setAssigneeId(assigneeId);
+        task.setAssigneeName(defaultName(assigneeName));
         task.setStartedTime(task.getStartedTime() == null ? now : task.getStartedTime());
         if (TASK_CLAIMED.equals(taskStatus)) {
-            task.setClaimedBy(request.assigneeId());
+            task.setClaimedBy(assigneeId);
             task.setClaimedTime(now);
         } else if (TASK_PENDING.equals(taskStatus)) {
             task.setClaimedBy(null);
@@ -481,7 +516,7 @@ public class WorkflowRuntimeService {
         caseInfoMapper.updateById(caseInfo);
     }
 
-    private void completeCurrentTaskAndNode(CaseInfo caseInfo, CaseTask task, WorkflowActionRequest request, LocalDateTime now) {
+    private void completeCurrentTaskAndNode(CaseInfo caseInfo, CaseTask task, WorkflowActionRequest request, Long operatorId, String operatorName, LocalDateTime now) {
         task.setStatus(TASK_COMPLETED);
         task.setStartedTime(task.getStartedTime() == null ? now : task.getStartedTime());
         task.setCompletedTime(now);
@@ -493,8 +528,8 @@ public class WorkflowRuntimeService {
         if (nodeInstance != null) {
             nodeInstance.setStatus(NODE_COMPLETED);
             nodeInstance.setCompletedTime(now);
-            nodeInstance.setHandlerId(resolveOperatorId(request, task));
-            nodeInstance.setHandlerName(resolveOperatorName(request, task));
+            nodeInstance.setHandlerId(operatorId);
+            nodeInstance.setHandlerName(defaultName(operatorName));
             nodeInstance.setResultAction(request.actionCode().name());
             nodeInstance.setResultOpinion(resolveOutcomeOpinion(request));
             nodeInstance.setFormData(request.formData());
@@ -869,14 +904,18 @@ public class WorkflowRuntimeService {
     }
 
     private TransitionAdvance handleGatewayTransition(CaseInfo caseInfo, CaseWfInstance wfInstance, CaseTask completedTask, WfNodeDef gatewayNode, WorkflowActionRequest request, LocalDateTime now, Long activeWfId) {
-        if ("inclusive".equalsIgnoreCase(gatewayNode.getTaskType()) || "parallel".equalsIgnoreCase(gatewayNode.getTaskType())) {
+        if ("inclusive".equalsIgnoreCase(gatewayNode.getTaskType())) {
             // Count active tasks for this wfInstance to see if there are other incoming branches still running
             long activeTaskCount = caseTaskMapper.selectCount(new LambdaQueryWrapper<CaseTask>()
                     .eq(CaseTask::getWfInstanceId, wfInstance.getId())
                     .eq(completedTask.getSubflowInstanceId() != null, CaseTask::getSubflowInstanceId, completedTask.getSubflowInstanceId())
                     .isNull(completedTask.getSubflowInstanceId() == null, CaseTask::getSubflowInstanceId)
-                    .in(CaseTask::getStatus, TASK_PENDING, TASK_CLAIMED, "processing"));
-            if (activeTaskCount > 0) {
+                    .in(CaseTask::getStatus, TASK_PENDING, TASK_CLAIMED, "processing", TASK_SUBFLOW_RUNNING));
+            long runningSubflowCount = countRunningSubflowsInScope(
+                    caseInfo.getId(),
+                    wfInstance.getId(),
+                    completedTask.getSubflowInstanceId());
+            if (activeTaskCount > 0 || runningSubflowCount > 0) {
                 // There are other active tasks running in parallel. Stop advancing this path.
                 return new TransitionAdvance(List.of(), false, true);
             }
@@ -910,6 +949,22 @@ public class WorkflowRuntimeService {
         return new TransitionAdvance(createdTasks, finished, true);
     }
 
+    private long countRunningSubflowsInScope(Long caseId, Long wfInstanceId, Long subflowInstanceId) {
+        List<CaseSubflowInstance> runningSubflows = caseSubflowInstanceMapper.selectList(new LambdaQueryWrapper<CaseSubflowInstance>()
+                .eq(CaseSubflowInstance::getCaseId, caseId)
+                .eq(CaseSubflowInstance::getParentWfInstanceId, wfInstanceId)
+                .eq(CaseSubflowInstance::getStatus, WORKFLOW_RUNNING));
+        return runningSubflows.stream()
+                .map(CaseSubflowInstance::getParentTaskId)
+                .filter(Objects::nonNull)
+                .map(caseTaskMapper::selectById)
+                .filter(Objects::nonNull)
+                .filter(task -> Objects.equals(task.getWfInstanceId(), wfInstanceId))
+                .filter(task -> Objects.equals(task.getSubflowInstanceId(), subflowInstanceId))
+                .filter(task -> TASK_SUBFLOW_RUNNING.equals(task.getStatus()))
+                .count();
+    }
+
     private TransitionAdvance createLaunchedSubflowTarget(
             CaseInfo caseInfo,
             CaseWfInstance wfInstance,
@@ -940,7 +995,7 @@ public class WorkflowRuntimeService {
                 completedTask.getAssigneeId(),
                 completedTask.getAssigneeName(),
                 now);
-        parentTask.setStatus("subflow_running");
+        parentTask.setStatus(TASK_SUBFLOW_RUNNING);
         caseTaskMapper.updateById(parentTask);
 
         CaseSubflowInstance subflowInstance = maybeCreateSubflowInstance(caseInfo, wfInstance, parentTask, transition, request, now, transitionConfig);
@@ -972,10 +1027,16 @@ public class WorkflowRuntimeService {
             CaseSubflowInstance subflowInstance = caseSubflowInstanceMapper.selectById(completedTask.getSubflowInstanceId());
             if (subflowInstance != null && subflowInstance.getParentTaskId() != null) {
                 CaseTask parentTask = caseTaskMapper.selectById(subflowInstance.getParentTaskId());
-                if (parentTask != null && "subflow_running".equals(parentTask.getStatus())) {
+                if (parentTask != null && TASK_SUBFLOW_RUNNING.equals(parentTask.getStatus())) {
                     WorkflowActionRequest completeRequest = new WorkflowActionRequest(
                             parentTask.getId(), ActionCode.COMPLETE, "子流程已结束", null, null, null, null, null);
-                    completeCurrentTaskAndNode(caseInfo, parentTask, completeRequest, now);
+                    completeCurrentTaskAndNode(
+                            caseInfo,
+                            parentTask,
+                            completeRequest,
+                            parentTask.getAssigneeId(),
+                            parentTask.getAssigneeName(),
+                            now);
                     WorkflowActionResult advanceResult = tryAdvanceByDefinition(caseInfo, parentTask, completeRequest, now);
                     if (advanceResult != null && "流程已完成".equals(advanceResult.message())) {
                         return new TransitionAdvance(List.of(), true, true);
@@ -1057,7 +1118,7 @@ public class WorkflowRuntimeService {
         subflowInstance.setWfName(subflowDefinition.getWfName());
         subflowInstance.setSubflowType(subflowCode);
         subflowInstance.setStatus(WORKFLOW_RUNNING);
-        subflowInstance.setStartedBy(resolveOperatorId(request, parentTask));
+        subflowInstance.setStartedBy(parentTask.getAssigneeId());
         subflowInstance.setStartedTime(now);
         subflowInstance.setReason(resolveSubflowReason(config, transition, request));
         caseSubflowInstanceMapper.insert(subflowInstance);
@@ -1123,6 +1184,28 @@ public class WorkflowRuntimeService {
         }
         if (TASK_CANCELLED.equals(task.getStatus())) {
             throw new BusinessException("任务已取消");
+        }
+        if ("returned".equals(task.getStatus())) {
+            throw new BusinessException("任务已退回");
+        }
+        if ("terminated".equals(task.getStatus())) {
+            throw new BusinessException("任务已终止");
+        }
+    }
+
+    private void validateTaskOperator(CaseTask task, Long operatorId) {
+        requireCurrentUser(operatorId);
+        if (task.getAssigneeId() != null && !task.getAssigneeId().equals(operatorId)) {
+            throw new BusinessException("当前用户不是任务主办人，无法办理");
+        }
+        List<CaseTaskCandidate> candidates = selectCandidateRows(task.getId());
+        if (task.getAssigneeId() == null) {
+            if (candidates.isEmpty()) {
+                throw new BusinessException("任务没有主办人或候选范围，无法办理");
+            }
+            if (!isUserInCandidateScope(candidates, operatorId)) {
+                throw new BusinessException("当前用户不在任务候选范围内，无法办理");
+            }
         }
     }
 
@@ -1215,7 +1298,7 @@ public class WorkflowRuntimeService {
         return caseTaskMapper.selectOne(new LambdaQueryWrapper<CaseTask>()
                 .eq(CaseTask::getCaseId, caseId)
                 .eq(CaseTask::getWfInstanceId, wfInstanceId)
-                .in(CaseTask::getStatus, TASK_PENDING, TASK_CLAIMED, "processing")
+                .in(CaseTask::getStatus, TASK_PENDING, TASK_CLAIMED, "processing", TASK_SUBFLOW_RUNNING)
                 .orderByDesc(CaseTask::getSubflowInstanceId)
                 .orderByDesc(CaseTask::getId)
                 .last("limit 1"));
@@ -1279,17 +1362,22 @@ public class WorkflowRuntimeService {
             Long inheritedAssigneeId,
             String inheritedAssigneeName,
             LocalDateTime now) {
-        if (request.assigneeId() != null) {
-            return createTask(caseInfo, wfInstance.getId(), subflowInstanceId, nodeInstanceId, nodeCode, nodeName,
-                    request.assigneeId(), defaultName(request.assigneeName()), now);
-        }
-
         WfNodeDef nodeDef = findNodeDef(activeWfId, nodeCode);
         if (nodeDef != null && !isBlank(nodeDef.getHandlerRoleRule())) {
+            Long requestedNextAssigneeId = request.resolvedNextAssigneeId();
+            if (requestedNextAssigneeId != null && Boolean.TRUE.equals(toBoolean(nodeDef.getAllowManualAssign()))) {
+                validateManualAssigneeMatchesNodeRole(nodeDef, requestedNextAssigneeId);
+                return createTask(caseInfo, wfInstance.getId(), subflowInstanceId, nodeInstanceId, nodeCode, nodeName,
+                        requestedNextAssigneeId, defaultName(request.resolvedNextAssigneeName()), now);
+            }
+            // If role rules exist, don't inherit assignee from previous task unless explicitly allowed
             return createCandidateTask(caseInfo, wfInstance.getId(), subflowInstanceId, nodeInstanceId, nodeCode, nodeName, nodeDef, now);
         }
 
-        return createTask(caseInfo, wfInstance.getId(), subflowInstanceId, nodeInstanceId, nodeCode, nodeName, inheritedAssigneeId, inheritedAssigneeName, now);
+        Long targetAssigneeId = request.resolvedNextAssigneeId();
+        String targetAssigneeName = targetAssigneeId == null ? null : defaultName(request.resolvedNextAssigneeName());
+
+        return createTask(caseInfo, wfInstance.getId(), subflowInstanceId, nodeInstanceId, nodeCode, nodeName, targetAssigneeId, targetAssigneeName, now);
     }
 
     private WfNodeDef findNodeDef(Long wfId, String nodeCode) {
@@ -1468,7 +1556,7 @@ public class WorkflowRuntimeService {
         task.setNodeName(nodeName);
         task.setStatus(TASK_PENDING);
         task.setAssigneeId(assigneeId);
-        task.setAssigneeName(defaultName(assigneeName));
+        task.setAssigneeName(assigneeId == null ? null : defaultName(assigneeName));
         task.setDeadlineTime(caseInfo.getDeadlineTime());
         task.setStartedTime(now);
         task.setOvertimeFlag(0);
@@ -1509,33 +1597,15 @@ public class WorkflowRuntimeService {
         caseWfInstanceMapper.updateById(wfInstance);
     }
 
-    private Long resolveOperatorId(WorkflowActionRequest request, CaseTask task) {
-        return request.assigneeId() != null ? request.assigneeId() : task.getAssigneeId();
-    }
-
-    private String resolveOperatorName(WorkflowActionRequest request, CaseTask task) {
-        return !isBlank(request.assigneeName()) ? request.assigneeName() : task.getAssigneeName();
-    }
-
     private Long resolveNextAssigneeId(WorkflowActionRequest request, CaseTask task) {
-        return request.assigneeId() != null ? request.assigneeId() : task.getAssigneeId();
+        return request.resolvedNextAssigneeId();
     }
 
     private String resolveNextAssigneeName(WorkflowActionRequest request, CaseTask task) {
-        if (!isBlank(request.assigneeName())) {
-            return request.assigneeName();
+        if (!isBlank(request.resolvedNextAssigneeName())) {
+            return request.resolvedNextAssigneeName();
         }
-        return defaultName(task.getAssigneeName());
-    }
-
-    private String resolveRequestedAssigneeName(WorkflowActionRequest request, CaseTask task) {
-        if (!isBlank(request.assigneeName())) {
-            return request.assigneeName();
-        }
-        if (request.assigneeId() != null && request.assigneeId().equals(task.getAssigneeId()) && !isBlank(task.getAssigneeName())) {
-            return task.getAssigneeName();
-        }
-        return defaultName(null);
+        return null;
     }
 
     private String resolveOutcomeOpinion(WorkflowActionRequest request) {
@@ -1548,6 +1618,30 @@ public class WorkflowRuntimeService {
     private String archiveArtifactCode(CaseTask task, WorkflowActionRequest request) {
         String prefix = task.getSubflowInstanceId() == null ? "" : "SUBFLOW-" + task.getSubflowInstanceId() + "-";
         return prefix + task.getNodeCode() + "-" + request.actionCode().name();
+    }
+
+    private CurrentOperator currentOperatorFromSecurityContext() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof CurrentUserInfo userInfo)) {
+            throw new AuthenticationCredentialsNotFoundException("Unauthorized");
+        }
+        return new CurrentOperator(userInfo.id(), displayName(userInfo));
+    }
+
+    private void requireCurrentUser(Long currentUserId) {
+        if (currentUserId == null) {
+            throw new AuthenticationCredentialsNotFoundException("Unauthorized");
+        }
+    }
+
+    private String displayName(CurrentUserInfo userInfo) {
+        if (!isBlank(userInfo.realName())) {
+            return userInfo.realName();
+        }
+        return userInfo.username();
+    }
+
+    private record CurrentOperator(Long id, String name) {
     }
 
     private String stringValue(Object value) {

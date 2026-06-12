@@ -1,9 +1,10 @@
 package com.example.judicialappraisal.caseinfo.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import lombok.Data;
 
@@ -19,9 +20,13 @@ public class CaseInfo {
     private String caseTitle;
     private String caseType;
     private String caseStatus;
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private String currentNodeCode;
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private String currentNodeName;
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private Long currentHandlerId;
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private String currentHandlerName;
     private Long acceptDeptId;
     private String acceptDeptName;

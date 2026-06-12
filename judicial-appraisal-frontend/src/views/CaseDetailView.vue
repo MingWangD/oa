@@ -70,15 +70,18 @@ const currentForm = computed(() => {
 });
 const dynamicFields = computed<DynamicFormField[]>(() => {
   const fields = parseJson<Array<Record<string, unknown>>>(formPreview.value?.fieldSchemaJson, []);
-  return fields.map((field, index) => ({
-    key: String(field.field || field.code || `field_${index + 1}`),
-    label: String(field.label || field.name || field.field || `字段 ${index + 1}`),
-    type: String(field.type || 'text'),
-    group: String(field.group || '基础信息'),
-    required: Boolean(field.required),
-    readonly: Boolean(field.readonly),
-    options: Array.isArray(field.options) ? field.options.map((item) => String(item)) : []
-  }));
+  return fields.map((field, index) => {
+    const isReadonly = Boolean(field.readOnly ?? field.readonly);
+    return {
+      key: String(field.field || field.code || `field_${index + 1}`),
+      label: String(field.label || field.name || field.field || `字段 ${index + 1}`),
+      type: String(field.type || 'text'),
+      group: String(field.group || '基础信息'),
+      required: Boolean(field.required),
+      readonly: isReadonly,
+      options: Array.isArray(field.options) ? field.options.map((item) => String(item)) : []
+    };
+  });
 });
 const fieldGroups = computed(() => {
   const groupMap = new Map<string, DynamicFormField[]>();
@@ -237,8 +240,6 @@ async function submitAction(actionCode: WorkflowActionCode): Promise<void> {
       taskId: currentTask.value?.id,
       actionCode,
       opinion: opinion.value || undefined,
-      assigneeId: authStore.user?.id,
-      assigneeName: authStore.user?.realName || authStore.user?.username,
       formData: {
         ...formData.value,
         handlerOpinion: opinion.value || formData.value.handlerOpinion
