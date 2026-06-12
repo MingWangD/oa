@@ -243,25 +243,37 @@ public class ContractService {
     }
 
     private void replaceAttachments(Long contractId, List<Long> fileIds, Long currentUserId, LocalDateTime now) {
+        // Soft delete all current attachments
         contractAttachmentMapper.delete(new LambdaQueryWrapper<ContractAttachment>()
                 .eq(ContractAttachment::getContractId, contractId));
+
         if (fileIds == null || fileIds.isEmpty()) {
             return;
         }
+
         for (Long fileId : fileIds.stream().filter(id -> id != null).distinct().toList()) {
             SysFile file = sysFileMapper.selectById(fileId);
             if (file == null || Integer.valueOf(1).equals(file.getDeleted())) {
                 throw new BusinessException("合同附件不存在：" + fileId);
             }
-            ContractAttachment attachment = new ContractAttachment();
-            attachment.setContractId(contractId);
-            attachment.setFileId(fileId);
-            attachment.setFileName(file.getOriginalName());
-            attachment.setArtifactCode("CONTRACT_ATTACHMENT");
-            attachment.setCreatedBy(currentUserId);
-            attachment.setCreatedAt(now);
-            attachment.setDeleted(0);
-            contractAttachmentMapper.insert(attachment);
+
+            // Check if there is an existing record (even if soft-deleted)
+            ContractAttachment existing = contractAttachmentMapper.selectWithDeleted(contractId, fileId);
+
+            if (existing != null) {
+                existing.setDeleted(0);
+                contractAttachmentMapper.updateById(existing);
+            } else {
+                ContractAttachment attachment = new ContractAttachment();
+                attachment.setContractId(contractId);
+                attachment.setFileId(fileId);
+                attachment.setFileName(file.getOriginalName());
+                attachment.setArtifactCode("CONTRACT_ATTACHMENT");
+                attachment.setCreatedBy(currentUserId);
+                attachment.setCreatedAt(now);
+                attachment.setDeleted(0);
+                contractAttachmentMapper.insert(attachment);
+            }
         }
     }
 

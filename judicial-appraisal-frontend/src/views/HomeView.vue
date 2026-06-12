@@ -143,7 +143,7 @@ onMounted(() => {
     <div class="panel-heading">
       <div>
         <h3 class="panel-title">分阶段实施计划</h3>
-        <p class="panel-subtitle">先平台底座，再流程/文件/知识，随后展开司法鉴定和完整 OA 业务域。</p>
+        <p class="panel-subtitle">先平台底座，再流程/文件/知识，当前集中完成司法鉴定使用手册级验收。</p>
       </div>
     </div>
     <el-timeline class="phase-timeline">
@@ -161,7 +161,7 @@ onMounted(() => {
     <div class="panel-heading">
       <div>
         <h3 class="panel-title">司法鉴定流程目录</h3>
-        <p class="panel-subtitle">首批登记 20 个流程定义和 19 个表单定义，可一键同步到动态表单/流程设计器。</p>
+        <p class="panel-subtitle">按使用手册登记 19 个验收流程和 19 个表单定义，可一键同步到动态表单/流程设计器。</p>
       </div>
       <el-button type="primary" :loading="importLoading" @click="handleImportCatalog">导入平台配置</el-button>
     </div>

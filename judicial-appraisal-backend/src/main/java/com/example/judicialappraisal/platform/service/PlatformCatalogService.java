@@ -32,54 +32,10 @@ public class PlatformCatalogService {
                         leaf("workflow-new", "新建工作", "/case/new", "workflow", "partial", 10),
                         leaf("workflow-mine", "我的工作", "/my-work", "workflow", "partial", 20),
                         leaf("workflow-query", "工作查询", "/work-query", "workflow", "partial", 30),
-                        leaf("workflow-monitor", "工作监控", "/placeholder/workflow/monitor", "workflow", "planned", 40),
-                        leaf("workflow-timeout", "超时统计分析", "/placeholder/workflow/timeout", "workflow", "planned", 50),
-                        leaf("workflow-delegate", "工作委托", "/placeholder/workflow/delegate", "workflow", "planned", 60),
-                        leaf("workflow-destroy", "工作销毁", "/placeholder/workflow/destroy", "workflow", "planned", 70),
-                        leaf("workflow-log", "流程日志查询", "/placeholder/workflow/log", "workflow", "planned", 80),
-                        leaf("workflow-archive", "数据归档", "/placeholder/workflow/archive", "workflow", "planned", 90),
-                        leaf("workflow-report", "数据报表", "/placeholder/workflow/report", "workflow", "planned", 100),
-                        leaf("workflow-form-design", "设计表单", "/workflow/forms", "workflow", "partial", 110),
-                        leaf("workflow-process-design", "设计流程", "/workflow/processes", "workflow", "partial", 120),
-                        leaf("workflow-report-design", "报表设置", "/placeholder/workflow/report-setting", "workflow", "planned", 130),
-                        leaf("workflow-datasource", "数据源管理", "/placeholder/workflow/datasource", "workflow", "planned", 140)),
-                group("application", "应用中心", "/placeholder/application", 40,
-                        leaf("application-mine", "我的应用", "/placeholder/application/mine", "application", "partial", 10),
-                        leaf("application-design", "设计应用", "/placeholder/application/design", "application", "partial", 20)),
-                group("business", "业务管理", "/placeholder/business", 50,
-                        leaf("crm", "CRM", "/placeholder/crm", "crm", "implemented", 10),
-                        leaf("performance", "绩效", "/placeholder/performance", "performance", "partial", 20),
-                        leaf("contract", "合同", "/placeholder/contract", "contract", "implemented", 30),
-                        leaf("project", "项目", "/placeholder/project", "project", "implemented", 40),
-                        leaf("warehouse", "仓库", "/placeholder/warehouse", "warehouse", "partial", 50),
-                        leaf("risk", "安全风险", "/placeholder/risk", "risk", "partial", 60)),
-                group("admin-office", "行政办公", "/placeholder/admin-office", 60,
-                        leaf("notice", "公告新闻", "/placeholder/admin-office/notice", "admin-office", "partial", 10),
-                        leaf("meeting", "会议", "/placeholder/admin-office/meeting", "admin-office", "partial", 20),
-                        leaf("asset", "资产", "/placeholder/admin-office/asset", "admin-office", "partial", 30)),
-                group("knowledge", "知识管理", "/knowledge", 70,
+                        leaf("workflow-report", "数据报表", "/placeholder/workflow/report", "workflow", "planned", 40)),
+                group("knowledge", "知识管理", "/knowledge", 40,
                         leaf("knowledge-base", "知识库", "/knowledge", "knowledge", "partial", 10),
-                        leaf("knowledge-archive", "案件自动归档", "/placeholder/knowledge/archive", "knowledge", "planned", 20),
-                        leaf("knowledge-disk", "网络硬盘", "/placeholder/knowledge/disk", "knowledge", "planned", 30)),
-                group("governance", "督查/门户/报表", "/placeholder/governance", 80,
-                        leaf("supervision", "督查督办", "/placeholder/supervision", "supervision", "partial", 10),
-                        leaf("portal", "智能门户", "/placeholder/portal", "portal", "partial", 20),
-                        leaf("report-center", "报表中心", "/placeholder/report-center", "report", "partial", 30)),
-                group("people-docs", "人资/考勤/公文/档案", "/placeholder/people-docs", 90,
-                        leaf("hr", "人力资源", "/placeholder/hr", "hr", "partial", 10),
-                        leaf("attendance", "考勤", "/placeholder/attendance", "attendance", "partial", 20),
-                        leaf("official-doc", "公文", "/placeholder/official-doc", "official-doc", "partial", 30),
-                        leaf("archive", "档案", "/placeholder/archive", "archive", "implemented", 40),
-                        leaf("community", "交流园地", "/placeholder/community", "community", "partial", 50)),
-                group("integration", "开放与集成平台", "/placeholder/integration", 100,
-                        leaf("open-api", "外部系统集成", "/placeholder/integration/open-api", "integration", "partial", 10),
-                        leaf("sso", "SSO", "/placeholder/integration/sso", "integration", "partial", 20),
-                        leaf("unified-todo", "统一待办", "/placeholder/integration/todo", "integration", "partial", 30)),
-                group("system", "系统管理", "/admin/users", 110,
-                        leaf("system-users", "用户管理", "/admin/users", "system", "partial", 10),
-                        leaf("system-permission", "权限管理", "/placeholder/system/permission", "system", "implemented", 20),
-                        leaf("system-log", "管理日志", "/placeholder/system/log", "system", "implemented", 30),
-                        leaf("system-datasource", "系统数据源", "/placeholder/system/datasource", "system", "partial", 40))
+                        leaf("knowledge-archive", "案件自动归档", "/placeholder/knowledge/archive", "knowledge", "planned", 20))
         );
     }
 
@@ -91,12 +47,10 @@ public class PlatformCatalogService {
                         "表单设计器", "流程设计器", "流程版本", "任务办理", "流程日志", "数据报表"),
                 module("knowledge", "知识管理", "知识库、案件自动归档、文件预览下载、版本与权限", "P0", "in_progress",
                         "目录权限", "文件版本", "案件归档", "下载留痕", "全文检索"),
-                module("judicial", "司法鉴定完整业务", "20 个流程、19 个表单、角色、文件、归档和版本", "P0", "in_progress",
+                module("judicial", "司法鉴定完整业务", "19 个手册验收流程、19 个表单、角色、文件、归档和版本", "P0", "in_progress",
                         "流程关联", "子流程", "并行任务", "退回路径", "意见书版本"),
-                module("business-suite", "完整 OA 业务套件", "CRM、合同、项目、仓库、行政、人资、公文、档案等", "P1", "in_progress",
-                        "模块中心", "业务台账", "审批状态", "统计导出", "数据权限"),
-                module("integration", "开放与集成平台", "外部系统、SSO、统一待办、移动开放平台", "P2", "planned",
-                        "接口认证", "回调验签", "幂等重试", "监控告警")
+                module("manual-acceptance", "使用手册验收", "页面、流程、权限、归档、查询、报表和导出逐项运行验收", "P0", "in_progress",
+                        "19 个流程", "条件分支", "主办/经办隔离", "自动归档", "报表导出")
         );
     }
 
@@ -124,18 +78,13 @@ public class PlatformCatalogService {
                         "已将流程节点完成动作接入案件自动归档",
                         "已补齐查重、水印、基础病毒扫描和全文检索"),
                 phase("第四阶段", "司法鉴定业务高保真", "in_progress",
-                        "已提供 20 个流程/19 个表单的平台配置导入接口",
+                        "已按使用手册范围提供 19 个流程/19 个表单的平台配置导入接口",
                         "已完成首轮高保真配置、自动结构验收、主链 happy path E2E 和关键运行时风险修复",
-                        "仍需继续补 20 流程逐条运行级验收、异常路径、角色权限边界和旧 OA 等价体验"),
-                phase("第五阶段", "完整 OA 业务域", "in_progress",
-                        "已完成第五阶段结构化看板清单：CRM、合同、项目、档案、权限管理、管理日志",
-                        "已补模块中心、结构化台账、筛选、详情、跳转和关联浏览链",
-                        "其余 OA 模块维持统一结构化页面，后续继续做纵深细化",
-                        "开放集成与剩余模块深化继续并入后续迭代"),
-                phase("第六阶段", "验收、迁移和运维治理", "planned",
-                        "历史数据迁移工具和校验报告",
-                        "权限、安全、审计与性能验收",
-                        "部署监控、备份恢复和运维文档")
+                        "仍需继续补 19 个流程逐条运行级验收、异常路径、角色权限边界和使用手册等价体验"),
+                phase("第五阶段", "完整 OA 业务域", "suspended",
+                        "当前非必要范围，仅作为历史规划保留"),
+                phase("第六阶段", "验收、迁移和运维治理", "suspended",
+                        "当前非必要范围，仅作为历史规划保留")
         );
     }
 
@@ -197,10 +146,7 @@ public class PlatformCatalogService {
                         List.of("返回父流程")),
                 workflow("expense-reimbursement", "财务报销", "expense-reimbursement", "direct", List.of("发起人", "财务"),
                         List.of("独立发起", "上传报销材料后财务处理并登记结果"),
-                        List.of("流程结束")),
-                workflow("case-suspension", "案件暂停", "case-suspension", "subflow", List.of("项目负责人", "授权审批人"),
-                        List.of("记录暂停原因、开始时间、预计恢复时间", "恢复后回原节点或进入终止"),
-                        List.of("恢复办理", "终止鉴定"))
+                        List.of("流程结束"))
         );
     }
 

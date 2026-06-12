@@ -65,8 +65,7 @@ const subflowOnlyCodes = new Set([
   'reject-acceptance',
   'refund',
   'terminate-appraisal',
-  'archive',
-  'case-suspension'
+  'archive'
 ]);
 
 const categories: WorkCategory[] = [
@@ -105,8 +104,7 @@ const categories: WorkCategory[] = [
       'terminate-appraisal',
       'archive',
       'seal-application',
-      'expense-reimbursement',
-      'case-suspension'
+      'expense-reimbursement'
     ]
   },
   {
@@ -125,8 +123,7 @@ const categories: WorkCategory[] = [
       'reject-acceptance',
       'refund',
       'terminate-appraisal',
-      'archive',
-      'case-suspension'
+      'archive'
     ]
   }
 ];

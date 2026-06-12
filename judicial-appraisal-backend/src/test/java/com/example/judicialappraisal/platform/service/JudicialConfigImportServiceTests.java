@@ -31,17 +31,17 @@ class JudicialConfigImportServiceTests {
     );
 
     @Test
-    void importCatalogPublishesNineteenFormsAndTwentyWorkflows() {
+    void importCatalogPublishesNineteenFormsAndNineteenWorkflows() {
         when(formDesignService.listVersions(any())).thenReturn(List.of());
         when(workflowDesignService.listVersions(any())).thenReturn(List.of());
 
         JudicialConfigImportResult result = service.importCatalog(false);
 
         assertThat(result.formsCreated()).isEqualTo(19);
-        assertThat(result.workflowsCreated()).isEqualTo(20);
+        assertThat(result.workflowsCreated()).isEqualTo(19);
         verify(formDesignService, times(19)).saveDraft(any(FormDesignRequest.class));
         verify(formDesignService).publish(eq("received-entrust"));
-        verify(workflowDesignService, times(20)).saveDraft(any(WorkflowDesignRequest.class));
+        verify(workflowDesignService, times(19)).saveDraft(any(WorkflowDesignRequest.class));
         verify(workflowDesignService).publish(eq("archive"));
     }
 
@@ -62,7 +62,7 @@ class JudicialConfigImportServiceTests {
         assertThat(receivedEntrustForm.validationSchemaJson()).contains("duplicateAttachmentPolicy", "reject");
 
         ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
-        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        verify(workflowDesignService, times(19)).saveDraft(workflowCaptor.capture());
         WorkflowDesignRequest receivedEntrustWorkflow = workflowCaptor.getAllValues().stream()
                 .filter(request -> "received-entrust".equals(request.wfCode()))
                 .findFirst()
@@ -96,7 +96,7 @@ class JudicialConfigImportServiceTests {
                 .contains("crossFieldRules", "nextRecommendation");
 
         ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
-        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        verify(workflowDesignService, times(19)).saveDraft(workflowCaptor.capture());
         WorkflowDesignRequest preliminarySurveyWorkflow = workflowCaptor.getAllValues().stream()
                 .filter(request -> "preliminary-survey".equals(request.wfCode()))
                 .findFirst()
@@ -129,7 +129,7 @@ class JudicialConfigImportServiceTests {
                 .contains("crossFieldRules", "nextRecommendation", "sealedDocumentUploaded == true");
 
         ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
-        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        verify(workflowDesignService, times(19)).saveDraft(workflowCaptor.capture());
         WorkflowDesignRequest paymentNoticeWorkflow = workflowCaptor.getAllValues().stream()
                 .filter(request -> "payment-notice".equals(request.wfCode()))
                 .findFirst()
@@ -163,7 +163,7 @@ class JudicialConfigImportServiceTests {
                 .contains("contractAmount > 500000", "contractAmount > 250000", "projectReviewRoute == '部门负责人审核'");
 
         ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
-        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        verify(workflowDesignService, times(19)).saveDraft(workflowCaptor.capture());
         WorkflowDesignRequest qualityControlWorkflow = workflowCaptor.getAllValues().stream()
                 .filter(request -> "quality-control".equals(request.wfCode()))
                 .findFirst()
@@ -203,7 +203,7 @@ class JudicialConfigImportServiceTests {
                 .contains("projectAmount > 150000", "projectReviewRoute == '技术负责人审核'", "equipmentUsageRecorded == true");
 
         ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
-        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        verify(workflowDesignService, times(19)).saveDraft(workflowCaptor.capture());
         WorkflowDesignRequest fieldSurveyWorkflow = workflowCaptor.getAllValues().stream()
                 .filter(request -> "field-survey".equals(request.wfCode()))
                 .findFirst()
@@ -242,7 +242,7 @@ class JudicialConfigImportServiceTests {
                 .contains("crossFieldRules", "projectReviewPassed == true", "sealedNoticeUploaded == true");
 
         ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
-        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        verify(workflowDesignService, times(19)).saveDraft(workflowCaptor.capture());
         WorkflowDesignRequest rejectAcceptanceWorkflow = workflowCaptor.getAllValues().stream()
                 .filter(request -> "reject-acceptance".equals(request.wfCode()))
                 .findFirst()
@@ -275,7 +275,7 @@ class JudicialConfigImportServiceTests {
                 .contains("requireReturn == true", "returnReceiver != null");
 
         ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
-        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        verify(workflowDesignService, times(19)).saveDraft(workflowCaptor.capture());
         WorkflowDesignRequest materialReceiveReturnWorkflow = workflowCaptor.getAllValues().stream()
                 .filter(request -> "material-receive-return".equals(request.wfCode()))
                 .findFirst()
@@ -310,7 +310,7 @@ class JudicialConfigImportServiceTests {
                 .contains("draftOpinionUploaded", "projectReviewPassed", "technicalReviewPassed", "departmentReviewPassed", "finalDraftUploaded", "nextRecommendation");
 
         ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
-        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        verify(workflowDesignService, times(19)).saveDraft(workflowCaptor.capture());
         WorkflowDesignRequest draftOpinionReviewWorkflow = workflowCaptor.getAllValues().stream()
                 .filter(request -> "draft-opinion-review".equals(request.wfCode()))
                 .findFirst()
@@ -342,7 +342,7 @@ class JudicialConfigImportServiceTests {
                 .contains("versionAUploaded == true", "versionABUploaded == true", "versionABCUploaded == true");
 
         ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
-        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        verify(workflowDesignService, times(19)).saveDraft(workflowCaptor.capture());
         WorkflowDesignRequest finalOpinionReviewWorkflow = workflowCaptor.getAllValues().stream()
                 .filter(request -> "final-opinion-review".equals(request.wfCode()))
                 .findFirst()
@@ -374,7 +374,7 @@ class JudicialConfigImportServiceTests {
                 .contains("sealRequired == true", "invoiceRequired == true", "archiveConfirmed == true");
 
         ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
-        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        verify(workflowDesignService, times(19)).saveDraft(workflowCaptor.capture());
         WorkflowDesignRequest issueOpinionWorkflow = workflowCaptor.getAllValues().stream()
                 .filter(request -> "issue-opinion".equals(request.wfCode()))
                 .findFirst()
@@ -407,7 +407,7 @@ class JudicialConfigImportServiceTests {
                 .contains("sealRequired == true", "feedbackDecision == '收到异议'", "objectionReason != null");
 
         ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
-        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        verify(workflowDesignService, times(19)).saveDraft(workflowCaptor.capture());
         WorkflowDesignRequest issueDraftOpinionWorkflow = workflowCaptor.getAllValues().stream()
                 .filter(request -> "issue-draft-opinion".equals(request.wfCode()))
                 .findFirst()
@@ -441,7 +441,7 @@ class JudicialConfigImportServiceTests {
                 .contains("projectReviewPassed == true", "departmentDecision != null", "sealedReplyUploaded == true", "deliveryDate != null");
 
         ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
-        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        verify(workflowDesignService, times(19)).saveDraft(workflowCaptor.capture());
         WorkflowDesignRequest courtLetterWorkflow = workflowCaptor.getAllValues().stream()
                 .filter(request -> "court-letter".equals(request.wfCode()))
                 .findFirst()
@@ -480,7 +480,7 @@ class JudicialConfigImportServiceTests {
                 .contains("appearanceFeeRequired == true", "archiveRetrievalRequired == true", "appearanceCompleted == true", "archiveConfirmed == true");
 
         ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
-        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        verify(workflowDesignService, times(19)).saveDraft(workflowCaptor.capture());
         WorkflowDesignRequest courtAppearanceWorkflow = workflowCaptor.getAllValues().stream()
                 .filter(request -> "court-appearance".equals(request.wfCode()))
                 .findFirst()
@@ -516,7 +516,7 @@ class JudicialConfigImportServiceTests {
                 .contains("linkedWorkflowCode", "withdrawLetterReceivedDate", "withdrawReason", "refundRequired");
 
         ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
-        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        verify(workflowDesignService, times(19)).saveDraft(workflowCaptor.capture());
         WorkflowDesignRequest withdrawWorkflow = workflowCaptor.getAllValues().stream()
                 .filter(request -> "withdraw-case-letter".equals(request.wfCode()))
                 .findFirst()
@@ -549,7 +549,7 @@ class JudicialConfigImportServiceTests {
                 .contains("paymentCompleted == true", "paymentDate != null");
 
         ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
-        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        verify(workflowDesignService, times(19)).saveDraft(workflowCaptor.capture());
         WorkflowDesignRequest refundWorkflow = workflowCaptor.getAllValues().stream()
                 .filter(request -> "refund".equals(request.wfCode()))
                 .findFirst()
@@ -579,7 +579,7 @@ class JudicialConfigImportServiceTests {
                 .contains("terminationType", "terminationReason", "draftCompleted", "projectReviewPassed", "sealRequired", "sealedTerminationUploaded", "archiveConfirmed");
 
         ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
-        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        verify(workflowDesignService, times(19)).saveDraft(workflowCaptor.capture());
         WorkflowDesignRequest terminateWorkflow = workflowCaptor.getAllValues().stream()
                 .filter(request -> "terminate-appraisal".equals(request.wfCode()))
                 .findFirst()
@@ -612,7 +612,7 @@ class JudicialConfigImportServiceTests {
                 .contains("deliveryRoute == '邮寄入库'", "centralArchiveApproved == true");
 
         ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
-        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        verify(workflowDesignService, times(19)).saveDraft(workflowCaptor.capture());
         WorkflowDesignRequest archiveWorkflow = workflowCaptor.getAllValues().stream()
                 .filter(request -> "archive".equals(request.wfCode()))
                 .findFirst()
@@ -641,7 +641,7 @@ class JudicialConfigImportServiceTests {
                 .contains("applicationReason", "sealMode", "applicationFilesPrepared", "archivistReviewed", "sealCompleted", "sealedScanUploaded");
 
         ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
-        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        verify(workflowDesignService, times(19)).saveDraft(workflowCaptor.capture());
         WorkflowDesignRequest sealWorkflow = workflowCaptor.getAllValues().stream()
                 .filter(request -> "seal-application".equals(request.wfCode()))
                 .findFirst()
@@ -672,7 +672,7 @@ class JudicialConfigImportServiceTests {
                 .contains("financeResult == '已报销'");
 
         ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
-        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
+        verify(workflowDesignService, times(19)).saveDraft(workflowCaptor.capture());
         WorkflowDesignRequest reimbursementWorkflow = workflowCaptor.getAllValues().stream()
                 .filter(request -> "expense-reimbursement".equals(request.wfCode()))
                 .findFirst()
@@ -683,24 +683,4 @@ class JudicialConfigImportServiceTests {
                 .contains("form.financeResult == '已报销'", "form.financeResult == '退回补充'");
     }
 
-    @Test
-    void caseSuspensionImportUsesHighFidelityWorkflowConfiguration() {
-        when(formDesignService.listVersions(any())).thenReturn(List.of());
-        when(workflowDesignService.listVersions(any())).thenReturn(List.of());
-
-        service.importCatalog(false);
-
-        ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
-        verify(workflowDesignService, times(20)).saveDraft(workflowCaptor.capture());
-        WorkflowDesignRequest suspensionWorkflow = workflowCaptor.getAllValues().stream()
-                .filter(request -> "case-suspension".equals(request.wfCode()))
-                .findFirst()
-                .orElseThrow();
-        assertThat(suspensionWorkflow.nodes()).extracting("nodeCode")
-                .contains("PROJECT_APPLY", "AUTH_REVIEW", "RESUME", "TERMINATE_APPRAISAL");
-        assertThat(suspensionWorkflow.transitions()).extracting("conditionExpression")
-                .contains("form.suspensionDecision == '恢复办理'", "form.suspensionDecision == '终止鉴定'");
-        assertThat(suspensionWorkflow.transitions()).extracting("transitionConfigJson")
-                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "terminate-appraisal"));
-    }
 }

@@ -219,9 +219,6 @@ public class JudicialConfigImportService {
         if ("expense-reimbursement".equals(workflow.code())) {
             return expenseReimbursementWorkflowRequest(workflow);
         }
-        if ("case-suspension".equals(workflow.code())) {
-            return caseSuspensionWorkflowRequest(workflow);
-        }
         List<WorkflowNodeRequest> nodes = new ArrayList<>();
         List<WorkflowTransitionRequest> transitions = new ArrayList<>();
         nodes.add(new WorkflowNodeRequest("START", "开始", "start", "single", "PROCESSING",
@@ -2388,34 +2385,6 @@ public class JudicialConfigImportService {
                 workflow.code(), workflow.name(), "judicial", workflow.formCode(),
                 "由司法鉴定使用手册高保真校准：财务报销",
                 toJson(Map.of("entryMode", workflow.entryMode(), "highFidelity", true, "flowNameTemplate", "${caseNo}-财务报销",
-                        "keyRules", workflow.keyRules(), "nextFlows", workflow.nextFlows(), "autoArchive", true, "preserveVersions", true)),
-                nodes, transitions
-        );
-    }
-
-    private WorkflowDesignRequest caseSuspensionWorkflowRequest(JudicialWorkflowDefinitionDto workflow) {
-        List<WorkflowNodeRequest> nodes = List.of(
-                node("START", "开始", "start", "single", null, 0, 0, false, null, 0),
-                node("PROJECT_APPLY", "项目负责人申请案件暂停", "task", "candidate", "项目负责人", 1, 24, true, null, 10),
-                node("AUTH_REVIEW", "授权审批人审核暂停申请", "task", "candidate", "授权审批人", 1, 24, true, null, 20),
-                node("RESUME", "恢复办理", "task", "candidate", "项目负责人", 1, 24, true, null, 30),
-                node("TERMINATE_APPRAISAL", "进入终止鉴定", "task", "candidate", "项目负责人", 1, 24, true, "terminate-appraisal", 40),
-                node("END", "流程结束", "end", "single", null, 0, 0, false, null, 50)
-        );
-        List<WorkflowTransitionRequest> transitions = List.of(
-                transition("START", "PROJECT_APPLY", "APPROVE", "进入案件暂停", null, 0, 10),
-                transition("PROJECT_APPLY", "AUTH_REVIEW", "APPROVE", "转授权审批人审核", null, 1, 20),
-                transition("AUTH_REVIEW", "RESUME", "APPROVE", "批准暂停并恢复办理", "form.suspensionDecision == '恢复办理'", 1, 30),
-                transition("AUTH_REVIEW", "TERMINATE_APPRAISAL", "APPROVE", "批准暂停后进入终止鉴定", "form.suspensionDecision == '终止鉴定'", 1, 31,
-                        subflowConfig("terminate-appraisal", "案件暂停后决定终止，自动进入终止鉴定")),
-                transition("AUTH_REVIEW", "PROJECT_APPLY", "RETURN", "退回项目负责人补充暂停原因", null, 1, 32),
-                transition("RESUME", "END", "APPROVE", "恢复办理完成", null, 1, 40),
-                transition("TERMINATE_APPRAISAL", "END", "COMPLETE", "终止鉴定子流程已触发", null, 1, 41)
-        );
-        return new WorkflowDesignRequest(
-                workflow.code(), workflow.name(), "judicial", workflow.formCode(),
-                "由司法鉴定使用手册高保真校准：案件暂停",
-                toJson(Map.of("entryMode", workflow.entryMode(), "highFidelity", true, "flowNameTemplate", "${caseNo}-案件暂停",
                         "keyRules", workflow.keyRules(), "nextFlows", workflow.nextFlows(), "autoArchive", true, "preserveVersions", true)),
                 nodes, transitions
         );
