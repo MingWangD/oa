@@ -522,4 +522,176 @@ class WorkflowRuntimeServiceTests {
         assertThat(wfCaptor.getValue().getStatus()).isEqualTo("running");
         assertThat(wfCaptor.getValue().getCurrentNodeCode()).isEqualTo("ASSISTANT_NOTICE");
     }
+
+    @Test
+    void parallelGatewaySplitsExecutionAndInclusiveGatewayWaitsForCompletion() {
+        CaseInfo caseInfo = new CaseInfo();
+        caseInfo.setId(88L);
+        caseInfo.setCaseTitle("并行网关测试");
+        caseInfo.setCaseStatus(CaseStatus.PROCESSING.name());
+
+        CaseTask currentTask = new CaseTask();
+        currentTask.setId(701L);
+        currentTask.setCaseId(88L);
+        currentTask.setWfInstanceId(501L);
+        currentTask.setNodeInstanceId(601L);
+        currentTask.setNodeCode("PROJECT_SUPPLEMENT");
+        currentTask.setNodeName("项目负责人补充承诺书与复核意见");
+        currentTask.setAssigneeId(9L);
+        currentTask.setAssigneeName("管理员");
+        currentTask.setStatus("pending");
+
+        CaseNodeInstance currentNode = new CaseNodeInstance();
+        currentNode.setId(601L);
+        currentNode.setCaseId(88L);
+        currentNode.setStatus("running");
+
+        CaseWfInstance wfInstance = new CaseWfInstance();
+        wfInstance.setId(501L);
+        wfInstance.setCaseId(88L);
+        wfInstance.setWfId(77L);
+        wfInstance.setWfCode("issue-opinion");
+        wfInstance.setWfName("出具鉴定意见书");
+        wfInstance.setStatus("running");
+
+        WfTransitionDef transitionToGateway = new WfTransitionDef();
+        transitionToGateway.setToNodeCode("PARALLEL_GATEWAY_SPLIT");
+        transitionToGateway.setActionCode("APPROVE");
+        transitionToGateway.setActionName("进入并行");
+
+        WfNodeDef gatewaySplitNode = new WfNodeDef();
+        gatewaySplitNode.setNodeCode("PARALLEL_GATEWAY_SPLIT");
+        gatewaySplitNode.setNodeName("并行分支");
+        gatewaySplitNode.setNodeType("gateway");
+        gatewaySplitNode.setTaskType("parallel");
+        gatewaySplitNode.setEnabled(1);
+
+        WfTransitionDef splitToA = new WfTransitionDef();
+        splitToA.setFromNodeCode("PARALLEL_GATEWAY_SPLIT");
+        splitToA.setToNodeCode("TASK_A");
+        splitToA.setActionCode("APPROVE");
+        splitToA.setConditionExpression("true");
+
+        WfTransitionDef splitToB = new WfTransitionDef();
+        splitToB.setFromNodeCode("PARALLEL_GATEWAY_SPLIT");
+        splitToB.setToNodeCode("TASK_B");
+        splitToB.setActionCode("APPROVE");
+        splitToB.setConditionExpression("true");
+
+        WfNodeDef taskANode = new WfNodeDef();
+        taskANode.setNodeCode("TASK_A");
+        taskANode.setNodeName("任务A");
+        taskANode.setNodeType("task");
+        taskANode.setTaskType("single");
+        taskANode.setEnabled(1);
+
+        WfNodeDef taskBNode = new WfNodeDef();
+        taskBNode.setNodeCode("TASK_B");
+        taskBNode.setNodeName("任务B");
+        taskBNode.setNodeType("task");
+        taskBNode.setTaskType("single");
+        taskBNode.setEnabled(1);
+
+        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+        when(caseTaskMapper.selectById(701L)).thenReturn(currentTask);
+        when(caseNodeInstanceMapper.selectById(601L)).thenReturn(currentNode);
+        when(caseWfInstanceMapper.selectOne(any())).thenReturn(wfInstance);
+
+        when(wfTransitionDefMapper.selectList(any()))
+            .thenReturn(java.util.List.of(transitionToGateway))
+            .thenReturn(java.util.List.of(splitToA, splitToB));
+
+        when(wfNodeDefMapper.selectOne(any()))
+            .thenReturn(gatewaySplitNode)
+            .thenReturn(taskANode)
+            .thenReturn(taskBNode);
+
+        // Mock counting active tasks to 0 (for gateway check, though parallel split doesn't wait)
+        when(caseTaskMapper.selectCount(any())).thenReturn(0L);
+
+        service.completeTask(88L, new WorkflowActionRequest(
+                701L,
+                ActionCode.APPROVE,
+                "同意",
+                null,
+                null,
+                null,
+                Map.of(),
+                null));
+
+        ArgumentCaptor<CaseTask> taskCaptor = ArgumentCaptor.forClass(CaseTask.class);
+        verify(caseTaskMapper, org.mockito.Mockito.times(2)).insert(taskCaptor.capture());
+        
+        java.util.List<CaseTask> createdTasks = taskCaptor.getAllValues();
+        assertThat(createdTasks).hasSize(2);
+        assertThat(createdTasks).extracting(CaseTask::getNodeCode).containsExactlyInAnyOrder("TASK_A", "TASK_B");
+    }
+
+    @Test
+    void inclusiveGatewayWaitsForOtherActiveTasksBeforeProceeding() {
+        CaseInfo caseInfo = new CaseInfo();
+        caseInfo.setId(88L);
+        caseInfo.setCaseTitle("汇聚网关测试");
+        caseInfo.setCaseStatus(CaseStatus.PROCESSING.name());
+
+        CaseTask currentTask = new CaseTask();
+        currentTask.setId(701L);
+        currentTask.setCaseId(88L);
+        currentTask.setWfInstanceId(501L);
+        currentTask.setNodeInstanceId(601L);
+        currentTask.setNodeCode("SEALED_UPLOAD");
+        currentTask.setNodeName("档案管理员回传盖章件");
+        currentTask.setAssigneeId(9L);
+        currentTask.setStatus("pending");
+
+        CaseNodeInstance currentNode = new CaseNodeInstance();
+        currentNode.setId(601L);
+        currentNode.setCaseId(88L);
+        currentNode.setStatus("running");
+
+        CaseWfInstance wfInstance = new CaseWfInstance();
+        wfInstance.setId(501L);
+        wfInstance.setCaseId(88L);
+        wfInstance.setWfId(77L);
+        wfInstance.setStatus("running");
+
+        WfTransitionDef transitionToGateway = new WfTransitionDef();
+        transitionToGateway.setToNodeCode("PARALLEL_GATEWAY_JOIN");
+        transitionToGateway.setActionCode("APPROVE");
+
+        WfNodeDef gatewayJoinNode = new WfNodeDef();
+        gatewayJoinNode.setNodeCode("PARALLEL_GATEWAY_JOIN");
+        gatewayJoinNode.setNodeName("并行汇聚");
+        gatewayJoinNode.setNodeType("gateway");
+        gatewayJoinNode.setTaskType("inclusive");
+        gatewayJoinNode.setEnabled(1);
+
+        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+        when(caseTaskMapper.selectById(701L)).thenReturn(currentTask);
+        when(caseNodeInstanceMapper.selectById(601L)).thenReturn(currentNode);
+        when(caseWfInstanceMapper.selectOne(any())).thenReturn(wfInstance);
+
+        when(wfTransitionDefMapper.selectList(any())).thenReturn(java.util.List.of(transitionToGateway));
+        when(wfNodeDefMapper.selectOne(any())).thenReturn(gatewayJoinNode);
+
+        // Mock counting active tasks to 1 (meaning another task like FINANCE_INVOICE is still running)
+        when(caseTaskMapper.selectCount(any())).thenReturn(1L);
+
+        service.completeTask(88L, new WorkflowActionRequest(
+                701L,
+                ActionCode.APPROVE,
+                "同意",
+                null,
+                null,
+                null,
+                Map.of(),
+                null));
+
+        // It should NOT create any new tasks because it's waiting
+        verify(caseTaskMapper, org.mockito.Mockito.never()).insert(any(CaseTask.class));
+        // The task itself should be completed
+        ArgumentCaptor<CaseTask> taskCaptor = ArgumentCaptor.forClass(CaseTask.class);
+        verify(caseTaskMapper).updateById(taskCaptor.capture());
+        assertThat(taskCaptor.getValue().getStatus()).isEqualTo("completed");
+    }
 }

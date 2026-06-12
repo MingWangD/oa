@@ -837,6 +837,13 @@ public class WorkflowRuntimeService {
         if (NODE_END.equalsIgnoreCase(targetNode.getNodeType())) {
             return handleEndTransition(caseInfo, wfInstance, completedTask, now);
         }
+        
+        if ("gateway".equalsIgnoreCase(targetNode.getNodeType())) {
+            nodeInstance.setStatus(NODE_COMPLETED);
+            nodeInstance.setCompletedTime(now);
+            caseNodeInstanceMapper.updateById(nodeInstance);
+            return handleGatewayTransition(caseInfo, wfInstance, completedTask, targetNode, request, now, activeWfId);
+        }
 
         CaseTask nextTask = createNextNodeTask(
                 caseInfo,
@@ -851,6 +858,48 @@ public class WorkflowRuntimeService {
                 completedTask.getAssigneeName(),
                 now);
         return new TransitionAdvance(List.of(nextTask), false, true);
+    }
+
+    private TransitionAdvance handleGatewayTransition(CaseInfo caseInfo, CaseWfInstance wfInstance, CaseTask completedTask, WfNodeDef gatewayNode, WorkflowActionRequest request, LocalDateTime now, Long activeWfId) {
+        if ("inclusive".equalsIgnoreCase(gatewayNode.getTaskType()) || "parallel".equalsIgnoreCase(gatewayNode.getTaskType())) {
+            // Count active tasks for this wfInstance to see if there are other incoming branches still running
+            long activeTaskCount = caseTaskMapper.selectCount(new LambdaQueryWrapper<CaseTask>()
+                    .eq(CaseTask::getWfInstanceId, wfInstance.getId())
+                    .eq(completedTask.getSubflowInstanceId() != null, CaseTask::getSubflowInstanceId, completedTask.getSubflowInstanceId())
+                    .isNull(completedTask.getSubflowInstanceId() == null, CaseTask::getSubflowInstanceId)
+                    .in(CaseTask::getStatus, TASK_PENDING, TASK_CLAIMED, "processing"));
+            if (activeTaskCount > 0) {
+                // There are other active tasks running in parallel. Stop advancing this path.
+                return new TransitionAdvance(List.of(), false, true);
+            }
+        }
+
+        List<WfTransitionDef> transitions = wfTransitionDefMapper.selectList(new LambdaQueryWrapper<WfTransitionDef>()
+                .eq(WfTransitionDef::getWfId, activeWfId)
+                .eq(WfTransitionDef::getFromNodeCode, gatewayNode.getNodeCode())
+                .eq(WfTransitionDef::getActionCode, "APPROVE")
+                .eq(WfTransitionDef::getEnabled, 1)
+                .orderByAsc(WfTransitionDef::getSortNo)
+                .orderByAsc(WfTransitionDef::getId));
+
+        List<WfTransitionDef> matchedTransitions = transitions.stream()
+                .filter(transition -> matchesCondition(transition.getConditionExpression(), request))
+                .toList();
+
+        if (matchedTransitions.isEmpty()) {
+            throw new BusinessException("网关没有命中任何分支流转条件：" + gatewayNode.getNodeCode());
+        }
+
+        List<TransitionAdvance> advances = matchedTransitions.stream()
+                .map(transition -> createTransitionTarget(caseInfo, wfInstance, completedTask, transition, request, now, activeWfId))
+                .toList();
+
+        List<CaseTask> createdTasks = advances.stream()
+                .flatMap(advance -> advance.tasks().stream())
+                .toList();
+        boolean finished = advances.stream().anyMatch(TransitionAdvance::finished);
+
+        return new TransitionAdvance(createdTasks, finished, true);
     }
 
     private TransitionAdvance createLaunchedSubflowTarget(
