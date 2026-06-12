@@ -194,7 +194,16 @@ public class WorkflowRuntimeService {
         CaseInfo caseInfo = requireCase(caseId);
         CaseTask task = requireTask(caseId, request.taskId());
         validateTaskCanProcess(task);
-        validateRequiredFormFields(task, request);
+        
+        // Merge incoming form data for validation
+        Map<String, Object> mergedFormData = new LinkedHashMap<>();
+        if (caseInfo.getFormData() != null) {
+            mergedFormData.putAll(caseInfo.getFormData());
+        }
+        if (request.formData() != null) {
+            mergedFormData.putAll(request.formData());
+        }
+        validateRequiredFormFields(mergedFormData, task, request);
 
         LocalDateTime now = LocalDateTime.now();
         return switch (request.actionCode()) {
@@ -202,23 +211,23 @@ public class WorkflowRuntimeService {
             case ASSIGN -> handleAssign(caseInfo, task, request, now);
             case WITHDRAW -> handleWithdraw(caseInfo, task, request, now);
             case APPROVE, COMPLETE -> {
-                completeCurrentTaskAndNode(task, request, now);
+                completeCurrentTaskAndNode(caseInfo, task, request, now);
                 yield handleApprove(caseInfo, task, request, now);
             }
             case RETURN -> {
-                completeCurrentTaskAndNode(task, request, now);
+                completeCurrentTaskAndNode(caseInfo, task, request, now);
                 yield handleReturn(caseInfo, task, request, now);
             }
             case TERMINATE -> {
-                completeCurrentTaskAndNode(task, request, now);
+                completeCurrentTaskAndNode(caseInfo, task, request, now);
                 yield handleTerminate(caseInfo, task, request, now);
             }
             case REOPEN -> {
-                completeCurrentTaskAndNode(task, request, now);
+                completeCurrentTaskAndNode(caseInfo, task, request, now);
                 yield handleReopen(caseInfo, task, request, now);
             }
             default -> {
-                completeCurrentTaskAndNode(task, request, now);
+                completeCurrentTaskAndNode(caseInfo, task, request, now);
                 yield new WorkflowActionResult(caseInfo.getId(), task.getId(), request.actionCode().name(), true, "办理成功");
             }
         };
@@ -247,7 +256,7 @@ public class WorkflowRuntimeService {
         return actionCode == ActionCode.CLAIM || actionCode == ActionCode.ASSIGN;
     }
 
-    private void validateRequiredFormFields(CaseTask task, WorkflowActionRequest request) {
+    private void validateRequiredFormFields(Map<String, Object> formData, CaseTask task, WorkflowActionRequest request) {
         if (!shouldValidateRequiredFormFields(request.actionCode())) {
             return;
         }
@@ -270,8 +279,8 @@ public class WorkflowRuntimeService {
         List<Map<String, Object>> fields = parseFieldSchema(formVersion.getFieldSchemaJson());
         List<String> missingFields = fields.stream()
                 .filter(field -> Boolean.TRUE.equals(toBoolean(field.get("required"))))
-                .filter(field -> !Boolean.TRUE.equals(toBoolean(field.get("readonly"))))
-                .filter(field -> isMissingFormValue(request.formData(), stringValue(field.get("field"))))
+                .filter(field -> !Boolean.TRUE.equals(toBoolean(field.get("readOnly"))))
+                .filter(field -> isMissingFormValue(formData, stringValue(field.get("field"))))
                 .map(field -> {
                     String label = stringValue(field.get("label"));
                     return isBlank(label) ? stringValue(field.get("field")) : label;
@@ -472,7 +481,7 @@ public class WorkflowRuntimeService {
         caseInfoMapper.updateById(caseInfo);
     }
 
-    private void completeCurrentTaskAndNode(CaseTask task, WorkflowActionRequest request, LocalDateTime now) {
+    private void completeCurrentTaskAndNode(CaseInfo caseInfo, CaseTask task, WorkflowActionRequest request, LocalDateTime now) {
         task.setStatus(TASK_COMPLETED);
         task.setStartedTime(task.getStartedTime() == null ? now : task.getStartedTime());
         task.setCompletedTime(now);
@@ -493,7 +502,6 @@ public class WorkflowRuntimeService {
             archiveCompletedNode(task, nodeInstance, request);
         }
 
-        CaseInfo caseInfo = caseInfoMapper.selectById(task.getCaseId());
         if (caseInfo != null) {
             updateCaseFormData(caseInfo, request.formData());
             caseInfoMapper.updateById(caseInfo);
@@ -967,7 +975,7 @@ public class WorkflowRuntimeService {
                 if (parentTask != null && "subflow_running".equals(parentTask.getStatus())) {
                     WorkflowActionRequest completeRequest = new WorkflowActionRequest(
                             parentTask.getId(), ActionCode.COMPLETE, "子流程已结束", null, null, null, null, null);
-                    completeCurrentTaskAndNode(parentTask, completeRequest, now);
+                    completeCurrentTaskAndNode(caseInfo, parentTask, completeRequest, now);
                     WorkflowActionResult advanceResult = tryAdvanceByDefinition(caseInfo, parentTask, completeRequest, now);
                     if (advanceResult != null && "流程已完成".equals(advanceResult.message())) {
                         return new TransitionAdvance(List.of(), true, true);
