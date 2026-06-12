@@ -1,6 +1,6 @@
 # OA 重构项目说明
 
-更新时间：2026-06-11
+更新时间：2026-06-12
 
 ## 这是什么项目
 
@@ -266,7 +266,7 @@ oa/
 
 ## 给项目组的当前交接
 
-当前请按“第三阶段已完成、第四阶段已完成首轮高保真配置、第五阶段收官清单已完成”理解项目状态。
+当前请按“第三阶段已完成、第四阶段已完成首轮高保真配置并进入运行级验收、第五阶段收官清单已完成并进入业务域纵深细化”理解项目状态。
 
 当前主线分成两条并行：
 
@@ -293,6 +293,9 @@ oa/
 - 已完成一轮本地联调：最新后端在 `8081` 验证通过登录、台账、案件创建/提交/查询/详情、工作台与子流程查询；如旧环境仍报 `subflow` 相关 500，需先执行 `judicial-appraisal-backend/src/main/resources/db/migration_v5_subflow_relation.sql`
 - 前端 `vite.config.ts` 已支持通过 `VITE_API_PROXY_TARGET` 切换代理目标，便于将本地前端临时指向指定后端实例联调
 - `系统数据源` 已升级为实时运行态看板，可直接查看 MySQL / Redis / MinIO 的配置摘要与可用状态
+- 最新运行时修正：新建案件已从旧 `JUDICIAL_MAIN / ACCEPT_REVIEW` 入口切换为绑定 `received-entrust` 最新发布版本，并从 `INIT_FILL / 发起者填写委托信息` 启动。
+- 最新配置导入修正：流程设计器刷新草稿时会物理清理草稿子节点和连线，避免逻辑删除记录与 `(wf_id,node_code)` 唯一键冲突。
+- 最新真实联调：`received-entrust` 已跑通 `INIT_FILL -> CLERK_REGISTER -> DEPT_REVIEW -> PROJECT_DECISION`，并成功触发 `preliminary-survey` 真子流程首个任务。
 
 继续开发时不要把目标缩小成司法鉴定小系统。当前项目目标仍然是重构旧 OA 网站，司法鉴定流程只是当前最优先落地和验证的平台样板。
 
@@ -303,8 +306,8 @@ oa/
 - 第一阶段：已完成
 - 第二阶段：已完成
 - 第三阶段：已完成
-- 第四阶段：已完成首轮高保真配置，进入真实流程联调准备
-- 第五阶段：收官清单已完成，后续进入其它模块纵深细化与联调验收
+- 第四阶段：已完成首轮高保真配置，进入 20 流程运行级联调验收
+- 第五阶段：收官清单已完成，进入其它 OA 模块纵深细化与联调验收
 - 第六阶段：尚未开始
 
 更详细的阶段计划见：
@@ -329,7 +332,7 @@ oa/
 - `Redis localhost:6379`
 - `MinIO localhost:9000`
 
-### 启动依赖
+### macOS 启动依赖
 
 ```bash
 brew services start mysql@8.0
@@ -341,6 +344,73 @@ launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.oa.minio.plist
 
 - MinIO 当前使用 `~/bin/minio` 官方二进制 + LaunchAgent 启动。
 - 本机 Homebrew 版本的 MinIO 之前出现过二进制崩溃，不作为默认方案。
+
+### Windows 启动依赖
+
+推荐在 Windows 10/11 上使用 PowerShell，并提前安装：
+
+- Java 17
+- Maven 3.9+
+- Node.js 18+ 与 npm
+- MySQL 8，建议本机端口与项目配置保持为 `3307`
+- Redis for Windows、Docker Redis，或 WSL 中的 Redis
+- MinIO Windows 版服务端
+
+MySQL 初始化示例：
+
+```powershell
+mysql -uroot -p -P 3307 -e "CREATE DATABASE IF NOT EXISTS judicial_appraisal DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
+mysql -uroot -p -P 3307 judicial_appraisal < .\judicial-appraisal-backend\src\main\resources\db\schema.sql
+mysql -uroot -p -P 3307 judicial_appraisal < .\judicial-appraisal-backend\src\main\resources\db\migration_v2_rbac.sql
+mysql -uroot -p -P 3307 judicial_appraisal < .\judicial-appraisal-backend\src\main\resources\db\migration_v3_dynamic_platform.sql
+mysql -uroot -p -P 3307 judicial_appraisal < .\judicial-appraisal-backend\src\main\resources\db\migration_v4_file_knowledge_audit.sql
+mysql -uroot -p -P 3307 judicial_appraisal < .\judicial-appraisal-backend\src\main\resources\db\migration_v5_subflow_relation.sql
+```
+
+如果你的 Windows MySQL 端口、账号或密码不同，修改：
+
+```text
+judicial-appraisal-backend/src/main/resources/application.yml
+```
+
+当前默认值是：
+
+```yaml
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3307/judicial_appraisal?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+```
+
+Redis 启动方式按你的安装方式选择其一：
+
+```powershell
+redis-server
+```
+
+或者使用 Docker：
+
+```powershell
+docker run --name oa-redis -p 6379:6379 -d redis:7
+```
+
+MinIO Windows 示例：
+
+```powershell
+mkdir C:\minio-data
+setx MINIO_ROOT_USER minioadmin
+setx MINIO_ROOT_PASSWORD minioadmin
+minio.exe server C:\minio-data --address ":9000" --console-address ":9001"
+```
+
+如需临时在当前 PowerShell 会话中设置 MinIO 账号：
+
+```powershell
+$env:MINIO_ROOT_USER="minioadmin"
+$env:MINIO_ROOT_PASSWORD="minioadmin"
+minio.exe server C:\minio-data --address ":9000" --console-address ":9001"
+```
 
 ### 启动后端
 
@@ -364,6 +434,24 @@ npm run dev -- --host 127.0.0.1
 
 - `http://127.0.0.1:5173`
 
+Windows PowerShell 下同样使用：
+
+```powershell
+cd judicial-appraisal-backend
+mvn spring-boot:run
+
+cd ..\judicial-appraisal-frontend
+npm install
+npm run dev -- --host 127.0.0.1
+```
+
+如果后端临时不在 `8080`，前端可指定代理目标：
+
+```powershell
+$env:VITE_API_PROXY_TARGET="http://127.0.0.1:8081"
+npm run dev -- --host 127.0.0.1
+```
+
 ### 常用验证
 
 后端测试：
@@ -382,7 +470,7 @@ npm run build
 
 当前最新验证结果：
 
-- 后端 `mvn test` 通过，20 个测试全绿
+- 后端 `mvn test` 通过，50 个测试全绿
 - 前端 `npm run build` 通过
 
 ## 数据库迁移说明
@@ -428,11 +516,13 @@ npm run build
 
 最直接的下一步是：
 
-- 用真实案件跑通 `received-entrust`
+- 建立第四阶段 20 个流程的可重复联调验收清单和自动检查
+- 继续用真实案件跑通 `received-entrust`
 - 验证三条路径：
   - `preliminary-survey`
   - `payment-notice`
   - `reject-acceptance`
 - 把它们的节点、产物、归档、状态回写都串成闭环
+- 同时把第五阶段中 `仓库 / 风险 / 行政 / 人资 / 考勤 / 公文 / 交流 / 督查 / 报表 / 集成` 等模块继续从模块中心推进到更细的业务看板
 
 这一步一旦立住，后面复制到剩余司法鉴定流程会快很多。
