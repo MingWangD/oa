@@ -1,0 +1,1925 @@
+{
+  "rows": [
+    {
+      "id": 819,
+      "cell": [
+        819,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"819\",\"\",\"104\"); title=\"23-23-收到委托书（2026年06月12日12:21）系统管理员\">23-23-收到委托书（2026年06月12日12:21）系统管理员</a><input type='hidden' id='FLOW_ID_819' value='104' /><input type='hidden' id='BEGIN_DEPT_819' value='2' /><input type='hidden' id='BEGIN_USER_819' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:21:41",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"819\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"819\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act819\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act819_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('819','104','23-23-收到委托书（2026年06月12日12:21）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(819,104,'23-23-收到委托书（2026年06月12日12:21）系统管理员',1)\">关注</a><a href='javascript:end_run(819,104,2);'>结束</a><a href=\"javascript:delete_run(819,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 818,
+      "cell": [
+        818,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"818\",\"\",\"104\"); title=\"2-2-收到委托书（2026年06月12日12:20）系统管理员\">2-2-收到委托书（2026年06月12日12:20）系统管理员</a><input type='hidden' id='FLOW_ID_818' value='104' /><input type='hidden' id='BEGIN_DEPT_818' value='2' /><input type='hidden' id='BEGIN_USER_818' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:20:08",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"818\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"818\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act818\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act818_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('818','104','2-2-收到委托书（2026年06月12日12:20）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(818,104,'2-2-收到委托书（2026年06月12日12:20）系统管理员',1)\">关注</a><a href='javascript:end_run(818,104,2);'>结束</a><a href=\"javascript:delete_run(818,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 817,
+      "cell": [
+        817,
+        "<a title=\"流程类型：固定流程\n现场勘验\" href=javascript:view_graph(\"113\")>现场勘验</a>",
+        "<a href=javascript:view_work(\"\",\"817\",\"\",\"113\"); title=\"{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员\">{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员</a><input type='hidden' id='FLOW_ID_817' value='113' /><input type='hidden' id='BEGIN_DEPT_817' value='2' /><input type='hidden' id='BEGIN_USER_817' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:11:25",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"817\",\"113\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"817\",\"113\",\"2\")>点评&nbsp;</a><a id=\"act817\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act817_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('817','113','{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(817,113,'{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员',1)\">关注</a><a href='javascript:end_run(817,113,2);'>结束</a><a href=\"javascript:delete_run(817,113,2);\">删除</a></div>"
+      ],
+      "flow_id": "113"
+    },
+    {
+      "id": 754,
+      "cell": [
+        754,
+        "<a title=\"流程类型：固定流程\n收到撤案函\" href=javascript:view_graph(\"117\")>收到撤案函</a>",
+        "<a href=javascript:view_work(\"\",\"754\",\"\",\"117\"); title=\"145646456--收到撤案函（2026年01月25日17:34）系统管理员\">145646456--收到撤案函（2026年01月25日17:34）系统管理员</a><input type='hidden' id='FLOW_ID_754' value='117' /><input type='hidden' id='BEGIN_DEPT_754' value='2' /><input type='hidden' id='BEGIN_USER_754' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-01-25 17:34:28",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"754\",\"117\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"754\",\"117\",\"2\")>点评&nbsp;</a><a id=\"act754\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act754_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('754','117','145646456--收到撤案函（2026年01月25日17:34）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(754,117,'145646456--收到撤案函（2026年01月25日17:34）系统管理员',1)\">关注</a><a href='javascript:end_run(754,117,2);'>结束</a><a href=\"javascript:delete_run(754,117,2);\">删除</a></div>"
+      ],
+      "flow_id": "117"
+    },
+    {
+      "id": 752,
+      "cell": [
+        752,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"752\",\"\",\"104\"); title=\"{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员\">{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员</a><input type='hidden' id='FLOW_ID_752' value='104' /><input type='hidden' id='BEGIN_DEPT_752' value='2' /><input type='hidden' id='BEGIN_USER_752' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-01-25 17:09:11",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"752\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"752\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act752\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act752_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('752','104','{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(752,104,'{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员',1)\">关注</a><a href='javascript:end_run(752,104,2);'>结束</a><a href=\"javascript:delete_run(752,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 701,
+      "cell": [
+        701,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"701\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员</a><input type='hidden' id='FLOW_ID_701' value='104' /><input type='hidden' id='BEGIN_DEPT_701' value='2' /><input type='hidden' id='BEGIN_USER_701' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-27 20:24:24",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"701\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"701\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act701\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act701_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('701','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(701,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员',1)\">关注</a><a href='javascript:end_run(701,104,2);'>结束</a><a href=\"javascript:delete_run(701,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 676,
+      "cell": [
+        676,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"676\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员</a><input type='hidden' id='FLOW_ID_676' value='104' /><input type='hidden' id='BEGIN_DEPT_676' value='2' /><input type='hidden' id='BEGIN_USER_676' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-03 19:20:23",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"676\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"676\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act676\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act676_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('676','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(676,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员',1)\">关注</a><a href='javascript:end_run(676,104,2);'>结束</a><a href=\"javascript:delete_run(676,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 674,
+      "cell": [
+        674,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"674\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员</a><input type='hidden' id='FLOW_ID_674' value='104' /><input type='hidden' id='BEGIN_DEPT_674' value='2' /><input type='hidden' id='BEGIN_USER_674' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-03 19:13:03",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"674\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"674\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act674\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act674_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('674','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(674,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员',1)\">关注</a><a href='javascript:end_run(674,104,2);'>结束</a><a href=\"javascript:delete_run(674,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 509,
+      "cell": [
+        509,
+        "<a title=\"流程类型：固定流程\n安全风险通知\" href=javascript:view_graph(\"123\")>安全风险通知</a>",
+        "<a href=javascript:view_work(\"\",\"509\",\"\",\"123\"); title=\"安全风险通知(2025-08-13 21:32:22 (509))\">安全风险通知(2025-08-13 21:32:22 (509))</a><input type='hidden' id='FLOW_ID_509' value='123' /><input type='hidden' id='BEGIN_DEPT_509' value='2' /><input type='hidden' id='BEGIN_USER_509' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-08-13 21:32:22",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"509\",\"123\")>流程图&nbsp;</a><a id=\"act509\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act509_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('509','123','安全风险通知(2025-08-13 21:32:22 (509))');\">催办</a><a class=\"op\" href=\"javascript:focus_run(509,123,'安全风险通知(2025-08-13 21:32:22 (509))',1)\">关注</a></div>"
+      ],
+      "flow_id": "123"
+    },
+    {
+      "id": 508,
+      "cell": [
+        508,
+        "<a title=\"流程类型：固定流程\n安全风险通知\" href=javascript:view_graph(\"123\")>安全风险通知</a>",
+        "<a href=javascript:view_work(\"\",\"508\",\"\",\"123\"); title=\"安全风险通知(2025-08-13 21:21:08 (508))\">安全风险通知(2025-08-13 21:21:08 (508))</a><input type='hidden' id='FLOW_ID_508' value='123' /><input type='hidden' id='BEGIN_DEPT_508' value='2' /><input type='hidden' id='BEGIN_USER_508' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-08-13 21:21:08",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"508\",\"123\")>流程图&nbsp;</a><a id=\"act508\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act508_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('508','123','安全风险通知(2025-08-13 21:21:08 (508))');\">催办</a><a class=\"op\" href=\"javascript:focus_run(508,123,'安全风险通知(2025-08-13 21:21:08 (508))',1)\">关注</a></div>"
+      ],
+      "flow_id": "123"
+    },
+    {
+      "id": 819,
+      "cell": [
+        819,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"819\",\"\",\"104\"); title=\"23-23-收到委托书（2026年06月12日12:21）系统管理员\">23-23-收到委托书（2026年06月12日12:21）系统管理员</a><input type='hidden' id='FLOW_ID_819' value='104' /><input type='hidden' id='BEGIN_DEPT_819' value='2' /><input type='hidden' id='BEGIN_USER_819' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:21:41",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"819\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"819\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act819\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act819_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('819','104','23-23-收到委托书（2026年06月12日12:21）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(819,104,'23-23-收到委托书（2026年06月12日12:21）系统管理员',1)\">关注</a><a href='javascript:end_run(819,104,2);'>结束</a><a href=\"javascript:delete_run(819,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 818,
+      "cell": [
+        818,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"818\",\"\",\"104\"); title=\"2-2-收到委托书（2026年06月12日12:20）系统管理员\">2-2-收到委托书（2026年06月12日12:20）系统管理员</a><input type='hidden' id='FLOW_ID_818' value='104' /><input type='hidden' id='BEGIN_DEPT_818' value='2' /><input type='hidden' id='BEGIN_USER_818' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:20:08",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"818\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"818\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act818\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act818_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('818','104','2-2-收到委托书（2026年06月12日12:20）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(818,104,'2-2-收到委托书（2026年06月12日12:20）系统管理员',1)\">关注</a><a href='javascript:end_run(818,104,2);'>结束</a><a href=\"javascript:delete_run(818,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 817,
+      "cell": [
+        817,
+        "<a title=\"流程类型：固定流程\n现场勘验\" href=javascript:view_graph(\"113\")>现场勘验</a>",
+        "<a href=javascript:view_work(\"\",\"817\",\"\",\"113\"); title=\"{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员\">{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员</a><input type='hidden' id='FLOW_ID_817' value='113' /><input type='hidden' id='BEGIN_DEPT_817' value='2' /><input type='hidden' id='BEGIN_USER_817' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:11:25",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"817\",\"113\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"817\",\"113\",\"2\")>点评&nbsp;</a><a id=\"act817\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act817_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('817','113','{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(817,113,'{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员',1)\">关注</a><a href='javascript:end_run(817,113,2);'>结束</a><a href=\"javascript:delete_run(817,113,2);\">删除</a></div>"
+      ],
+      "flow_id": "113"
+    },
+    {
+      "id": 754,
+      "cell": [
+        754,
+        "<a title=\"流程类型：固定流程\n收到撤案函\" href=javascript:view_graph(\"117\")>收到撤案函</a>",
+        "<a href=javascript:view_work(\"\",\"754\",\"\",\"117\"); title=\"145646456--收到撤案函（2026年01月25日17:34）系统管理员\">145646456--收到撤案函（2026年01月25日17:34）系统管理员</a><input type='hidden' id='FLOW_ID_754' value='117' /><input type='hidden' id='BEGIN_DEPT_754' value='2' /><input type='hidden' id='BEGIN_USER_754' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-01-25 17:34:28",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"754\",\"117\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"754\",\"117\",\"2\")>点评&nbsp;</a><a id=\"act754\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act754_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('754','117','145646456--收到撤案函（2026年01月25日17:34）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(754,117,'145646456--收到撤案函（2026年01月25日17:34）系统管理员',1)\">关注</a><a href='javascript:end_run(754,117,2);'>结束</a><a href=\"javascript:delete_run(754,117,2);\">删除</a></div>"
+      ],
+      "flow_id": "117"
+    },
+    {
+      "id": 752,
+      "cell": [
+        752,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"752\",\"\",\"104\"); title=\"{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员\">{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员</a><input type='hidden' id='FLOW_ID_752' value='104' /><input type='hidden' id='BEGIN_DEPT_752' value='2' /><input type='hidden' id='BEGIN_USER_752' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-01-25 17:09:11",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"752\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"752\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act752\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act752_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('752','104','{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(752,104,'{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员',1)\">关注</a><a href='javascript:end_run(752,104,2);'>结束</a><a href=\"javascript:delete_run(752,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 701,
+      "cell": [
+        701,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"701\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员</a><input type='hidden' id='FLOW_ID_701' value='104' /><input type='hidden' id='BEGIN_DEPT_701' value='2' /><input type='hidden' id='BEGIN_USER_701' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-27 20:24:24",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"701\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"701\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act701\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act701_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('701','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(701,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员',1)\">关注</a><a href='javascript:end_run(701,104,2);'>结束</a><a href=\"javascript:delete_run(701,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 676,
+      "cell": [
+        676,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"676\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员</a><input type='hidden' id='FLOW_ID_676' value='104' /><input type='hidden' id='BEGIN_DEPT_676' value='2' /><input type='hidden' id='BEGIN_USER_676' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-03 19:20:23",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"676\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"676\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act676\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act676_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('676','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(676,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员',1)\">关注</a><a href='javascript:end_run(676,104,2);'>结束</a><a href=\"javascript:delete_run(676,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 674,
+      "cell": [
+        674,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"674\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员</a><input type='hidden' id='FLOW_ID_674' value='104' /><input type='hidden' id='BEGIN_DEPT_674' value='2' /><input type='hidden' id='BEGIN_USER_674' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-03 19:13:03",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"674\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"674\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act674\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act674_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('674','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(674,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员',1)\">关注</a><a href='javascript:end_run(674,104,2);'>结束</a><a href=\"javascript:delete_run(674,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 509,
+      "cell": [
+        509,
+        "<a title=\"流程类型：固定流程\n安全风险通知\" href=javascript:view_graph(\"123\")>安全风险通知</a>",
+        "<a href=javascript:view_work(\"\",\"509\",\"\",\"123\"); title=\"安全风险通知(2025-08-13 21:32:22 (509))\">安全风险通知(2025-08-13 21:32:22 (509))</a><input type='hidden' id='FLOW_ID_509' value='123' /><input type='hidden' id='BEGIN_DEPT_509' value='2' /><input type='hidden' id='BEGIN_USER_509' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-08-13 21:32:22",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"509\",\"123\")>流程图&nbsp;</a><a id=\"act509\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act509_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('509','123','安全风险通知(2025-08-13 21:32:22 (509))');\">催办</a><a class=\"op\" href=\"javascript:focus_run(509,123,'安全风险通知(2025-08-13 21:32:22 (509))',1)\">关注</a></div>"
+      ],
+      "flow_id": "123"
+    },
+    {
+      "id": 508,
+      "cell": [
+        508,
+        "<a title=\"流程类型：固定流程\n安全风险通知\" href=javascript:view_graph(\"123\")>安全风险通知</a>",
+        "<a href=javascript:view_work(\"\",\"508\",\"\",\"123\"); title=\"安全风险通知(2025-08-13 21:21:08 (508))\">安全风险通知(2025-08-13 21:21:08 (508))</a><input type='hidden' id='FLOW_ID_508' value='123' /><input type='hidden' id='BEGIN_DEPT_508' value='2' /><input type='hidden' id='BEGIN_USER_508' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-08-13 21:21:08",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"508\",\"123\")>流程图&nbsp;</a><a id=\"act508\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act508_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('508','123','安全风险通知(2025-08-13 21:21:08 (508))');\">催办</a><a class=\"op\" href=\"javascript:focus_run(508,123,'安全风险通知(2025-08-13 21:21:08 (508))',1)\">关注</a></div>"
+      ],
+      "flow_id": "123"
+    },
+    {
+      "id": 819,
+      "cell": [
+        819,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"819\",\"\",\"104\"); title=\"23-23-收到委托书（2026年06月12日12:21）系统管理员\">23-23-收到委托书（2026年06月12日12:21）系统管理员</a><input type='hidden' id='FLOW_ID_819' value='104' /><input type='hidden' id='BEGIN_DEPT_819' value='2' /><input type='hidden' id='BEGIN_USER_819' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:21:41",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"819\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"819\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act819\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act819_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('819','104','23-23-收到委托书（2026年06月12日12:21）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(819,104,'23-23-收到委托书（2026年06月12日12:21）系统管理员',1)\">关注</a><a href='javascript:end_run(819,104,2);'>结束</a><a href=\"javascript:delete_run(819,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 818,
+      "cell": [
+        818,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"818\",\"\",\"104\"); title=\"2-2-收到委托书（2026年06月12日12:20）系统管理员\">2-2-收到委托书（2026年06月12日12:20）系统管理员</a><input type='hidden' id='FLOW_ID_818' value='104' /><input type='hidden' id='BEGIN_DEPT_818' value='2' /><input type='hidden' id='BEGIN_USER_818' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:20:08",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"818\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"818\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act818\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act818_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('818','104','2-2-收到委托书（2026年06月12日12:20）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(818,104,'2-2-收到委托书（2026年06月12日12:20）系统管理员',1)\">关注</a><a href='javascript:end_run(818,104,2);'>结束</a><a href=\"javascript:delete_run(818,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 817,
+      "cell": [
+        817,
+        "<a title=\"流程类型：固定流程\n现场勘验\" href=javascript:view_graph(\"113\")>现场勘验</a>",
+        "<a href=javascript:view_work(\"\",\"817\",\"\",\"113\"); title=\"{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员\">{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员</a><input type='hidden' id='FLOW_ID_817' value='113' /><input type='hidden' id='BEGIN_DEPT_817' value='2' /><input type='hidden' id='BEGIN_USER_817' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:11:25",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"817\",\"113\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"817\",\"113\",\"2\")>点评&nbsp;</a><a id=\"act817\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act817_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('817','113','{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(817,113,'{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员',1)\">关注</a><a href='javascript:end_run(817,113,2);'>结束</a><a href=\"javascript:delete_run(817,113,2);\">删除</a></div>"
+      ],
+      "flow_id": "113"
+    },
+    {
+      "id": 754,
+      "cell": [
+        754,
+        "<a title=\"流程类型：固定流程\n收到撤案函\" href=javascript:view_graph(\"117\")>收到撤案函</a>",
+        "<a href=javascript:view_work(\"\",\"754\",\"\",\"117\"); title=\"145646456--收到撤案函（2026年01月25日17:34）系统管理员\">145646456--收到撤案函（2026年01月25日17:34）系统管理员</a><input type='hidden' id='FLOW_ID_754' value='117' /><input type='hidden' id='BEGIN_DEPT_754' value='2' /><input type='hidden' id='BEGIN_USER_754' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-01-25 17:34:28",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"754\",\"117\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"754\",\"117\",\"2\")>点评&nbsp;</a><a id=\"act754\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act754_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('754','117','145646456--收到撤案函（2026年01月25日17:34）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(754,117,'145646456--收到撤案函（2026年01月25日17:34）系统管理员',1)\">关注</a><a href='javascript:end_run(754,117,2);'>结束</a><a href=\"javascript:delete_run(754,117,2);\">删除</a></div>"
+      ],
+      "flow_id": "117"
+    },
+    {
+      "id": 752,
+      "cell": [
+        752,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"752\",\"\",\"104\"); title=\"{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员\">{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员</a><input type='hidden' id='FLOW_ID_752' value='104' /><input type='hidden' id='BEGIN_DEPT_752' value='2' /><input type='hidden' id='BEGIN_USER_752' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-01-25 17:09:11",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"752\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"752\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act752\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act752_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('752','104','{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(752,104,'{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员',1)\">关注</a><a href='javascript:end_run(752,104,2);'>结束</a><a href=\"javascript:delete_run(752,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 701,
+      "cell": [
+        701,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"701\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员</a><input type='hidden' id='FLOW_ID_701' value='104' /><input type='hidden' id='BEGIN_DEPT_701' value='2' /><input type='hidden' id='BEGIN_USER_701' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-27 20:24:24",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"701\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"701\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act701\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act701_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('701','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(701,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员',1)\">关注</a><a href='javascript:end_run(701,104,2);'>结束</a><a href=\"javascript:delete_run(701,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 676,
+      "cell": [
+        676,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"676\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员</a><input type='hidden' id='FLOW_ID_676' value='104' /><input type='hidden' id='BEGIN_DEPT_676' value='2' /><input type='hidden' id='BEGIN_USER_676' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-03 19:20:23",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"676\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"676\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act676\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act676_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('676','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(676,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员',1)\">关注</a><a href='javascript:end_run(676,104,2);'>结束</a><a href=\"javascript:delete_run(676,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 674,
+      "cell": [
+        674,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"674\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员</a><input type='hidden' id='FLOW_ID_674' value='104' /><input type='hidden' id='BEGIN_DEPT_674' value='2' /><input type='hidden' id='BEGIN_USER_674' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-03 19:13:03",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"674\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"674\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act674\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act674_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('674','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(674,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员',1)\">关注</a><a href='javascript:end_run(674,104,2);'>结束</a><a href=\"javascript:delete_run(674,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 509,
+      "cell": [
+        509,
+        "<a title=\"流程类型：固定流程\n安全风险通知\" href=javascript:view_graph(\"123\")>安全风险通知</a>",
+        "<a href=javascript:view_work(\"\",\"509\",\"\",\"123\"); title=\"安全风险通知(2025-08-13 21:32:22 (509))\">安全风险通知(2025-08-13 21:32:22 (509))</a><input type='hidden' id='FLOW_ID_509' value='123' /><input type='hidden' id='BEGIN_DEPT_509' value='2' /><input type='hidden' id='BEGIN_USER_509' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-08-13 21:32:22",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"509\",\"123\")>流程图&nbsp;</a><a id=\"act509\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act509_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('509','123','安全风险通知(2025-08-13 21:32:22 (509))');\">催办</a><a class=\"op\" href=\"javascript:focus_run(509,123,'安全风险通知(2025-08-13 21:32:22 (509))',1)\">关注</a></div>"
+      ],
+      "flow_id": "123"
+    },
+    {
+      "id": 508,
+      "cell": [
+        508,
+        "<a title=\"流程类型：固定流程\n安全风险通知\" href=javascript:view_graph(\"123\")>安全风险通知</a>",
+        "<a href=javascript:view_work(\"\",\"508\",\"\",\"123\"); title=\"安全风险通知(2025-08-13 21:21:08 (508))\">安全风险通知(2025-08-13 21:21:08 (508))</a><input type='hidden' id='FLOW_ID_508' value='123' /><input type='hidden' id='BEGIN_DEPT_508' value='2' /><input type='hidden' id='BEGIN_USER_508' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-08-13 21:21:08",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"508\",\"123\")>流程图&nbsp;</a><a id=\"act508\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act508_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('508','123','安全风险通知(2025-08-13 21:21:08 (508))');\">催办</a><a class=\"op\" href=\"javascript:focus_run(508,123,'安全风险通知(2025-08-13 21:21:08 (508))',1)\">关注</a></div>"
+      ],
+      "flow_id": "123"
+    },
+    {
+      "id": 819,
+      "cell": [
+        819,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"819\",\"\",\"104\"); title=\"23-23-收到委托书（2026年06月12日12:21）系统管理员\">23-23-收到委托书（2026年06月12日12:21）系统管理员</a><input type='hidden' id='FLOW_ID_819' value='104' /><input type='hidden' id='BEGIN_DEPT_819' value='2' /><input type='hidden' id='BEGIN_USER_819' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:21:41",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"819\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"819\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act819\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act819_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('819','104','23-23-收到委托书（2026年06月12日12:21）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(819,104,'23-23-收到委托书（2026年06月12日12:21）系统管理员',1)\">关注</a><a href='javascript:end_run(819,104,2);'>结束</a><a href=\"javascript:delete_run(819,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 818,
+      "cell": [
+        818,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"818\",\"\",\"104\"); title=\"2-2-收到委托书（2026年06月12日12:20）系统管理员\">2-2-收到委托书（2026年06月12日12:20）系统管理员</a><input type='hidden' id='FLOW_ID_818' value='104' /><input type='hidden' id='BEGIN_DEPT_818' value='2' /><input type='hidden' id='BEGIN_USER_818' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:20:08",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"818\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"818\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act818\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act818_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('818','104','2-2-收到委托书（2026年06月12日12:20）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(818,104,'2-2-收到委托书（2026年06月12日12:20）系统管理员',1)\">关注</a><a href='javascript:end_run(818,104,2);'>结束</a><a href=\"javascript:delete_run(818,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 817,
+      "cell": [
+        817,
+        "<a title=\"流程类型：固定流程\n现场勘验\" href=javascript:view_graph(\"113\")>现场勘验</a>",
+        "<a href=javascript:view_work(\"\",\"817\",\"\",\"113\"); title=\"{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员\">{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员</a><input type='hidden' id='FLOW_ID_817' value='113' /><input type='hidden' id='BEGIN_DEPT_817' value='2' /><input type='hidden' id='BEGIN_USER_817' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:11:25",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"817\",\"113\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"817\",\"113\",\"2\")>点评&nbsp;</a><a id=\"act817\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act817_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('817','113','{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(817,113,'{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员',1)\">关注</a><a href='javascript:end_run(817,113,2);'>结束</a><a href=\"javascript:delete_run(817,113,2);\">删除</a></div>"
+      ],
+      "flow_id": "113"
+    },
+    {
+      "id": 754,
+      "cell": [
+        754,
+        "<a title=\"流程类型：固定流程\n收到撤案函\" href=javascript:view_graph(\"117\")>收到撤案函</a>",
+        "<a href=javascript:view_work(\"\",\"754\",\"\",\"117\"); title=\"145646456--收到撤案函（2026年01月25日17:34）系统管理员\">145646456--收到撤案函（2026年01月25日17:34）系统管理员</a><input type='hidden' id='FLOW_ID_754' value='117' /><input type='hidden' id='BEGIN_DEPT_754' value='2' /><input type='hidden' id='BEGIN_USER_754' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-01-25 17:34:28",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"754\",\"117\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"754\",\"117\",\"2\")>点评&nbsp;</a><a id=\"act754\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act754_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('754','117','145646456--收到撤案函（2026年01月25日17:34）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(754,117,'145646456--收到撤案函（2026年01月25日17:34）系统管理员',1)\">关注</a><a href='javascript:end_run(754,117,2);'>结束</a><a href=\"javascript:delete_run(754,117,2);\">删除</a></div>"
+      ],
+      "flow_id": "117"
+    },
+    {
+      "id": 752,
+      "cell": [
+        752,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"752\",\"\",\"104\"); title=\"{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员\">{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员</a><input type='hidden' id='FLOW_ID_752' value='104' /><input type='hidden' id='BEGIN_DEPT_752' value='2' /><input type='hidden' id='BEGIN_USER_752' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-01-25 17:09:11",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"752\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"752\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act752\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act752_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('752','104','{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(752,104,'{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员',1)\">关注</a><a href='javascript:end_run(752,104,2);'>结束</a><a href=\"javascript:delete_run(752,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 701,
+      "cell": [
+        701,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"701\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员</a><input type='hidden' id='FLOW_ID_701' value='104' /><input type='hidden' id='BEGIN_DEPT_701' value='2' /><input type='hidden' id='BEGIN_USER_701' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-27 20:24:24",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"701\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"701\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act701\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act701_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('701','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(701,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员',1)\">关注</a><a href='javascript:end_run(701,104,2);'>结束</a><a href=\"javascript:delete_run(701,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 676,
+      "cell": [
+        676,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"676\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员</a><input type='hidden' id='FLOW_ID_676' value='104' /><input type='hidden' id='BEGIN_DEPT_676' value='2' /><input type='hidden' id='BEGIN_USER_676' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-03 19:20:23",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"676\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"676\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act676\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act676_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('676','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(676,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员',1)\">关注</a><a href='javascript:end_run(676,104,2);'>结束</a><a href=\"javascript:delete_run(676,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 674,
+      "cell": [
+        674,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"674\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员</a><input type='hidden' id='FLOW_ID_674' value='104' /><input type='hidden' id='BEGIN_DEPT_674' value='2' /><input type='hidden' id='BEGIN_USER_674' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-03 19:13:03",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"674\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"674\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act674\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act674_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('674','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(674,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员',1)\">关注</a><a href='javascript:end_run(674,104,2);'>结束</a><a href=\"javascript:delete_run(674,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 509,
+      "cell": [
+        509,
+        "<a title=\"流程类型：固定流程\n安全风险通知\" href=javascript:view_graph(\"123\")>安全风险通知</a>",
+        "<a href=javascript:view_work(\"\",\"509\",\"\",\"123\"); title=\"安全风险通知(2025-08-13 21:32:22 (509))\">安全风险通知(2025-08-13 21:32:22 (509))</a><input type='hidden' id='FLOW_ID_509' value='123' /><input type='hidden' id='BEGIN_DEPT_509' value='2' /><input type='hidden' id='BEGIN_USER_509' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-08-13 21:32:22",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"509\",\"123\")>流程图&nbsp;</a><a id=\"act509\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act509_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('509','123','安全风险通知(2025-08-13 21:32:22 (509))');\">催办</a><a class=\"op\" href=\"javascript:focus_run(509,123,'安全风险通知(2025-08-13 21:32:22 (509))',1)\">关注</a></div>"
+      ],
+      "flow_id": "123"
+    },
+    {
+      "id": 508,
+      "cell": [
+        508,
+        "<a title=\"流程类型：固定流程\n安全风险通知\" href=javascript:view_graph(\"123\")>安全风险通知</a>",
+        "<a href=javascript:view_work(\"\",\"508\",\"\",\"123\"); title=\"安全风险通知(2025-08-13 21:21:08 (508))\">安全风险通知(2025-08-13 21:21:08 (508))</a><input type='hidden' id='FLOW_ID_508' value='123' /><input type='hidden' id='BEGIN_DEPT_508' value='2' /><input type='hidden' id='BEGIN_USER_508' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-08-13 21:21:08",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"508\",\"123\")>流程图&nbsp;</a><a id=\"act508\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act508_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('508','123','安全风险通知(2025-08-13 21:21:08 (508))');\">催办</a><a class=\"op\" href=\"javascript:focus_run(508,123,'安全风险通知(2025-08-13 21:21:08 (508))',1)\">关注</a></div>"
+      ],
+      "flow_id": "123"
+    },
+    {
+      "id": 819,
+      "cell": [
+        819,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"819\",\"\",\"104\"); title=\"23-23-收到委托书（2026年06月12日12:21）系统管理员\">23-23-收到委托书（2026年06月12日12:21）系统管理员</a><input type='hidden' id='FLOW_ID_819' value='104' /><input type='hidden' id='BEGIN_DEPT_819' value='2' /><input type='hidden' id='BEGIN_USER_819' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:21:41",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"819\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"819\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act819\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act819_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('819','104','23-23-收到委托书（2026年06月12日12:21）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(819,104,'23-23-收到委托书（2026年06月12日12:21）系统管理员',1)\">关注</a><a href='javascript:end_run(819,104,2);'>结束</a><a href=\"javascript:delete_run(819,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 818,
+      "cell": [
+        818,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"818\",\"\",\"104\"); title=\"2-2-收到委托书（2026年06月12日12:20）系统管理员\">2-2-收到委托书（2026年06月12日12:20）系统管理员</a><input type='hidden' id='FLOW_ID_818' value='104' /><input type='hidden' id='BEGIN_DEPT_818' value='2' /><input type='hidden' id='BEGIN_USER_818' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:20:08",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"818\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"818\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act818\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act818_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('818','104','2-2-收到委托书（2026年06月12日12:20）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(818,104,'2-2-收到委托书（2026年06月12日12:20）系统管理员',1)\">关注</a><a href='javascript:end_run(818,104,2);'>结束</a><a href=\"javascript:delete_run(818,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 817,
+      "cell": [
+        817,
+        "<a title=\"流程类型：固定流程\n现场勘验\" href=javascript:view_graph(\"113\")>现场勘验</a>",
+        "<a href=javascript:view_work(\"\",\"817\",\"\",\"113\"); title=\"{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员\">{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员</a><input type='hidden' id='FLOW_ID_817' value='113' /><input type='hidden' id='BEGIN_DEPT_817' value='2' /><input type='hidden' id='BEGIN_USER_817' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:11:25",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"817\",\"113\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"817\",\"113\",\"2\")>点评&nbsp;</a><a id=\"act817\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act817_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('817','113','{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(817,113,'{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员',1)\">关注</a><a href='javascript:end_run(817,113,2);'>结束</a><a href=\"javascript:delete_run(817,113,2);\">删除</a></div>"
+      ],
+      "flow_id": "113"
+    },
+    {
+      "id": 754,
+      "cell": [
+        754,
+        "<a title=\"流程类型：固定流程\n收到撤案函\" href=javascript:view_graph(\"117\")>收到撤案函</a>",
+        "<a href=javascript:view_work(\"\",\"754\",\"\",\"117\"); title=\"145646456--收到撤案函（2026年01月25日17:34）系统管理员\">145646456--收到撤案函（2026年01月25日17:34）系统管理员</a><input type='hidden' id='FLOW_ID_754' value='117' /><input type='hidden' id='BEGIN_DEPT_754' value='2' /><input type='hidden' id='BEGIN_USER_754' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-01-25 17:34:28",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"754\",\"117\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"754\",\"117\",\"2\")>点评&nbsp;</a><a id=\"act754\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act754_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('754','117','145646456--收到撤案函（2026年01月25日17:34）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(754,117,'145646456--收到撤案函（2026年01月25日17:34）系统管理员',1)\">关注</a><a href='javascript:end_run(754,117,2);'>结束</a><a href=\"javascript:delete_run(754,117,2);\">删除</a></div>"
+      ],
+      "flow_id": "117"
+    },
+    {
+      "id": 752,
+      "cell": [
+        752,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"752\",\"\",\"104\"); title=\"{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员\">{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员</a><input type='hidden' id='FLOW_ID_752' value='104' /><input type='hidden' id='BEGIN_DEPT_752' value='2' /><input type='hidden' id='BEGIN_USER_752' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-01-25 17:09:11",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"752\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"752\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act752\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act752_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('752','104','{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(752,104,'{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员',1)\">关注</a><a href='javascript:end_run(752,104,2);'>结束</a><a href=\"javascript:delete_run(752,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 701,
+      "cell": [
+        701,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"701\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员</a><input type='hidden' id='FLOW_ID_701' value='104' /><input type='hidden' id='BEGIN_DEPT_701' value='2' /><input type='hidden' id='BEGIN_USER_701' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-27 20:24:24",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"701\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"701\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act701\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act701_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('701','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(701,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员',1)\">关注</a><a href='javascript:end_run(701,104,2);'>结束</a><a href=\"javascript:delete_run(701,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 676,
+      "cell": [
+        676,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"676\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员</a><input type='hidden' id='FLOW_ID_676' value='104' /><input type='hidden' id='BEGIN_DEPT_676' value='2' /><input type='hidden' id='BEGIN_USER_676' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-03 19:20:23",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"676\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"676\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act676\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act676_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('676','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(676,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员',1)\">关注</a><a href='javascript:end_run(676,104,2);'>结束</a><a href=\"javascript:delete_run(676,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 674,
+      "cell": [
+        674,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"674\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员</a><input type='hidden' id='FLOW_ID_674' value='104' /><input type='hidden' id='BEGIN_DEPT_674' value='2' /><input type='hidden' id='BEGIN_USER_674' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-03 19:13:03",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"674\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"674\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act674\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act674_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('674','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(674,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员',1)\">关注</a><a href='javascript:end_run(674,104,2);'>结束</a><a href=\"javascript:delete_run(674,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 509,
+      "cell": [
+        509,
+        "<a title=\"流程类型：固定流程\n安全风险通知\" href=javascript:view_graph(\"123\")>安全风险通知</a>",
+        "<a href=javascript:view_work(\"\",\"509\",\"\",\"123\"); title=\"安全风险通知(2025-08-13 21:32:22 (509))\">安全风险通知(2025-08-13 21:32:22 (509))</a><input type='hidden' id='FLOW_ID_509' value='123' /><input type='hidden' id='BEGIN_DEPT_509' value='2' /><input type='hidden' id='BEGIN_USER_509' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-08-13 21:32:22",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"509\",\"123\")>流程图&nbsp;</a><a id=\"act509\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act509_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('509','123','安全风险通知(2025-08-13 21:32:22 (509))');\">催办</a><a class=\"op\" href=\"javascript:focus_run(509,123,'安全风险通知(2025-08-13 21:32:22 (509))',1)\">关注</a></div>"
+      ],
+      "flow_id": "123"
+    },
+    {
+      "id": 508,
+      "cell": [
+        508,
+        "<a title=\"流程类型：固定流程\n安全风险通知\" href=javascript:view_graph(\"123\")>安全风险通知</a>",
+        "<a href=javascript:view_work(\"\",\"508\",\"\",\"123\"); title=\"安全风险通知(2025-08-13 21:21:08 (508))\">安全风险通知(2025-08-13 21:21:08 (508))</a><input type='hidden' id='FLOW_ID_508' value='123' /><input type='hidden' id='BEGIN_DEPT_508' value='2' /><input type='hidden' id='BEGIN_USER_508' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-08-13 21:21:08",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"508\",\"123\")>流程图&nbsp;</a><a id=\"act508\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act508_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('508','123','安全风险通知(2025-08-13 21:21:08 (508))');\">催办</a><a class=\"op\" href=\"javascript:focus_run(508,123,'安全风险通知(2025-08-13 21:21:08 (508))',1)\">关注</a></div>"
+      ],
+      "flow_id": "123"
+    },
+    {
+      "id": 819,
+      "cell": [
+        819,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"819\",\"\",\"104\"); title=\"23-23-收到委托书（2026年06月12日12:21）系统管理员\">23-23-收到委托书（2026年06月12日12:21）系统管理员</a><input type='hidden' id='FLOW_ID_819' value='104' /><input type='hidden' id='BEGIN_DEPT_819' value='2' /><input type='hidden' id='BEGIN_USER_819' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:21:41",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"819\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"819\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act819\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act819_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('819','104','23-23-收到委托书（2026年06月12日12:21）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(819,104,'23-23-收到委托书（2026年06月12日12:21）系统管理员',1)\">关注</a><a href='javascript:end_run(819,104,2);'>结束</a><a href=\"javascript:delete_run(819,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 818,
+      "cell": [
+        818,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"818\",\"\",\"104\"); title=\"2-2-收到委托书（2026年06月12日12:20）系统管理员\">2-2-收到委托书（2026年06月12日12:20）系统管理员</a><input type='hidden' id='FLOW_ID_818' value='104' /><input type='hidden' id='BEGIN_DEPT_818' value='2' /><input type='hidden' id='BEGIN_USER_818' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:20:08",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"818\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"818\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act818\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act818_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('818','104','2-2-收到委托书（2026年06月12日12:20）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(818,104,'2-2-收到委托书（2026年06月12日12:20）系统管理员',1)\">关注</a><a href='javascript:end_run(818,104,2);'>结束</a><a href=\"javascript:delete_run(818,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 817,
+      "cell": [
+        817,
+        "<a title=\"流程类型：固定流程\n现场勘验\" href=javascript:view_graph(\"113\")>现场勘验</a>",
+        "<a href=javascript:view_work(\"\",\"817\",\"\",\"113\"); title=\"{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员\">{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员</a><input type='hidden' id='FLOW_ID_817' value='113' /><input type='hidden' id='BEGIN_DEPT_817' value='2' /><input type='hidden' id='BEGIN_USER_817' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:11:25",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"817\",\"113\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"817\",\"113\",\"2\")>点评&nbsp;</a><a id=\"act817\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act817_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('817','113','{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(817,113,'{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员',1)\">关注</a><a href='javascript:end_run(817,113,2);'>结束</a><a href=\"javascript:delete_run(817,113,2);\">删除</a></div>"
+      ],
+      "flow_id": "113"
+    },
+    {
+      "id": 754,
+      "cell": [
+        754,
+        "<a title=\"流程类型：固定流程\n收到撤案函\" href=javascript:view_graph(\"117\")>收到撤案函</a>",
+        "<a href=javascript:view_work(\"\",\"754\",\"\",\"117\"); title=\"145646456--收到撤案函（2026年01月25日17:34）系统管理员\">145646456--收到撤案函（2026年01月25日17:34）系统管理员</a><input type='hidden' id='FLOW_ID_754' value='117' /><input type='hidden' id='BEGIN_DEPT_754' value='2' /><input type='hidden' id='BEGIN_USER_754' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-01-25 17:34:28",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"754\",\"117\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"754\",\"117\",\"2\")>点评&nbsp;</a><a id=\"act754\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act754_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('754','117','145646456--收到撤案函（2026年01月25日17:34）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(754,117,'145646456--收到撤案函（2026年01月25日17:34）系统管理员',1)\">关注</a><a href='javascript:end_run(754,117,2);'>结束</a><a href=\"javascript:delete_run(754,117,2);\">删除</a></div>"
+      ],
+      "flow_id": "117"
+    },
+    {
+      "id": 752,
+      "cell": [
+        752,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"752\",\"\",\"104\"); title=\"{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员\">{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员</a><input type='hidden' id='FLOW_ID_752' value='104' /><input type='hidden' id='BEGIN_DEPT_752' value='2' /><input type='hidden' id='BEGIN_USER_752' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-01-25 17:09:11",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"752\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"752\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act752\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act752_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('752','104','{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(752,104,'{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员',1)\">关注</a><a href='javascript:end_run(752,104,2);'>结束</a><a href=\"javascript:delete_run(752,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 701,
+      "cell": [
+        701,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"701\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员</a><input type='hidden' id='FLOW_ID_701' value='104' /><input type='hidden' id='BEGIN_DEPT_701' value='2' /><input type='hidden' id='BEGIN_USER_701' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-27 20:24:24",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"701\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"701\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act701\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act701_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('701','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(701,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员',1)\">关注</a><a href='javascript:end_run(701,104,2);'>结束</a><a href=\"javascript:delete_run(701,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 676,
+      "cell": [
+        676,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"676\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员</a><input type='hidden' id='FLOW_ID_676' value='104' /><input type='hidden' id='BEGIN_DEPT_676' value='2' /><input type='hidden' id='BEGIN_USER_676' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-03 19:20:23",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"676\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"676\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act676\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act676_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('676','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(676,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员',1)\">关注</a><a href='javascript:end_run(676,104,2);'>结束</a><a href=\"javascript:delete_run(676,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 674,
+      "cell": [
+        674,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"674\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员</a><input type='hidden' id='FLOW_ID_674' value='104' /><input type='hidden' id='BEGIN_DEPT_674' value='2' /><input type='hidden' id='BEGIN_USER_674' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-03 19:13:03",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"674\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"674\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act674\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act674_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('674','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(674,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员',1)\">关注</a><a href='javascript:end_run(674,104,2);'>结束</a><a href=\"javascript:delete_run(674,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 509,
+      "cell": [
+        509,
+        "<a title=\"流程类型：固定流程\n安全风险通知\" href=javascript:view_graph(\"123\")>安全风险通知</a>",
+        "<a href=javascript:view_work(\"\",\"509\",\"\",\"123\"); title=\"安全风险通知(2025-08-13 21:32:22 (509))\">安全风险通知(2025-08-13 21:32:22 (509))</a><input type='hidden' id='FLOW_ID_509' value='123' /><input type='hidden' id='BEGIN_DEPT_509' value='2' /><input type='hidden' id='BEGIN_USER_509' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-08-13 21:32:22",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"509\",\"123\")>流程图&nbsp;</a><a id=\"act509\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act509_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('509','123','安全风险通知(2025-08-13 21:32:22 (509))');\">催办</a><a class=\"op\" href=\"javascript:focus_run(509,123,'安全风险通知(2025-08-13 21:32:22 (509))',1)\">关注</a></div>"
+      ],
+      "flow_id": "123"
+    },
+    {
+      "id": 508,
+      "cell": [
+        508,
+        "<a title=\"流程类型：固定流程\n安全风险通知\" href=javascript:view_graph(\"123\")>安全风险通知</a>",
+        "<a href=javascript:view_work(\"\",\"508\",\"\",\"123\"); title=\"安全风险通知(2025-08-13 21:21:08 (508))\">安全风险通知(2025-08-13 21:21:08 (508))</a><input type='hidden' id='FLOW_ID_508' value='123' /><input type='hidden' id='BEGIN_DEPT_508' value='2' /><input type='hidden' id='BEGIN_USER_508' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-08-13 21:21:08",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"508\",\"123\")>流程图&nbsp;</a><a id=\"act508\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act508_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('508','123','安全风险通知(2025-08-13 21:21:08 (508))');\">催办</a><a class=\"op\" href=\"javascript:focus_run(508,123,'安全风险通知(2025-08-13 21:21:08 (508))',1)\">关注</a></div>"
+      ],
+      "flow_id": "123"
+    },
+    {
+      "id": 819,
+      "cell": [
+        819,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"819\",\"\",\"104\"); title=\"23-23-收到委托书（2026年06月12日12:21）系统管理员\">23-23-收到委托书（2026年06月12日12:21）系统管理员</a><input type='hidden' id='FLOW_ID_819' value='104' /><input type='hidden' id='BEGIN_DEPT_819' value='2' /><input type='hidden' id='BEGIN_USER_819' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:21:41",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"819\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"819\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act819\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act819_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('819','104','23-23-收到委托书（2026年06月12日12:21）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(819,104,'23-23-收到委托书（2026年06月12日12:21）系统管理员',1)\">关注</a><a href='javascript:end_run(819,104,2);'>结束</a><a href=\"javascript:delete_run(819,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 818,
+      "cell": [
+        818,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"818\",\"\",\"104\"); title=\"2-2-收到委托书（2026年06月12日12:20）系统管理员\">2-2-收到委托书（2026年06月12日12:20）系统管理员</a><input type='hidden' id='FLOW_ID_818' value='104' /><input type='hidden' id='BEGIN_DEPT_818' value='2' /><input type='hidden' id='BEGIN_USER_818' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:20:08",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"818\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"818\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act818\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act818_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('818','104','2-2-收到委托书（2026年06月12日12:20）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(818,104,'2-2-收到委托书（2026年06月12日12:20）系统管理员',1)\">关注</a><a href='javascript:end_run(818,104,2);'>结束</a><a href=\"javascript:delete_run(818,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 817,
+      "cell": [
+        817,
+        "<a title=\"流程类型：固定流程\n现场勘验\" href=javascript:view_graph(\"113\")>现场勘验</a>",
+        "<a href=javascript:view_work(\"\",\"817\",\"\",\"113\"); title=\"{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员\">{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员</a><input type='hidden' id='FLOW_ID_817' value='113' /><input type='hidden' id='BEGIN_DEPT_817' value='2' /><input type='hidden' id='BEGIN_USER_817' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:11:25",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"817\",\"113\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"817\",\"113\",\"2\")>点评&nbsp;</a><a id=\"act817\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act817_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('817','113','{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(817,113,'{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员',1)\">关注</a><a href='javascript:end_run(817,113,2);'>结束</a><a href=\"javascript:delete_run(817,113,2);\">删除</a></div>"
+      ],
+      "flow_id": "113"
+    },
+    {
+      "id": 754,
+      "cell": [
+        754,
+        "<a title=\"流程类型：固定流程\n收到撤案函\" href=javascript:view_graph(\"117\")>收到撤案函</a>",
+        "<a href=javascript:view_work(\"\",\"754\",\"\",\"117\"); title=\"145646456--收到撤案函（2026年01月25日17:34）系统管理员\">145646456--收到撤案函（2026年01月25日17:34）系统管理员</a><input type='hidden' id='FLOW_ID_754' value='117' /><input type='hidden' id='BEGIN_DEPT_754' value='2' /><input type='hidden' id='BEGIN_USER_754' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-01-25 17:34:28",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"754\",\"117\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"754\",\"117\",\"2\")>点评&nbsp;</a><a id=\"act754\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act754_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('754','117','145646456--收到撤案函（2026年01月25日17:34）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(754,117,'145646456--收到撤案函（2026年01月25日17:34）系统管理员',1)\">关注</a><a href='javascript:end_run(754,117,2);'>结束</a><a href=\"javascript:delete_run(754,117,2);\">删除</a></div>"
+      ],
+      "flow_id": "117"
+    },
+    {
+      "id": 752,
+      "cell": [
+        752,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"752\",\"\",\"104\"); title=\"{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员\">{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员</a><input type='hidden' id='FLOW_ID_752' value='104' /><input type='hidden' id='BEGIN_DEPT_752' value='2' /><input type='hidden' id='BEGIN_USER_752' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-01-25 17:09:11",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"752\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"752\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act752\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act752_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('752','104','{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(752,104,'{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员',1)\">关注</a><a href='javascript:end_run(752,104,2);'>结束</a><a href=\"javascript:delete_run(752,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 701,
+      "cell": [
+        701,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"701\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员</a><input type='hidden' id='FLOW_ID_701' value='104' /><input type='hidden' id='BEGIN_DEPT_701' value='2' /><input type='hidden' id='BEGIN_USER_701' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-27 20:24:24",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"701\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"701\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act701\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act701_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('701','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(701,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员',1)\">关注</a><a href='javascript:end_run(701,104,2);'>结束</a><a href=\"javascript:delete_run(701,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 676,
+      "cell": [
+        676,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"676\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员</a><input type='hidden' id='FLOW_ID_676' value='104' /><input type='hidden' id='BEGIN_DEPT_676' value='2' /><input type='hidden' id='BEGIN_USER_676' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-03 19:20:23",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"676\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"676\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act676\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act676_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('676','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(676,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员',1)\">关注</a><a href='javascript:end_run(676,104,2);'>结束</a><a href=\"javascript:delete_run(676,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 674,
+      "cell": [
+        674,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"674\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员</a><input type='hidden' id='FLOW_ID_674' value='104' /><input type='hidden' id='BEGIN_DEPT_674' value='2' /><input type='hidden' id='BEGIN_USER_674' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-03 19:13:03",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"674\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"674\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act674\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act674_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('674','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(674,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员',1)\">关注</a><a href='javascript:end_run(674,104,2);'>结束</a><a href=\"javascript:delete_run(674,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 509,
+      "cell": [
+        509,
+        "<a title=\"流程类型：固定流程\n安全风险通知\" href=javascript:view_graph(\"123\")>安全风险通知</a>",
+        "<a href=javascript:view_work(\"\",\"509\",\"\",\"123\"); title=\"安全风险通知(2025-08-13 21:32:22 (509))\">安全风险通知(2025-08-13 21:32:22 (509))</a><input type='hidden' id='FLOW_ID_509' value='123' /><input type='hidden' id='BEGIN_DEPT_509' value='2' /><input type='hidden' id='BEGIN_USER_509' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-08-13 21:32:22",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"509\",\"123\")>流程图&nbsp;</a><a id=\"act509\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act509_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('509','123','安全风险通知(2025-08-13 21:32:22 (509))');\">催办</a><a class=\"op\" href=\"javascript:focus_run(509,123,'安全风险通知(2025-08-13 21:32:22 (509))',1)\">关注</a></div>"
+      ],
+      "flow_id": "123"
+    },
+    {
+      "id": 508,
+      "cell": [
+        508,
+        "<a title=\"流程类型：固定流程\n安全风险通知\" href=javascript:view_graph(\"123\")>安全风险通知</a>",
+        "<a href=javascript:view_work(\"\",\"508\",\"\",\"123\"); title=\"安全风险通知(2025-08-13 21:21:08 (508))\">安全风险通知(2025-08-13 21:21:08 (508))</a><input type='hidden' id='FLOW_ID_508' value='123' /><input type='hidden' id='BEGIN_DEPT_508' value='2' /><input type='hidden' id='BEGIN_USER_508' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-08-13 21:21:08",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"508\",\"123\")>流程图&nbsp;</a><a id=\"act508\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act508_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('508','123','安全风险通知(2025-08-13 21:21:08 (508))');\">催办</a><a class=\"op\" href=\"javascript:focus_run(508,123,'安全风险通知(2025-08-13 21:21:08 (508))',1)\">关注</a></div>"
+      ],
+      "flow_id": "123"
+    },
+    {
+      "id": 819,
+      "cell": [
+        819,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"819\",\"\",\"104\"); title=\"23-23-收到委托书（2026年06月12日12:21）系统管理员\">23-23-收到委托书（2026年06月12日12:21）系统管理员</a><input type='hidden' id='FLOW_ID_819' value='104' /><input type='hidden' id='BEGIN_DEPT_819' value='2' /><input type='hidden' id='BEGIN_USER_819' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:21:41",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"819\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"819\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act819\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act819_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('819','104','23-23-收到委托书（2026年06月12日12:21）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(819,104,'23-23-收到委托书（2026年06月12日12:21）系统管理员',1)\">关注</a><a href='javascript:end_run(819,104,2);'>结束</a><a href=\"javascript:delete_run(819,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 818,
+      "cell": [
+        818,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"818\",\"\",\"104\"); title=\"2-2-收到委托书（2026年06月12日12:20）系统管理员\">2-2-收到委托书（2026年06月12日12:20）系统管理员</a><input type='hidden' id='FLOW_ID_818' value='104' /><input type='hidden' id='BEGIN_DEPT_818' value='2' /><input type='hidden' id='BEGIN_USER_818' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:20:08",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"818\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"818\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act818\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act818_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('818','104','2-2-收到委托书（2026年06月12日12:20）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(818,104,'2-2-收到委托书（2026年06月12日12:20）系统管理员',1)\">关注</a><a href='javascript:end_run(818,104,2);'>结束</a><a href=\"javascript:delete_run(818,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 817,
+      "cell": [
+        817,
+        "<a title=\"流程类型：固定流程\n现场勘验\" href=javascript:view_graph(\"113\")>现场勘验</a>",
+        "<a href=javascript:view_work(\"\",\"817\",\"\",\"113\"); title=\"{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员\">{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员</a><input type='hidden' id='FLOW_ID_817' value='113' /><input type='hidden' id='BEGIN_DEPT_817' value='2' /><input type='hidden' id='BEGIN_USER_817' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:11:25",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"817\",\"113\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"817\",\"113\",\"2\")>点评&nbsp;</a><a id=\"act817\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act817_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('817','113','{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(817,113,'{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员',1)\">关注</a><a href='javascript:end_run(817,113,2);'>结束</a><a href=\"javascript:delete_run(817,113,2);\">删除</a></div>"
+      ],
+      "flow_id": "113"
+    },
+    {
+      "id": 754,
+      "cell": [
+        754,
+        "<a title=\"流程类型：固定流程\n收到撤案函\" href=javascript:view_graph(\"117\")>收到撤案函</a>",
+        "<a href=javascript:view_work(\"\",\"754\",\"\",\"117\"); title=\"145646456--收到撤案函（2026年01月25日17:34）系统管理员\">145646456--收到撤案函（2026年01月25日17:34）系统管理员</a><input type='hidden' id='FLOW_ID_754' value='117' /><input type='hidden' id='BEGIN_DEPT_754' value='2' /><input type='hidden' id='BEGIN_USER_754' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-01-25 17:34:28",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"754\",\"117\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"754\",\"117\",\"2\")>点评&nbsp;</a><a id=\"act754\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act754_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('754','117','145646456--收到撤案函（2026年01月25日17:34）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(754,117,'145646456--收到撤案函（2026年01月25日17:34）系统管理员',1)\">关注</a><a href='javascript:end_run(754,117,2);'>结束</a><a href=\"javascript:delete_run(754,117,2);\">删除</a></div>"
+      ],
+      "flow_id": "117"
+    },
+    {
+      "id": 752,
+      "cell": [
+        752,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"752\",\"\",\"104\"); title=\"{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员\">{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员</a><input type='hidden' id='FLOW_ID_752' value='104' /><input type='hidden' id='BEGIN_DEPT_752' value='2' /><input type='hidden' id='BEGIN_USER_752' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-01-25 17:09:11",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"752\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"752\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act752\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act752_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('752','104','{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(752,104,'{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员',1)\">关注</a><a href='javascript:end_run(752,104,2);'>结束</a><a href=\"javascript:delete_run(752,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 701,
+      "cell": [
+        701,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"701\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员</a><input type='hidden' id='FLOW_ID_701' value='104' /><input type='hidden' id='BEGIN_DEPT_701' value='2' /><input type='hidden' id='BEGIN_USER_701' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-27 20:24:24",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"701\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"701\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act701\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act701_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('701','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(701,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员',1)\">关注</a><a href='javascript:end_run(701,104,2);'>结束</a><a href=\"javascript:delete_run(701,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 676,
+      "cell": [
+        676,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"676\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员</a><input type='hidden' id='FLOW_ID_676' value='104' /><input type='hidden' id='BEGIN_DEPT_676' value='2' /><input type='hidden' id='BEGIN_USER_676' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-03 19:20:23",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"676\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"676\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act676\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act676_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('676','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(676,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员',1)\">关注</a><a href='javascript:end_run(676,104,2);'>结束</a><a href=\"javascript:delete_run(676,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 674,
+      "cell": [
+        674,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"674\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员</a><input type='hidden' id='FLOW_ID_674' value='104' /><input type='hidden' id='BEGIN_DEPT_674' value='2' /><input type='hidden' id='BEGIN_USER_674' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-03 19:13:03",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"674\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"674\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act674\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act674_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('674','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(674,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员',1)\">关注</a><a href='javascript:end_run(674,104,2);'>结束</a><a href=\"javascript:delete_run(674,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 509,
+      "cell": [
+        509,
+        "<a title=\"流程类型：固定流程\n安全风险通知\" href=javascript:view_graph(\"123\")>安全风险通知</a>",
+        "<a href=javascript:view_work(\"\",\"509\",\"\",\"123\"); title=\"安全风险通知(2025-08-13 21:32:22 (509))\">安全风险通知(2025-08-13 21:32:22 (509))</a><input type='hidden' id='FLOW_ID_509' value='123' /><input type='hidden' id='BEGIN_DEPT_509' value='2' /><input type='hidden' id='BEGIN_USER_509' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-08-13 21:32:22",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"509\",\"123\")>流程图&nbsp;</a><a id=\"act509\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act509_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('509','123','安全风险通知(2025-08-13 21:32:22 (509))');\">催办</a><a class=\"op\" href=\"javascript:focus_run(509,123,'安全风险通知(2025-08-13 21:32:22 (509))',1)\">关注</a></div>"
+      ],
+      "flow_id": "123"
+    },
+    {
+      "id": 508,
+      "cell": [
+        508,
+        "<a title=\"流程类型：固定流程\n安全风险通知\" href=javascript:view_graph(\"123\")>安全风险通知</a>",
+        "<a href=javascript:view_work(\"\",\"508\",\"\",\"123\"); title=\"安全风险通知(2025-08-13 21:21:08 (508))\">安全风险通知(2025-08-13 21:21:08 (508))</a><input type='hidden' id='FLOW_ID_508' value='123' /><input type='hidden' id='BEGIN_DEPT_508' value='2' /><input type='hidden' id='BEGIN_USER_508' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-08-13 21:21:08",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"508\",\"123\")>流程图&nbsp;</a><a id=\"act508\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act508_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('508','123','安全风险通知(2025-08-13 21:21:08 (508))');\">催办</a><a class=\"op\" href=\"javascript:focus_run(508,123,'安全风险通知(2025-08-13 21:21:08 (508))',1)\">关注</a></div>"
+      ],
+      "flow_id": "123"
+    },
+    {
+      "id": 819,
+      "cell": [
+        819,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"819\",\"\",\"104\"); title=\"23-23-收到委托书（2026年06月12日12:21）系统管理员\">23-23-收到委托书（2026年06月12日12:21）系统管理员</a><input type='hidden' id='FLOW_ID_819' value='104' /><input type='hidden' id='BEGIN_DEPT_819' value='2' /><input type='hidden' id='BEGIN_USER_819' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:21:41",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"819\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"819\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act819\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act819_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('819','104','23-23-收到委托书（2026年06月12日12:21）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(819,104,'23-23-收到委托书（2026年06月12日12:21）系统管理员',1)\">关注</a><a href='javascript:end_run(819,104,2);'>结束</a><a href=\"javascript:delete_run(819,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 818,
+      "cell": [
+        818,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"818\",\"\",\"104\"); title=\"2-2-收到委托书（2026年06月12日12:20）系统管理员\">2-2-收到委托书（2026年06月12日12:20）系统管理员</a><input type='hidden' id='FLOW_ID_818' value='104' /><input type='hidden' id='BEGIN_DEPT_818' value='2' /><input type='hidden' id='BEGIN_USER_818' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:20:08",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"818\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"818\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act818\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act818_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('818','104','2-2-收到委托书（2026年06月12日12:20）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(818,104,'2-2-收到委托书（2026年06月12日12:20）系统管理员',1)\">关注</a><a href='javascript:end_run(818,104,2);'>结束</a><a href=\"javascript:delete_run(818,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 817,
+      "cell": [
+        817,
+        "<a title=\"流程类型：固定流程\n现场勘验\" href=javascript:view_graph(\"113\")>现场勘验</a>",
+        "<a href=javascript:view_work(\"\",\"817\",\"\",\"113\"); title=\"{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员\">{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员</a><input type='hidden' id='FLOW_ID_817' value='113' /><input type='hidden' id='BEGIN_DEPT_817' value='2' /><input type='hidden' id='BEGIN_USER_817' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:11:25",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"817\",\"113\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"817\",\"113\",\"2\")>点评&nbsp;</a><a id=\"act817\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act817_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('817','113','{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(817,113,'{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员',1)\">关注</a><a href='javascript:end_run(817,113,2);'>结束</a><a href=\"javascript:delete_run(817,113,2);\">删除</a></div>"
+      ],
+      "flow_id": "113"
+    },
+    {
+      "id": 754,
+      "cell": [
+        754,
+        "<a title=\"流程类型：固定流程\n收到撤案函\" href=javascript:view_graph(\"117\")>收到撤案函</a>",
+        "<a href=javascript:view_work(\"\",\"754\",\"\",\"117\"); title=\"145646456--收到撤案函（2026年01月25日17:34）系统管理员\">145646456--收到撤案函（2026年01月25日17:34）系统管理员</a><input type='hidden' id='FLOW_ID_754' value='117' /><input type='hidden' id='BEGIN_DEPT_754' value='2' /><input type='hidden' id='BEGIN_USER_754' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-01-25 17:34:28",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"754\",\"117\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"754\",\"117\",\"2\")>点评&nbsp;</a><a id=\"act754\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act754_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('754','117','145646456--收到撤案函（2026年01月25日17:34）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(754,117,'145646456--收到撤案函（2026年01月25日17:34）系统管理员',1)\">关注</a><a href='javascript:end_run(754,117,2);'>结束</a><a href=\"javascript:delete_run(754,117,2);\">删除</a></div>"
+      ],
+      "flow_id": "117"
+    },
+    {
+      "id": 752,
+      "cell": [
+        752,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"752\",\"\",\"104\"); title=\"{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员\">{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员</a><input type='hidden' id='FLOW_ID_752' value='104' /><input type='hidden' id='BEGIN_DEPT_752' value='2' /><input type='hidden' id='BEGIN_USER_752' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-01-25 17:09:11",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"752\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"752\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act752\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act752_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('752','104','{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(752,104,'{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员',1)\">关注</a><a href='javascript:end_run(752,104,2);'>结束</a><a href=\"javascript:delete_run(752,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 701,
+      "cell": [
+        701,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"701\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员</a><input type='hidden' id='FLOW_ID_701' value='104' /><input type='hidden' id='BEGIN_DEPT_701' value='2' /><input type='hidden' id='BEGIN_USER_701' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-27 20:24:24",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"701\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"701\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act701\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act701_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('701','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(701,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员',1)\">关注</a><a href='javascript:end_run(701,104,2);'>结束</a><a href=\"javascript:delete_run(701,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 676,
+      "cell": [
+        676,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"676\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员</a><input type='hidden' id='FLOW_ID_676' value='104' /><input type='hidden' id='BEGIN_DEPT_676' value='2' /><input type='hidden' id='BEGIN_USER_676' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-03 19:20:23",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"676\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"676\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act676\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act676_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('676','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(676,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员',1)\">关注</a><a href='javascript:end_run(676,104,2);'>结束</a><a href=\"javascript:delete_run(676,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 674,
+      "cell": [
+        674,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"674\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员</a><input type='hidden' id='FLOW_ID_674' value='104' /><input type='hidden' id='BEGIN_DEPT_674' value='2' /><input type='hidden' id='BEGIN_USER_674' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-03 19:13:03",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"674\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"674\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act674\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act674_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('674','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(674,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员',1)\">关注</a><a href='javascript:end_run(674,104,2);'>结束</a><a href=\"javascript:delete_run(674,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 509,
+      "cell": [
+        509,
+        "<a title=\"流程类型：固定流程\n安全风险通知\" href=javascript:view_graph(\"123\")>安全风险通知</a>",
+        "<a href=javascript:view_work(\"\",\"509\",\"\",\"123\"); title=\"安全风险通知(2025-08-13 21:32:22 (509))\">安全风险通知(2025-08-13 21:32:22 (509))</a><input type='hidden' id='FLOW_ID_509' value='123' /><input type='hidden' id='BEGIN_DEPT_509' value='2' /><input type='hidden' id='BEGIN_USER_509' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-08-13 21:32:22",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"509\",\"123\")>流程图&nbsp;</a><a id=\"act509\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act509_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('509','123','安全风险通知(2025-08-13 21:32:22 (509))');\">催办</a><a class=\"op\" href=\"javascript:focus_run(509,123,'安全风险通知(2025-08-13 21:32:22 (509))',1)\">关注</a></div>"
+      ],
+      "flow_id": "123"
+    },
+    {
+      "id": 508,
+      "cell": [
+        508,
+        "<a title=\"流程类型：固定流程\n安全风险通知\" href=javascript:view_graph(\"123\")>安全风险通知</a>",
+        "<a href=javascript:view_work(\"\",\"508\",\"\",\"123\"); title=\"安全风险通知(2025-08-13 21:21:08 (508))\">安全风险通知(2025-08-13 21:21:08 (508))</a><input type='hidden' id='FLOW_ID_508' value='123' /><input type='hidden' id='BEGIN_DEPT_508' value='2' /><input type='hidden' id='BEGIN_USER_508' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-08-13 21:21:08",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"508\",\"123\")>流程图&nbsp;</a><a id=\"act508\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act508_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('508','123','安全风险通知(2025-08-13 21:21:08 (508))');\">催办</a><a class=\"op\" href=\"javascript:focus_run(508,123,'安全风险通知(2025-08-13 21:21:08 (508))',1)\">关注</a></div>"
+      ],
+      "flow_id": "123"
+    },
+    {
+      "id": 819,
+      "cell": [
+        819,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"819\",\"\",\"104\"); title=\"23-23-收到委托书（2026年06月12日12:21）系统管理员\">23-23-收到委托书（2026年06月12日12:21）系统管理员</a><input type='hidden' id='FLOW_ID_819' value='104' /><input type='hidden' id='BEGIN_DEPT_819' value='2' /><input type='hidden' id='BEGIN_USER_819' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:21:41",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"819\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"819\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act819\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act819_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('819','104','23-23-收到委托书（2026年06月12日12:21）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(819,104,'23-23-收到委托书（2026年06月12日12:21）系统管理员',1)\">关注</a><a href='javascript:end_run(819,104,2);'>结束</a><a href=\"javascript:delete_run(819,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 818,
+      "cell": [
+        818,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"818\",\"\",\"104\"); title=\"2-2-收到委托书（2026年06月12日12:20）系统管理员\">2-2-收到委托书（2026年06月12日12:20）系统管理员</a><input type='hidden' id='FLOW_ID_818' value='104' /><input type='hidden' id='BEGIN_DEPT_818' value='2' /><input type='hidden' id='BEGIN_USER_818' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:20:08",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"818\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"818\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act818\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act818_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('818','104','2-2-收到委托书（2026年06月12日12:20）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(818,104,'2-2-收到委托书（2026年06月12日12:20）系统管理员',1)\">关注</a><a href='javascript:end_run(818,104,2);'>结束</a><a href=\"javascript:delete_run(818,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 817,
+      "cell": [
+        817,
+        "<a title=\"流程类型：固定流程\n现场勘验\" href=javascript:view_graph(\"113\")>现场勘验</a>",
+        "<a href=javascript:view_work(\"\",\"817\",\"\",\"113\"); title=\"{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员\">{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员</a><input type='hidden' id='FLOW_ID_817' value='113' /><input type='hidden' id='BEGIN_DEPT_817' value='2' /><input type='hidden' id='BEGIN_USER_817' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:11:25",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"817\",\"113\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"817\",\"113\",\"2\")>点评&nbsp;</a><a id=\"act817\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act817_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('817','113','{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(817,113,'{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员',1)\">关注</a><a href='javascript:end_run(817,113,2);'>结束</a><a href=\"javascript:delete_run(817,113,2);\">删除</a></div>"
+      ],
+      "flow_id": "113"
+    },
+    {
+      "id": 754,
+      "cell": [
+        754,
+        "<a title=\"流程类型：固定流程\n收到撤案函\" href=javascript:view_graph(\"117\")>收到撤案函</a>",
+        "<a href=javascript:view_work(\"\",\"754\",\"\",\"117\"); title=\"145646456--收到撤案函（2026年01月25日17:34）系统管理员\">145646456--收到撤案函（2026年01月25日17:34）系统管理员</a><input type='hidden' id='FLOW_ID_754' value='117' /><input type='hidden' id='BEGIN_DEPT_754' value='2' /><input type='hidden' id='BEGIN_USER_754' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-01-25 17:34:28",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"754\",\"117\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"754\",\"117\",\"2\")>点评&nbsp;</a><a id=\"act754\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act754_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('754','117','145646456--收到撤案函（2026年01月25日17:34）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(754,117,'145646456--收到撤案函（2026年01月25日17:34）系统管理员',1)\">关注</a><a href='javascript:end_run(754,117,2);'>结束</a><a href=\"javascript:delete_run(754,117,2);\">删除</a></div>"
+      ],
+      "flow_id": "117"
+    },
+    {
+      "id": 752,
+      "cell": [
+        752,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"752\",\"\",\"104\"); title=\"{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员\">{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员</a><input type='hidden' id='FLOW_ID_752' value='104' /><input type='hidden' id='BEGIN_DEPT_752' value='2' /><input type='hidden' id='BEGIN_USER_752' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-01-25 17:09:11",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"752\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"752\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act752\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act752_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('752','104','{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(752,104,'{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员',1)\">关注</a><a href='javascript:end_run(752,104,2);'>结束</a><a href=\"javascript:delete_run(752,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 701,
+      "cell": [
+        701,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"701\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员</a><input type='hidden' id='FLOW_ID_701' value='104' /><input type='hidden' id='BEGIN_DEPT_701' value='2' /><input type='hidden' id='BEGIN_USER_701' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-27 20:24:24",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"701\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"701\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act701\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act701_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('701','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(701,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员',1)\">关注</a><a href='javascript:end_run(701,104,2);'>结束</a><a href=\"javascript:delete_run(701,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 676,
+      "cell": [
+        676,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"676\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员</a><input type='hidden' id='FLOW_ID_676' value='104' /><input type='hidden' id='BEGIN_DEPT_676' value='2' /><input type='hidden' id='BEGIN_USER_676' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-03 19:20:23",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"676\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"676\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act676\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act676_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('676','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(676,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员',1)\">关注</a><a href='javascript:end_run(676,104,2);'>结束</a><a href=\"javascript:delete_run(676,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 674,
+      "cell": [
+        674,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"674\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员</a><input type='hidden' id='FLOW_ID_674' value='104' /><input type='hidden' id='BEGIN_DEPT_674' value='2' /><input type='hidden' id='BEGIN_USER_674' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-03 19:13:03",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"674\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"674\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act674\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act674_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('674','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(674,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员',1)\">关注</a><a href='javascript:end_run(674,104,2);'>结束</a><a href=\"javascript:delete_run(674,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 509,
+      "cell": [
+        509,
+        "<a title=\"流程类型：固定流程\n安全风险通知\" href=javascript:view_graph(\"123\")>安全风险通知</a>",
+        "<a href=javascript:view_work(\"\",\"509\",\"\",\"123\"); title=\"安全风险通知(2025-08-13 21:32:22 (509))\">安全风险通知(2025-08-13 21:32:22 (509))</a><input type='hidden' id='FLOW_ID_509' value='123' /><input type='hidden' id='BEGIN_DEPT_509' value='2' /><input type='hidden' id='BEGIN_USER_509' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-08-13 21:32:22",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"509\",\"123\")>流程图&nbsp;</a><a id=\"act509\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act509_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('509','123','安全风险通知(2025-08-13 21:32:22 (509))');\">催办</a><a class=\"op\" href=\"javascript:focus_run(509,123,'安全风险通知(2025-08-13 21:32:22 (509))',1)\">关注</a></div>"
+      ],
+      "flow_id": "123"
+    },
+    {
+      "id": 508,
+      "cell": [
+        508,
+        "<a title=\"流程类型：固定流程\n安全风险通知\" href=javascript:view_graph(\"123\")>安全风险通知</a>",
+        "<a href=javascript:view_work(\"\",\"508\",\"\",\"123\"); title=\"安全风险通知(2025-08-13 21:21:08 (508))\">安全风险通知(2025-08-13 21:21:08 (508))</a><input type='hidden' id='FLOW_ID_508' value='123' /><input type='hidden' id='BEGIN_DEPT_508' value='2' /><input type='hidden' id='BEGIN_USER_508' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-08-13 21:21:08",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"508\",\"123\")>流程图&nbsp;</a><a id=\"act508\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act508_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('508','123','安全风险通知(2025-08-13 21:21:08 (508))');\">催办</a><a class=\"op\" href=\"javascript:focus_run(508,123,'安全风险通知(2025-08-13 21:21:08 (508))',1)\">关注</a></div>"
+      ],
+      "flow_id": "123"
+    },
+    {
+      "id": 819,
+      "cell": [
+        819,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"819\",\"\",\"104\"); title=\"23-23-收到委托书（2026年06月12日12:21）系统管理员\">23-23-收到委托书（2026年06月12日12:21）系统管理员</a><input type='hidden' id='FLOW_ID_819' value='104' /><input type='hidden' id='BEGIN_DEPT_819' value='2' /><input type='hidden' id='BEGIN_USER_819' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:21:41",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"819\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"819\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act819\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act819_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('819','104','23-23-收到委托书（2026年06月12日12:21）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(819,104,'23-23-收到委托书（2026年06月12日12:21）系统管理员',1)\">关注</a><a href='javascript:end_run(819,104,2);'>结束</a><a href=\"javascript:delete_run(819,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 818,
+      "cell": [
+        818,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"818\",\"\",\"104\"); title=\"2-2-收到委托书（2026年06月12日12:20）系统管理员\">2-2-收到委托书（2026年06月12日12:20）系统管理员</a><input type='hidden' id='FLOW_ID_818' value='104' /><input type='hidden' id='BEGIN_DEPT_818' value='2' /><input type='hidden' id='BEGIN_USER_818' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:20:08",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"818\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"818\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act818\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act818_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('818','104','2-2-收到委托书（2026年06月12日12:20）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(818,104,'2-2-收到委托书（2026年06月12日12:20）系统管理员',1)\">关注</a><a href='javascript:end_run(818,104,2);'>结束</a><a href=\"javascript:delete_run(818,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 817,
+      "cell": [
+        817,
+        "<a title=\"流程类型：固定流程\n现场勘验\" href=javascript:view_graph(\"113\")>现场勘验</a>",
+        "<a href=javascript:view_work(\"\",\"817\",\"\",\"113\"); title=\"{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员\">{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员</a><input type='hidden' id='FLOW_ID_817' value='113' /><input type='hidden' id='BEGIN_DEPT_817' value='2' /><input type='hidden' id='BEGIN_USER_817' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:11:25",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"817\",\"113\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"817\",\"113\",\"2\")>点评&nbsp;</a><a id=\"act817\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act817_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('817','113','{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(817,113,'{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员',1)\">关注</a><a href='javascript:end_run(817,113,2);'>结束</a><a href=\"javascript:delete_run(817,113,2);\">删除</a></div>"
+      ],
+      "flow_id": "113"
+    },
+    {
+      "id": 754,
+      "cell": [
+        754,
+        "<a title=\"流程类型：固定流程\n收到撤案函\" href=javascript:view_graph(\"117\")>收到撤案函</a>",
+        "<a href=javascript:view_work(\"\",\"754\",\"\",\"117\"); title=\"145646456--收到撤案函（2026年01月25日17:34）系统管理员\">145646456--收到撤案函（2026年01月25日17:34）系统管理员</a><input type='hidden' id='FLOW_ID_754' value='117' /><input type='hidden' id='BEGIN_DEPT_754' value='2' /><input type='hidden' id='BEGIN_USER_754' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-01-25 17:34:28",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"754\",\"117\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"754\",\"117\",\"2\")>点评&nbsp;</a><a id=\"act754\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act754_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('754','117','145646456--收到撤案函（2026年01月25日17:34）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(754,117,'145646456--收到撤案函（2026年01月25日17:34）系统管理员',1)\">关注</a><a href='javascript:end_run(754,117,2);'>结束</a><a href=\"javascript:delete_run(754,117,2);\">删除</a></div>"
+      ],
+      "flow_id": "117"
+    },
+    {
+      "id": 752,
+      "cell": [
+        752,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"752\",\"\",\"104\"); title=\"{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员\">{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员</a><input type='hidden' id='FLOW_ID_752' value='104' /><input type='hidden' id='BEGIN_DEPT_752' value='2' /><input type='hidden' id='BEGIN_USER_752' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-01-25 17:09:11",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"752\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"752\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act752\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act752_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('752','104','{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(752,104,'{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员',1)\">关注</a><a href='javascript:end_run(752,104,2);'>结束</a><a href=\"javascript:delete_run(752,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 701,
+      "cell": [
+        701,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"701\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员</a><input type='hidden' id='FLOW_ID_701' value='104' /><input type='hidden' id='BEGIN_DEPT_701' value='2' /><input type='hidden' id='BEGIN_USER_701' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-27 20:24:24",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"701\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"701\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act701\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act701_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('701','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(701,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员',1)\">关注</a><a href='javascript:end_run(701,104,2);'>结束</a><a href=\"javascript:delete_run(701,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 676,
+      "cell": [
+        676,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"676\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员</a><input type='hidden' id='FLOW_ID_676' value='104' /><input type='hidden' id='BEGIN_DEPT_676' value='2' /><input type='hidden' id='BEGIN_USER_676' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-03 19:20:23",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"676\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"676\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act676\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act676_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('676','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(676,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员',1)\">关注</a><a href='javascript:end_run(676,104,2);'>结束</a><a href=\"javascript:delete_run(676,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 674,
+      "cell": [
+        674,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"674\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员</a><input type='hidden' id='FLOW_ID_674' value='104' /><input type='hidden' id='BEGIN_DEPT_674' value='2' /><input type='hidden' id='BEGIN_USER_674' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-03 19:13:03",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"674\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"674\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act674\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act674_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('674','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(674,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员',1)\">关注</a><a href='javascript:end_run(674,104,2);'>结束</a><a href=\"javascript:delete_run(674,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 509,
+      "cell": [
+        509,
+        "<a title=\"流程类型：固定流程\n安全风险通知\" href=javascript:view_graph(\"123\")>安全风险通知</a>",
+        "<a href=javascript:view_work(\"\",\"509\",\"\",\"123\"); title=\"安全风险通知(2025-08-13 21:32:22 (509))\">安全风险通知(2025-08-13 21:32:22 (509))</a><input type='hidden' id='FLOW_ID_509' value='123' /><input type='hidden' id='BEGIN_DEPT_509' value='2' /><input type='hidden' id='BEGIN_USER_509' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-08-13 21:32:22",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"509\",\"123\")>流程图&nbsp;</a><a id=\"act509\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act509_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('509','123','安全风险通知(2025-08-13 21:32:22 (509))');\">催办</a><a class=\"op\" href=\"javascript:focus_run(509,123,'安全风险通知(2025-08-13 21:32:22 (509))',1)\">关注</a></div>"
+      ],
+      "flow_id": "123"
+    },
+    {
+      "id": 508,
+      "cell": [
+        508,
+        "<a title=\"流程类型：固定流程\n安全风险通知\" href=javascript:view_graph(\"123\")>安全风险通知</a>",
+        "<a href=javascript:view_work(\"\",\"508\",\"\",\"123\"); title=\"安全风险通知(2025-08-13 21:21:08 (508))\">安全风险通知(2025-08-13 21:21:08 (508))</a><input type='hidden' id='FLOW_ID_508' value='123' /><input type='hidden' id='BEGIN_DEPT_508' value='2' /><input type='hidden' id='BEGIN_USER_508' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-08-13 21:21:08",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"508\",\"123\")>流程图&nbsp;</a><a id=\"act508\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act508_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('508','123','安全风险通知(2025-08-13 21:21:08 (508))');\">催办</a><a class=\"op\" href=\"javascript:focus_run(508,123,'安全风险通知(2025-08-13 21:21:08 (508))',1)\">关注</a></div>"
+      ],
+      "flow_id": "123"
+    },
+    {
+      "id": 819,
+      "cell": [
+        819,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"819\",\"\",\"104\"); title=\"23-23-收到委托书（2026年06月12日12:21）系统管理员\">23-23-收到委托书（2026年06月12日12:21）系统管理员</a><input type='hidden' id='FLOW_ID_819' value='104' /><input type='hidden' id='BEGIN_DEPT_819' value='2' /><input type='hidden' id='BEGIN_USER_819' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:21:41",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"819\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"819\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act819\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act819_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('819','104','23-23-收到委托书（2026年06月12日12:21）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(819,104,'23-23-收到委托书（2026年06月12日12:21）系统管理员',1)\">关注</a><a href='javascript:end_run(819,104,2);'>结束</a><a href=\"javascript:delete_run(819,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 818,
+      "cell": [
+        818,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"818\",\"\",\"104\"); title=\"2-2-收到委托书（2026年06月12日12:20）系统管理员\">2-2-收到委托书（2026年06月12日12:20）系统管理员</a><input type='hidden' id='FLOW_ID_818' value='104' /><input type='hidden' id='BEGIN_DEPT_818' value='2' /><input type='hidden' id='BEGIN_USER_818' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:20:08",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"818\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"818\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act818\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act818_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('818','104','2-2-收到委托书（2026年06月12日12:20）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(818,104,'2-2-收到委托书（2026年06月12日12:20）系统管理员',1)\">关注</a><a href='javascript:end_run(818,104,2);'>结束</a><a href=\"javascript:delete_run(818,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 817,
+      "cell": [
+        817,
+        "<a title=\"流程类型：固定流程\n现场勘验\" href=javascript:view_graph(\"113\")>现场勘验</a>",
+        "<a href=javascript:view_work(\"\",\"817\",\"\",\"113\"); title=\"{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员\">{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员</a><input type='hidden' id='FLOW_ID_817' value='113' /><input type='hidden' id='BEGIN_DEPT_817' value='2' /><input type='hidden' id='BEGIN_USER_817' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-06-12 12:11:25",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"817\",\"113\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"817\",\"113\",\"2\")>点评&nbsp;</a><a id=\"act817\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act817_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('817','113','{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(817,113,'{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员',1)\">关注</a><a href='javascript:end_run(817,113,2);'>结束</a><a href=\"javascript:delete_run(817,113,2);\">删除</a></div>"
+      ],
+      "flow_id": "113"
+    },
+    {
+      "id": 754,
+      "cell": [
+        754,
+        "<a title=\"流程类型：固定流程\n收到撤案函\" href=javascript:view_graph(\"117\")>收到撤案函</a>",
+        "<a href=javascript:view_work(\"\",\"754\",\"\",\"117\"); title=\"145646456--收到撤案函（2026年01月25日17:34）系统管理员\">145646456--收到撤案函（2026年01月25日17:34）系统管理员</a><input type='hidden' id='FLOW_ID_754' value='117' /><input type='hidden' id='BEGIN_DEPT_754' value='2' /><input type='hidden' id='BEGIN_USER_754' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-01-25 17:34:28",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"754\",\"117\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"754\",\"117\",\"2\")>点评&nbsp;</a><a id=\"act754\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act754_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('754','117','145646456--收到撤案函（2026年01月25日17:34）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(754,117,'145646456--收到撤案函（2026年01月25日17:34）系统管理员',1)\">关注</a><a href='javascript:end_run(754,117,2);'>结束</a><a href=\"javascript:delete_run(754,117,2);\">删除</a></div>"
+      ],
+      "flow_id": "117"
+    },
+    {
+      "id": 752,
+      "cell": [
+        752,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"752\",\"\",\"104\"); title=\"{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员\">{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员</a><input type='hidden' id='FLOW_ID_752' value='104' /><input type='hidden' id='BEGIN_DEPT_752' value='2' /><input type='hidden' id='BEGIN_USER_752' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2026-01-25 17:09:11",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"752\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"752\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act752\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act752_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('752','104','{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(752,104,'{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员',1)\">关注</a><a href='javascript:end_run(752,104,2);'>结束</a><a href=\"javascript:delete_run(752,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 701,
+      "cell": [
+        701,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"701\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员</a><input type='hidden' id='FLOW_ID_701' value='104' /><input type='hidden' id='BEGIN_DEPT_701' value='2' /><input type='hidden' id='BEGIN_USER_701' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-27 20:24:24",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"701\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"701\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act701\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act701_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('701','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(701,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员',1)\">关注</a><a href='javascript:end_run(701,104,2);'>结束</a><a href=\"javascript:delete_run(701,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 676,
+      "cell": [
+        676,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"676\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员</a><input type='hidden' id='FLOW_ID_676' value='104' /><input type='hidden' id='BEGIN_DEPT_676' value='2' /><input type='hidden' id='BEGIN_USER_676' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-03 19:20:23",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"676\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"676\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act676\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act676_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('676','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(676,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员',1)\">关注</a><a href='javascript:end_run(676,104,2);'>结束</a><a href=\"javascript:delete_run(676,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 674,
+      "cell": [
+        674,
+        "<a title=\"流程类型：固定流程\n收到委托书\" href=javascript:view_graph(\"104\")>收到委托书</a>",
+        "<a href=javascript:view_work(\"\",\"674\",\"\",\"104\"); title=\"{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员\">{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员</a><input type='hidden' id='FLOW_ID_674' value='104' /><input type='hidden' id='BEGIN_DEPT_674' value='2' /><input type='hidden' id='BEGIN_USER_674' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-11-03 19:13:03",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"674\",\"104\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"674\",\"104\",\"2\")>点评&nbsp;</a><a id=\"act674\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act674_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('674','104','{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员');\">催办</a><a class=\"op\" href=\"javascript:focus_run(674,104,'{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员',1)\">关注</a><a href='javascript:end_run(674,104,2);'>结束</a><a href=\"javascript:delete_run(674,104,2);\">删除</a></div>"
+      ],
+      "flow_id": "104"
+    },
+    {
+      "id": 509,
+      "cell": [
+        509,
+        "<a title=\"流程类型：固定流程\n安全风险通知\" href=javascript:view_graph(\"123\")>安全风险通知</a>",
+        "<a href=javascript:view_work(\"\",\"509\",\"\",\"123\"); title=\"安全风险通知(2025-08-13 21:32:22 (509))\">安全风险通知(2025-08-13 21:32:22 (509))</a><input type='hidden' id='FLOW_ID_509' value='123' /><input type='hidden' id='BEGIN_DEPT_509' value='2' /><input type='hidden' id='BEGIN_USER_509' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-08-13 21:32:22",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"509\",\"123\")>流程图&nbsp;</a><a id=\"act509\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act509_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('509','123','安全风险通知(2025-08-13 21:32:22 (509))');\">催办</a><a class=\"op\" href=\"javascript:focus_run(509,123,'安全风险通知(2025-08-13 21:32:22 (509))',1)\">关注</a></div>"
+      ],
+      "flow_id": "123"
+    },
+    {
+      "id": 508,
+      "cell": [
+        508,
+        "<a title=\"流程类型：固定流程\n安全风险通知\" href=javascript:view_graph(\"123\")>安全风险通知</a>",
+        "<a href=javascript:view_work(\"\",\"508\",\"\",\"123\"); title=\"安全风险通知(2025-08-13 21:21:08 (508))\">安全风险通知(2025-08-13 21:21:08 (508))</a><input type='hidden' id='FLOW_ID_508' value='123' /><input type='hidden' id='BEGIN_DEPT_508' value='2' /><input type='hidden' id='BEGIN_USER_508' value='admin' />",
+        "综合办",
+        "系统管理员",
+        "2025-08-13 21:21:08",
+        "",
+        "",
+        "<font color='green'>执行中</font>",
+        "<a class=\"op\" href=javascript:flow_view(\"508\",\"123\")>流程图&nbsp;</a><a id=\"act508\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act508_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('508','123','安全风险通知(2025-08-13 21:21:08 (508))');\">催办</a><a class=\"op\" href=\"javascript:focus_run(508,123,'安全风险通知(2025-08-13 21:21:08 (508))',1)\">关注</a></div>"
+      ],
+      "flow_id": "123"
+    }
+  ],
+  "records": 120
+}

@@ -1,0 +1,301 @@
+{
+  "source": "old OA work query JSON API",
+  "exportedAt": "2026-06-12T16:53:13.138Z",
+  "flowId": "107",
+  "flowName": "材料接收与返还",
+  "query": "action=list_allwork&flow_id=107&begin_time=&end_time=2026-06-13&run_id=&flow_status=ALL&run_name=&flow_query_type=ALL&to_id=&work_level=all&leave_user_id=&cookie_name=bpm_query_1",
+  "header": {
+    "fields": [
+      {
+        "label": "流水号",
+        "name": "RUN_ID",
+        "width": 60,
+        "sortable": true,
+        "align": "center",
+        "hidden": false,
+        "editable": false
+      },
+      {
+        "label": "流程类型",
+        "name": "flow_name_text",
+        "width": 200,
+        "sortable": false,
+        "align": "left",
+        "hidden": false,
+        "editable": true
+      },
+      {
+        "label": "工作名称/文号",
+        "name": "run_name",
+        "width": 350,
+        "sortable": true,
+        "align": "left",
+        "hidden": false,
+        "editable": true
+      },
+      {
+        "label": "发起部门",
+        "name": "begin_dept_text",
+        "width": 180,
+        "sortable": false,
+        "align": "center",
+        "hidden": false,
+        "editable": true
+      },
+      {
+        "label": "发起人",
+        "name": "begin_user_text",
+        "width": 180,
+        "sortable": false,
+        "align": "center",
+        "hidden": false,
+        "editable": true
+      },
+      {
+        "label": "开始时间",
+        "name": "begin_time",
+        "width": 180,
+        "sortable": true,
+        "align": "center",
+        "hidden": false,
+        "editable": true
+      },
+      {
+        "label": "结束时间",
+        "name": "end_time",
+        "width": 180,
+        "sortable": true,
+        "align": "center",
+        "hidden": false,
+        "editable": true
+      },
+      {
+        "label": "公共附件",
+        "name": "public_attach_text",
+        "width": 150,
+        "sortable": false,
+        "align": "left",
+        "title": false,
+        "hidden": false,
+        "editable": true
+      },
+      {
+        "label": "状态",
+        "name": "prcs_flag_text",
+        "width": 120,
+        "sortable": false,
+        "align": "center",
+        "hidden": false,
+        "editable": true
+      },
+      {
+        "label": "操作",
+        "name": "OPERATION",
+        "width": 160,
+        "sortable": false,
+        "align": "left",
+        "hidden": false,
+        "editable": true
+      }
+    ]
+  },
+  "data": {
+    "rows": [
+      {
+        "id": 791,
+        "cell": [
+          791,
+          "<a title=\"流程类型：固定流程\n材料接收与返还\" href=javascript:view_graph(\"107\")>材料接收与返还</a>",
+          "<a href=javascript:view_work(\"\",\"791\",\"\",\"107\"); title=\"诉（2025）-某某法院-材料接收与返还（2026年02月27日09:36）项目负责人\">诉（2025）-某某法院-材料接收与返还（2026年02月27日09:36）项目负责人</a><input type='hidden' id='FLOW_ID_791' value='107' /><input type='hidden' id='BEGIN_DEPT_791' value='4' /><input type='hidden' id='BEGIN_USER_791' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2026-02-27 09:36:37",
+          "",
+          "",
+          "<font color='green'>执行中</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"791\",\"107\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"791\",\"107\",\"4\")>点评&nbsp;</a><a id=\"act791\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act791_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('791','107','诉（2025）-某某法院-材料接收与返还（2026年02月27日09:36）项目负责人');\">催办</a><a class=\"op\" href=\"javascript:focus_run(791,107,'诉（2025）-某某法院-材料接收与返还（2026年02月27日09:36）项目负责人',1)\">关注</a><a href='javascript:end_run(791,107,4);'>结束</a><a href=\"javascript:delete_run(791,107,4);\">删除</a></div>"
+        ],
+        "flow_id": "107"
+      },
+      {
+        "id": 713,
+        "cell": [
+          713,
+          "<a title=\"流程类型：固定流程\n材料接收与返还\" href=javascript:view_graph(\"107\")>材料接收与返还</a>",
+          "<a href=javascript:view_work(\"\",\"713\",\"\",\"107\"); title=\"--材料接收与返还（2025年12月14日20:38）项目负责人\">--材料接收与返还（2025年12月14日20:38）项目负责人</a><input type='hidden' id='FLOW_ID_713' value='107' /><input type='hidden' id='BEGIN_DEPT_713' value='4' /><input type='hidden' id='BEGIN_USER_713' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2025-12-14 20:38:09",
+          "",
+          "",
+          "<font color='green'>执行中</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"713\",\"107\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"713\",\"107\",\"4\")>点评&nbsp;</a><a id=\"act713\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act713_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('713','107','--材料接收与返还（2025年12月14日20:38）项目负责人');\">催办</a><a class=\"op\" href=\"javascript:focus_run(713,107,'--材料接收与返还（2025年12月14日20:38）项目负责人',1)\">关注</a><a href='javascript:end_run(713,107,4);'>结束</a><a href=\"javascript:delete_run(713,107,4);\">删除</a></div>"
+        ],
+        "flow_id": "107"
+      },
+      {
+        "id": 712,
+        "cell": [
+          712,
+          "<a title=\"流程类型：固定流程\n材料接收与返还\" href=javascript:view_graph(\"107\")>材料接收与返还</a>",
+          "<a href=javascript:view_work(\"\",\"712\",\"\",\"107\"); title=\"--材料接收与返还（2025年12月14日20:34）项目负责人\">--材料接收与返还（2025年12月14日20:34）项目负责人</a><input type='hidden' id='FLOW_ID_712' value='107' /><input type='hidden' id='BEGIN_DEPT_712' value='4' /><input type='hidden' id='BEGIN_USER_712' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2025-12-14 20:34:53",
+          "",
+          "",
+          "<font color='green'>执行中</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"712\",\"107\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"712\",\"107\",\"4\")>点评&nbsp;</a><a id=\"act712\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act712_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('712','107','--材料接收与返还（2025年12月14日20:34）项目负责人');\">催办</a><a class=\"op\" href=\"javascript:focus_run(712,107,'--材料接收与返还（2025年12月14日20:34）项目负责人',1)\">关注</a><a href='javascript:end_run(712,107,4);'>结束</a><a href=\"javascript:delete_run(712,107,4);\">删除</a></div>"
+        ],
+        "flow_id": "107"
+      },
+      {
+        "id": 711,
+        "cell": [
+          711,
+          "<a title=\"流程类型：固定流程\n材料接收与返还\" href=javascript:view_graph(\"107\")>材料接收与返还</a>",
+          "<a href=javascript:view_work(\"\",\"711\",\"\",\"107\"); title=\"{案件号}|[1]-{委托人}|[1]-材料接收与返还（2025年12月14日20:30）项目负责人\">{案件号}|[1]-{委托人}|[1]-材料接收与返还（2025年12月14日20:30）项目负责人</a><input type='hidden' id='FLOW_ID_711' value='107' /><input type='hidden' id='BEGIN_DEPT_711' value='4' /><input type='hidden' id='BEGIN_USER_711' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2025-12-14 20:30:37",
+          "",
+          "",
+          "<font color='green'>执行中</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"711\",\"107\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"711\",\"107\",\"4\")>点评&nbsp;</a><a id=\"act711\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act711_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('711','107','{案件号}|[1]-{委托人}|[1]-材料接收与返还（2025年12月14日20:30）项目负责人');\">催办</a><a class=\"op\" href=\"javascript:focus_run(711,107,'{案件号}|[1]-{委托人}|[1]-材料接收与返还（2025年12月14日20:30）项目负责人',1)\">关注</a><a href='javascript:end_run(711,107,4);'>结束</a><a href=\"javascript:delete_run(711,107,4);\">删除</a></div>"
+        ],
+        "flow_id": "107"
+      },
+      {
+        "id": 709,
+        "cell": [
+          709,
+          "<a title=\"流程类型：固定流程\n材料接收与返还\" href=javascript:view_graph(\"107\")>材料接收与返还</a>",
+          "<a href=javascript:view_work(\"\",\"709\",\"\",\"107\"); title=\"{案件号}|[1]-{委托人}|[1]-材料接收与返还（2025年12月14日20:12）项目负责人\">{案件号}|[1]-{委托人}|[1]-材料接收与返还（2025年12月14日20:12）项目负责人</a><input type='hidden' id='FLOW_ID_709' value='107' /><input type='hidden' id='BEGIN_DEPT_709' value='4' /><input type='hidden' id='BEGIN_USER_709' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2025-12-14 20:12:00",
+          "",
+          "",
+          "<font color='green'>执行中</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"709\",\"107\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"709\",\"107\",\"4\")>点评&nbsp;</a><a id=\"act709\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act709_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('709','107','{案件号}|[1]-{委托人}|[1]-材料接收与返还（2025年12月14日20:12）项目负责人');\">催办</a><a class=\"op\" href=\"javascript:focus_run(709,107,'{案件号}|[1]-{委托人}|[1]-材料接收与返还（2025年12月14日20:12）项目负责人',1)\">关注</a><a href='javascript:end_run(709,107,4);'>结束</a><a href=\"javascript:delete_run(709,107,4);\">删除</a></div>"
+        ],
+        "flow_id": "107"
+      },
+      {
+        "id": 706,
+        "cell": [
+          706,
+          "<a title=\"流程类型：固定流程\n材料接收与返还\" href=javascript:view_graph(\"107\")>材料接收与返还</a>",
+          "<a href=javascript:view_work(\"\",\"706\",\"\",\"107\"); title=\"as-qaw-材料接收与返还（2025年11月27日21:03）项目负责人\">as-qaw-材料接收与返还（2025年11月27日21:03）项目负责人</a><input type='hidden' id='FLOW_ID_706' value='107' /><input type='hidden' id='BEGIN_DEPT_706' value='4' /><input type='hidden' id='BEGIN_USER_706' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2025-11-27 21:03:24",
+          "",
+          "",
+          "<font color='green'>执行中</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"706\",\"107\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"706\",\"107\",\"4\")>点评&nbsp;</a><a id=\"act706\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act706_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('706','107','as-qaw-材料接收与返还（2025年11月27日21:03）项目负责人');\">催办</a><a class=\"op\" href=\"javascript:focus_run(706,107,'as-qaw-材料接收与返还（2025年11月27日21:03）项目负责人',1)\">关注</a><a href='javascript:end_run(706,107,4);'>结束</a><a href=\"javascript:delete_run(706,107,4);\">删除</a></div>"
+        ],
+        "flow_id": "107"
+      },
+      {
+        "id": 651,
+        "cell": [
+          651,
+          "<a title=\"流程类型：固定流程\n材料接收与返还\" href=javascript:view_graph(\"107\")>材料接收与返还</a>",
+          "<a href=javascript:view_work(\"\",\"651\",\"\",\"107\"); title=\"123-张三2-材料接收与返还（2025年10月29日22:32）项目负责人\">123-张三2-材料接收与返还（2025年10月29日22:32）项目负责人</a><input type='hidden' id='FLOW_ID_651' value='107' /><input type='hidden' id='BEGIN_DEPT_651' value='4' /><input type='hidden' id='BEGIN_USER_651' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2025-10-29 22:32:15",
+          "2025-10-29 23:00:06",
+          "",
+          "<font color='red'>已结束</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"651\",\"107\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"651\",\"107\",\"4\")>点评&nbsp;</a><a id=\"act651\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act651_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"将已结束工作恢复到执行中\" href=\"javascript:restore_run(651,107,4);\">恢复执行&nbsp;</a><a class=\"op\" title=\"编辑已结束工作表单数据\" href=\"javascript:edit_run(651,107);\">编辑&nbsp;</a><a href=\"javascript:delete_run(651,107,4);\">删除</a></div>"
+        ],
+        "flow_id": "107"
+      },
+      {
+        "id": 643,
+        "cell": [
+          643,
+          "<a title=\"流程类型：固定流程\n材料接收与返还\" href=javascript:view_graph(\"107\")>材料接收与返还</a>",
+          "<a href=javascript:view_work(\"\",\"643\",\"\",\"107\"); title=\"-张三1-材料接收与返还（2025年10月22日20:59）项目负责人\">-张三1-材料接收与返还（2025年10月22日20:59）项目负责人</a><input type='hidden' id='FLOW_ID_643' value='107' /><input type='hidden' id='BEGIN_DEPT_643' value='4' /><input type='hidden' id='BEGIN_USER_643' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2025-10-22 20:59:26",
+          "2025-10-29 22:19:23",
+          "",
+          "<font color='red'>已结束</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"643\",\"107\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"643\",\"107\",\"4\")>点评&nbsp;</a><a id=\"act643\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act643_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"将已结束工作恢复到执行中\" href=\"javascript:restore_run(643,107,4);\">恢复执行&nbsp;</a><a class=\"op\" title=\"编辑已结束工作表单数据\" href=\"javascript:edit_run(643,107);\">编辑&nbsp;</a><a href=\"javascript:delete_run(643,107,4);\">删除</a></div>"
+        ],
+        "flow_id": "107"
+      },
+      {
+        "id": 638,
+        "cell": [
+          638,
+          "<a title=\"流程类型：固定流程\n材料接收与返还\" href=javascript:view_graph(\"107\")>材料接收与返还</a>",
+          "<a href=javascript:view_work(\"\",\"638\",\"\",\"107\"); title=\"{案件号}|[2]-{委托人}|[2]-材料接收与返还（2025年10月22日20:38）项目负责人\">{案件号}|[2]-{委托人}|[2]-材料接收与返还（2025年10月22日20:38）项目负责人</a><input type='hidden' id='FLOW_ID_638' value='107' /><input type='hidden' id='BEGIN_DEPT_638' value='4' /><input type='hidden' id='BEGIN_USER_638' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2025-10-22 20:38:43",
+          "2025-10-22 20:52:08",
+          "",
+          "<font color='red'>已结束</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"638\",\"107\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"638\",\"107\",\"4\")>点评&nbsp;</a><a id=\"act638\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act638_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"将已结束工作恢复到执行中\" href=\"javascript:restore_run(638,107,4);\">恢复执行&nbsp;</a><a class=\"op\" title=\"编辑已结束工作表单数据\" href=\"javascript:edit_run(638,107);\">编辑&nbsp;</a><a href=\"javascript:delete_run(638,107,4);\">删除</a></div>"
+        ],
+        "flow_id": "107"
+      },
+      {
+        "id": 614,
+        "cell": [
+          614,
+          "<a title=\"流程类型：固定流程\n材料接收与返还\" href=javascript:view_graph(\"107\")>材料接收与返还</a>",
+          "<a href=javascript:view_work(\"\",\"614\",\"\",\"107\"); title=\"（2025）京民初  4455号-某某法院-材料接收与返还（2025年10月16日15:29）项目负责人\">（2025）京民初  4455号-某某法院-材料接收与返还（2025年10月16日15:29）项目负责人</a><input type='hidden' id='FLOW_ID_614' value='107' /><input type='hidden' id='BEGIN_DEPT_614' value='4' /><input type='hidden' id='BEGIN_USER_614' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2025-10-16 15:29:29",
+          "2025-10-16 15:52:42",
+          "",
+          "<font color='red'>已结束</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"614\",\"107\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"614\",\"107\",\"4\")>点评&nbsp;</a><a id=\"act614\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act614_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"将已结束工作恢复到执行中\" href=\"javascript:restore_run(614,107,4);\">恢复执行&nbsp;</a><a class=\"op\" title=\"编辑已结束工作表单数据\" href=\"javascript:edit_run(614,107);\">编辑&nbsp;</a><a href=\"javascript:delete_run(614,107,4);\">删除</a></div>"
+        ],
+        "flow_id": "107"
+      },
+      {
+        "id": 594,
+        "cell": [
+          594,
+          "<a title=\"流程类型：固定流程\n材料接收与返还\" href=javascript:view_graph(\"107\")>材料接收与返还</a>",
+          "<a href=javascript:view_work(\"\",\"594\",\"\",\"107\"); title=\"（2025）京民初  4455号-某某法院-材料接收与返还（2025年10月15日17:23）项目负责人\">（2025）京民初  4455号-某某法院-材料接收与返还（2025年10月15日17:23）项目负责人</a><input type='hidden' id='FLOW_ID_594' value='107' /><input type='hidden' id='BEGIN_DEPT_594' value='4' /><input type='hidden' id='BEGIN_USER_594' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2025-10-15 17:23:07",
+          "",
+          "",
+          "<font color='green'>执行中</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"594\",\"107\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"594\",\"107\",\"4\")>点评&nbsp;</a><a id=\"act594\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act594_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('594','107','（2025）京民初  4455号-某某法院-材料接收与返还（2025年10月15日17:23）项目负责人');\">催办</a><a class=\"op\" href=\"javascript:focus_run(594,107,'（2025）京民初  4455号-某某法院-材料接收与返还（2025年10月15日17:23）项目负责人',1)\">关注</a><a href='javascript:end_run(594,107,4);'>结束</a><a href=\"javascript:delete_run(594,107,4);\">删除</a></div>"
+        ],
+        "flow_id": "107"
+      },
+      {
+        "id": 578,
+        "cell": [
+          578,
+          "<a title=\"流程类型：固定流程\n材料接收与返还\" href=javascript:view_graph(\"107\")>材料接收与返还</a>",
+          "<a href=javascript:view_work(\"\",\"578\",\"\",\"107\"); title=\"（2025）京民初 1113号-某某法院-材料接收与返还（2025年10月15日14:49）项目负责人\">（2025）京民初 1113号-某某法院-材料接收与返还（2025年10月15日14:49）项目负责人</a><input type='hidden' id='FLOW_ID_578' value='107' /><input type='hidden' id='BEGIN_DEPT_578' value='4' /><input type='hidden' id='BEGIN_USER_578' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2025-10-15 14:49:40",
+          "",
+          "",
+          "<font color='green'>执行中</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"578\",\"107\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"578\",\"107\",\"4\")>点评&nbsp;</a><a id=\"act578\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act578_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('578','107','（2025）京民初 1113号-某某法院-材料接收与返还（2025年10月15日14:49）项目负责人');\">催办</a><a class=\"op\" href=\"javascript:focus_run(578,107,'（2025）京民初 1113号-某某法院-材料接收与返还（2025年10月15日14:49）项目负责人',1)\">关注</a><a href='javascript:end_run(578,107,4);'>结束</a><a href=\"javascript:delete_run(578,107,4);\">删除</a></div>"
+        ],
+        "flow_id": "107"
+      }
+    ],
+    "records": "12",
+    "page": 1,
+    "total": 1
+  }
+}

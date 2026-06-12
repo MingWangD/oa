@@ -1,0 +1,173 @@
+{
+  "source": "old OA work query JSON API",
+  "exportedAt": "2026-06-12T16:53:14.144Z",
+  "flowId": "111",
+  "flowName": "终止鉴定",
+  "query": "action=list_allwork&flow_id=111&begin_time=&end_time=2026-06-13&run_id=&flow_status=ALL&run_name=&flow_query_type=ALL&to_id=&work_level=all&leave_user_id=&cookie_name=bpm_query_1",
+  "header": {
+    "fields": [
+      {
+        "label": "流水号",
+        "name": "RUN_ID",
+        "width": 60,
+        "sortable": true,
+        "align": "center",
+        "hidden": false,
+        "editable": false
+      },
+      {
+        "label": "流程类型",
+        "name": "flow_name_text",
+        "width": 200,
+        "sortable": false,
+        "align": "left",
+        "hidden": false,
+        "editable": true
+      },
+      {
+        "label": "工作名称/文号",
+        "name": "run_name",
+        "width": 350,
+        "sortable": true,
+        "align": "left",
+        "hidden": false,
+        "editable": true
+      },
+      {
+        "label": "发起部门",
+        "name": "begin_dept_text",
+        "width": 180,
+        "sortable": false,
+        "align": "center",
+        "hidden": false,
+        "editable": true
+      },
+      {
+        "label": "发起人",
+        "name": "begin_user_text",
+        "width": 180,
+        "sortable": false,
+        "align": "center",
+        "hidden": false,
+        "editable": true
+      },
+      {
+        "label": "开始时间",
+        "name": "begin_time",
+        "width": 180,
+        "sortable": true,
+        "align": "center",
+        "hidden": false,
+        "editable": true
+      },
+      {
+        "label": "结束时间",
+        "name": "end_time",
+        "width": 180,
+        "sortable": true,
+        "align": "center",
+        "hidden": false,
+        "editable": true
+      },
+      {
+        "label": "公共附件",
+        "name": "public_attach_text",
+        "width": 150,
+        "sortable": false,
+        "align": "left",
+        "title": false,
+        "hidden": false,
+        "editable": true
+      },
+      {
+        "label": "状态",
+        "name": "prcs_flag_text",
+        "width": 120,
+        "sortable": false,
+        "align": "center",
+        "hidden": false,
+        "editable": true
+      },
+      {
+        "label": "操作",
+        "name": "OPERATION",
+        "width": 160,
+        "sortable": false,
+        "align": "left",
+        "hidden": false,
+        "editable": true
+      }
+    ]
+  },
+  "data": {
+    "rows": [
+      {
+        "id": 753,
+        "cell": [
+          753,
+          "<a title=\"流程类型：固定流程\n终止鉴定\" href=javascript:view_graph(\"111\")>终止鉴定</a>",
+          "<a href=javascript:view_work(\"\",\"753\",\"\",\"111\"); title=\"{案件号}|[1]-{委托人}|[1]-终止鉴定（2026年01月25日17:31）项目负责人\">{案件号}|[1]-{委托人}|[1]-终止鉴定（2026年01月25日17:31）项目负责人</a><input type='hidden' id='FLOW_ID_753' value='111' /><input type='hidden' id='BEGIN_DEPT_753' value='4' /><input type='hidden' id='BEGIN_USER_753' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2026-01-25 17:31:01",
+          "",
+          "",
+          "<font color='green'>执行中</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"753\",\"111\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"753\",\"111\",\"4\")>点评&nbsp;</a><a id=\"act753\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act753_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('753','111','{案件号}|[1]-{委托人}|[1]-终止鉴定（2026年01月25日17:31）项目负责人');\">催办</a><a class=\"op\" href=\"javascript:focus_run(753,111,'{案件号}|[1]-{委托人}|[1]-终止鉴定（2026年01月25日17:31）项目负责人',1)\">关注</a><a href='javascript:end_run(753,111,4);'>结束</a><a href=\"javascript:delete_run(753,111,4);\">删除</a></div>"
+        ],
+        "flow_id": "111"
+      },
+      {
+        "id": 744,
+        "cell": [
+          744,
+          "<a title=\"流程类型：固定流程\n终止鉴定\" href=javascript:view_graph(\"111\")>终止鉴定</a>",
+          "<a href=javascript:view_work(\"\",\"744\",\"\",\"111\"); title=\"--终止鉴定（2026年01月22日11:00）项目负责人\">--终止鉴定（2026年01月22日11:00）项目负责人</a><input type='hidden' id='FLOW_ID_744' value='111' /><input type='hidden' id='BEGIN_DEPT_744' value='4' /><input type='hidden' id='BEGIN_USER_744' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2026-01-22 11:00:28",
+          "2026-01-22 11:36:17",
+          "",
+          "<font color='red'>已结束</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"744\",\"111\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"744\",\"111\",\"4\")>点评&nbsp;</a><a id=\"act744\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act744_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"将已结束工作恢复到执行中\" href=\"javascript:restore_run(744,111,4);\">恢复执行&nbsp;</a><a class=\"op\" title=\"编辑已结束工作表单数据\" href=\"javascript:edit_run(744,111);\">编辑&nbsp;</a><a href=\"javascript:delete_run(744,111,4);\">删除</a></div>"
+        ],
+        "flow_id": "111"
+      },
+      {
+        "id": 660,
+        "cell": [
+          660,
+          "<a title=\"流程类型：固定流程\n终止鉴定\" href=javascript:view_graph(\"111\")>终止鉴定</a>",
+          "<a href=javascript:view_work(\"\",\"660\",\"\",\"111\"); title=\"{案件号}|[2]-{委托人}|[2]-终止鉴定（2025年10月30日21:28）项目负责人\">{案件号}|[2]-{委托人}|[2]-终止鉴定（2025年10月30日21:28）项目负责人</a><input type='hidden' id='FLOW_ID_660' value='111' /><input type='hidden' id='BEGIN_DEPT_660' value='4' /><input type='hidden' id='BEGIN_USER_660' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2025-10-30 21:28:51",
+          "",
+          "",
+          "<font color='green'>执行中</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"660\",\"111\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"660\",\"111\",\"4\")>点评&nbsp;</a><a id=\"act660\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act660_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('660','111','{案件号}|[2]-{委托人}|[2]-终止鉴定（2025年10月30日21:28）项目负责人');\">催办</a><a class=\"op\" href=\"javascript:focus_run(660,111,'{案件号}|[2]-{委托人}|[2]-终止鉴定（2025年10月30日21:28）项目负责人',1)\">关注</a><a href='javascript:end_run(660,111,4);'>结束</a><a href=\"javascript:delete_run(660,111,4);\">删除</a></div>"
+        ],
+        "flow_id": "111"
+      },
+      {
+        "id": 657,
+        "cell": [
+          657,
+          "<a title=\"流程类型：固定流程\n终止鉴定\" href=javascript:view_graph(\"111\")>终止鉴定</a>",
+          "<a href=javascript:view_work(\"\",\"657\",\"\",\"111\"); title=\"-张三3-终止鉴定（2025年10月29日23:02）项目负责人\">-张三3-终止鉴定（2025年10月29日23:02）项目负责人</a><input type='hidden' id='FLOW_ID_657' value='111' /><input type='hidden' id='BEGIN_DEPT_657' value='4' /><input type='hidden' id='BEGIN_USER_657' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2025-10-29 23:02:54",
+          "",
+          "",
+          "<font color='green'>执行中</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"657\",\"111\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"657\",\"111\",\"4\")>点评&nbsp;</a><a id=\"act657\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act657_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('657','111','-张三3-终止鉴定（2025年10月29日23:02）项目负责人');\">催办</a><a class=\"op\" href=\"javascript:focus_run(657,111,'-张三3-终止鉴定（2025年10月29日23:02）项目负责人',1)\">关注</a><a href='javascript:end_run(657,111,4);'>结束</a><a href=\"javascript:delete_run(657,111,4);\">删除</a></div>"
+        ],
+        "flow_id": "111"
+      }
+    ],
+    "records": "4",
+    "page": 1,
+    "total": 1
+  }
+}

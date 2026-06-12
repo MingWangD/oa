@@ -1,0 +1,445 @@
+{
+  "source": "old OA work query JSON API",
+  "exportedAt": "2026-06-12T16:53:12.882Z",
+  "flowId": "106",
+  "flowName": "发交费通知书及相关函件",
+  "query": "action=list_allwork&flow_id=106&begin_time=&end_time=2026-06-13&run_id=&flow_status=ALL&run_name=&flow_query_type=ALL&to_id=&work_level=all&leave_user_id=&cookie_name=bpm_query_1",
+  "header": {
+    "fields": [
+      {
+        "label": "流水号",
+        "name": "RUN_ID",
+        "width": 60,
+        "sortable": true,
+        "align": "center",
+        "hidden": false,
+        "editable": false
+      },
+      {
+        "label": "流程类型",
+        "name": "flow_name_text",
+        "width": 200,
+        "sortable": false,
+        "align": "left",
+        "hidden": false,
+        "editable": true
+      },
+      {
+        "label": "工作名称/文号",
+        "name": "run_name",
+        "width": 350,
+        "sortable": true,
+        "align": "left",
+        "hidden": false,
+        "editable": true
+      },
+      {
+        "label": "发起部门",
+        "name": "begin_dept_text",
+        "width": 180,
+        "sortable": false,
+        "align": "center",
+        "hidden": false,
+        "editable": true
+      },
+      {
+        "label": "发起人",
+        "name": "begin_user_text",
+        "width": 180,
+        "sortable": false,
+        "align": "center",
+        "hidden": false,
+        "editable": true
+      },
+      {
+        "label": "开始时间",
+        "name": "begin_time",
+        "width": 180,
+        "sortable": true,
+        "align": "center",
+        "hidden": false,
+        "editable": true
+      },
+      {
+        "label": "结束时间",
+        "name": "end_time",
+        "width": 180,
+        "sortable": true,
+        "align": "center",
+        "hidden": false,
+        "editable": true
+      },
+      {
+        "label": "公共附件",
+        "name": "public_attach_text",
+        "width": 150,
+        "sortable": false,
+        "align": "left",
+        "title": false,
+        "hidden": false,
+        "editable": true
+      },
+      {
+        "label": "状态",
+        "name": "prcs_flag_text",
+        "width": 120,
+        "sortable": false,
+        "align": "center",
+        "hidden": false,
+        "editable": true
+      },
+      {
+        "label": "操作",
+        "name": "OPERATION",
+        "width": 160,
+        "sortable": false,
+        "align": "left",
+        "hidden": false,
+        "editable": true
+      }
+    ]
+  },
+  "data": {
+    "rows": [
+      {
+        "id": 816,
+        "cell": [
+          816,
+          "<a title=\"流程类型：固定流程\n发交费通知书及相关函件\" href=javascript:view_graph(\"106\")>发交费通知书及相关函件</a>",
+          "<a href=javascript:view_work(\"\",\"816\",\"\",\"106\"); title=\"qe-我去额外企鹅-发交费通知书及相关函件（2026年06月10日20:21）项目负责人\">qe-我去额外企鹅-发交费通知书及相关函件（2026年06月10日20:21）项目负责人</a><input type='hidden' id='FLOW_ID_816' value='106' /><input type='hidden' id='BEGIN_DEPT_816' value='4' /><input type='hidden' id='BEGIN_USER_816' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2026-06-10 20:21:10",
+          "",
+          "",
+          "<font color='green'>执行中</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"816\",\"106\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"816\",\"106\",\"4\")>点评&nbsp;</a><a id=\"act816\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act816_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('816','106','qe-我去额外企鹅-发交费通知书及相关函件（2026年06月10日20:21）项目负责人');\">催办</a><a class=\"op\" href=\"javascript:focus_run(816,106,'qe-我去额外企鹅-发交费通知书及相关函件（2026年06月10日20:21）项目负责人',1)\">关注</a><a href='javascript:end_run(816,106,4);'>结束</a><a href=\"javascript:delete_run(816,106,4);\">删除</a></div>"
+        ],
+        "flow_id": "106"
+      },
+      {
+        "id": 811,
+        "cell": [
+          811,
+          "<a title=\"流程类型：固定流程\n发交费通知书及相关函件\" href=javascript:view_graph(\"106\")>发交费通知书及相关函件</a>",
+          "<a href=javascript:view_work(\"\",\"811\",\"\",\"106\"); title=\"00-00-发交费通知书及相关函件（2026年03月03日14:42）项目负责人\">00-00-发交费通知书及相关函件（2026年03月03日14:42）项目负责人</a><input type='hidden' id='FLOW_ID_811' value='106' /><input type='hidden' id='BEGIN_DEPT_811' value='4' /><input type='hidden' id='BEGIN_USER_811' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2026-03-03 14:42:54",
+          "",
+          "",
+          "<font color='green'>执行中</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"811\",\"106\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"811\",\"106\",\"4\")>点评&nbsp;</a><a id=\"act811\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act811_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('811','106','00-00-发交费通知书及相关函件（2026年03月03日14:42）项目负责人');\">催办</a><a class=\"op\" href=\"javascript:focus_run(811,106,'00-00-发交费通知书及相关函件（2026年03月03日14:42）项目负责人',1)\">关注</a><a href='javascript:end_run(811,106,4);'>结束</a><a href=\"javascript:delete_run(811,106,4);\">删除</a></div>"
+        ],
+        "flow_id": "106"
+      },
+      {
+        "id": 801,
+        "cell": [
+          801,
+          "<a title=\"流程类型：固定流程\n发交费通知书及相关函件\" href=javascript:view_graph(\"106\")>发交费通知书及相关函件</a>",
+          "<a href=javascript:view_work(\"\",\"801\",\"\",\"106\"); title=\"1111-111-发交费通知书及相关函件（2026年02月28日14:28）项目负责人\">1111-111-发交费通知书及相关函件（2026年02月28日14:28）项目负责人</a><input type='hidden' id='FLOW_ID_801' value='106' /><input type='hidden' id='BEGIN_DEPT_801' value='4' /><input type='hidden' id='BEGIN_USER_801' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2026-02-28 14:28:29",
+          "2026-03-03 13:44:49",
+          "",
+          "<font color='red'>已结束</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"801\",\"106\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"801\",\"106\",\"4\")>点评&nbsp;</a><a id=\"act801\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act801_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"将已结束工作恢复到执行中\" href=\"javascript:restore_run(801,106,4);\">恢复执行&nbsp;</a><a class=\"op\" title=\"编辑已结束工作表单数据\" href=\"javascript:edit_run(801,106);\">编辑&nbsp;</a><a href=\"javascript:delete_run(801,106,4);\">删除</a></div>"
+        ],
+        "flow_id": "106"
+      },
+      {
+        "id": 793,
+        "cell": [
+          793,
+          "<a title=\"流程类型：固定流程\n发交费通知书及相关函件\" href=javascript:view_graph(\"106\")>发交费通知书及相关函件</a>",
+          "<a href=javascript:view_work(\"\",\"793\",\"\",\"106\"); title=\"诉（2025）-某某法院-发交费通知书及相关函件（2026年02月27日13:40）项目负责人\">诉（2025）-某某法院-发交费通知书及相关函件（2026年02月27日13:40）项目负责人</a><input type='hidden' id='FLOW_ID_793' value='106' /><input type='hidden' id='BEGIN_DEPT_793' value='4' /><input type='hidden' id='BEGIN_USER_793' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2026-02-27 13:40:09",
+          "",
+          "",
+          "<font color='green'>执行中</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"793\",\"106\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"793\",\"106\",\"4\")>点评&nbsp;</a><a id=\"act793\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act793_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('793','106','诉（2025）-某某法院-发交费通知书及相关函件（2026年02月27日13:40）项目负责人');\">催办</a><a class=\"op\" href=\"javascript:focus_run(793,106,'诉（2025）-某某法院-发交费通知书及相关函件（2026年02月27日13:40）项目负责人',1)\">关注</a><a href='javascript:end_run(793,106,4);'>结束</a><a href=\"javascript:delete_run(793,106,4);\">删除</a></div>"
+        ],
+        "flow_id": "106"
+      },
+      {
+        "id": 784,
+        "cell": [
+          784,
+          "<a title=\"流程类型：固定流程\n发交费通知书及相关函件\" href=javascript:view_graph(\"106\")>发交费通知书及相关函件</a>",
+          "<a href=javascript:view_work(\"\",\"784\",\"\",\"106\"); title=\"（2026）京民初 0001号-北京市人民法院-发交费通知书及相关函件（2026年02月09日16:04）项目负责人\">（2026）京民初 0001号-北京市人民法院-发交费通知书及相关函件（2026年02月09日16:04）项目负责人</a><input type='hidden' id='FLOW_ID_784' value='106' /><input type='hidden' id='BEGIN_DEPT_784' value='4' /><input type='hidden' id='BEGIN_USER_784' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2026-02-09 16:04:48",
+          "",
+          "",
+          "<font color='green'>执行中</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"784\",\"106\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"784\",\"106\",\"4\")>点评&nbsp;</a><a id=\"act784\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act784_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('784','106','（2026）京民初 0001号-北京市人民法院-发交费通知书及相关函件（2026年02月09日16:04）项目负责人');\">催办</a><a class=\"op\" href=\"javascript:focus_run(784,106,'（2026）京民初 0001号-北京市人民法院-发交费通知书及相关函件（2026年02月09日16:04）项目负责人',1)\">关注</a><a href='javascript:end_run(784,106,4);'>结束</a><a href=\"javascript:delete_run(784,106,4);\">删除</a></div>"
+        ],
+        "flow_id": "106"
+      },
+      {
+        "id": 751,
+        "cell": [
+          751,
+          "<a title=\"流程类型：固定流程\n发交费通知书及相关函件\" href=javascript:view_graph(\"106\")>发交费通知书及相关函件</a>",
+          "<a href=javascript:view_work(\"\",\"751\",\"\",\"106\"); title=\"2025内12121-法院-发交费通知书及相关函件（2026年01月22日15:46）项目负责人\">2025内12121-法院-发交费通知书及相关函件（2026年01月22日15:46）项目负责人</a><input type='hidden' id='FLOW_ID_751' value='106' /><input type='hidden' id='BEGIN_DEPT_751' value='4' /><input type='hidden' id='BEGIN_USER_751' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2026-01-22 15:46:38",
+          "",
+          "",
+          "<font color='green'>执行中</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"751\",\"106\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"751\",\"106\",\"4\")>点评&nbsp;</a><a id=\"act751\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act751_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('751','106','2025内12121-法院-发交费通知书及相关函件（2026年01月22日15:46）项目负责人');\">催办</a><a class=\"op\" href=\"javascript:focus_run(751,106,'2025内12121-法院-发交费通知书及相关函件（2026年01月22日15:46）项目负责人',1)\">关注</a><a href='javascript:end_run(751,106,4);'>结束</a><a href=\"javascript:delete_run(751,106,4);\">删除</a></div>"
+        ],
+        "flow_id": "106"
+      },
+      {
+        "id": 739,
+        "cell": [
+          739,
+          "<a title=\"流程类型：固定流程\n发交费通知书及相关函件\" href=javascript:view_graph(\"106\")>发交费通知书及相关函件</a>",
+          "<a href=javascript:view_work(\"\",\"739\",\"\",\"106\"); title=\"2025内01213-委托人-发交费通知书及相关函件（2026年01月21日15:21）项目负责人\">2025内01213-委托人-发交费通知书及相关函件（2026年01月21日15:21）项目负责人</a><input type='hidden' id='FLOW_ID_739' value='106' /><input type='hidden' id='BEGIN_DEPT_739' value='4' /><input type='hidden' id='BEGIN_USER_739' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2026-01-21 15:21:42",
+          "2026-01-22 11:36:17",
+          "",
+          "<font color='red'>已结束</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"739\",\"106\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"739\",\"106\",\"4\")>点评&nbsp;</a><a id=\"act739\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act739_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"将已结束工作恢复到执行中\" href=\"javascript:restore_run(739,106,4);\">恢复执行&nbsp;</a><a class=\"op\" title=\"编辑已结束工作表单数据\" href=\"javascript:edit_run(739,106);\">编辑&nbsp;</a><a href=\"javascript:delete_run(739,106,4);\">删除</a></div>"
+        ],
+        "flow_id": "106"
+      },
+      {
+        "id": 707,
+        "cell": [
+          707,
+          "<a title=\"流程类型：固定流程\n发交费通知书及相关函件\" href=javascript:view_graph(\"106\")>发交费通知书及相关函件</a>",
+          "<a href=javascript:view_work(\"\",\"707\",\"\",\"106\"); title=\"as-qaw-发交费通知书及相关函件（2025年11月27日21:05）项目负责人\">as-qaw-发交费通知书及相关函件（2025年11月27日21:05）项目负责人</a><input type='hidden' id='FLOW_ID_707' value='106' /><input type='hidden' id='BEGIN_DEPT_707' value='4' /><input type='hidden' id='BEGIN_USER_707' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2025-11-27 21:05:17",
+          "",
+          "",
+          "<font color='green'>执行中</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"707\",\"106\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"707\",\"106\",\"4\")>点评&nbsp;</a><a id=\"act707\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act707_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('707','106','as-qaw-发交费通知书及相关函件（2025年11月27日21:05）项目负责人');\">催办</a><a class=\"op\" href=\"javascript:focus_run(707,106,'as-qaw-发交费通知书及相关函件（2025年11月27日21:05）项目负责人',1)\">关注</a><a href='javascript:end_run(707,106,4);'>结束</a><a href=\"javascript:delete_run(707,106,4);\">删除</a></div>"
+        ],
+        "flow_id": "106"
+      },
+      {
+        "id": 684,
+        "cell": [
+          684,
+          "<a title=\"流程类型：固定流程\n发交费通知书及相关函件\" href=javascript:view_graph(\"106\")>发交费通知书及相关函件</a>",
+          "<a href=javascript:view_work(\"\",\"684\",\"\",\"106\"); title=\"{案件号}|[2]-{委托人}|[2]-发交费通知书及相关函件（2025年11月05日10:19）项目负责人\">{案件号}|[2]-{委托人}|[2]-发交费通知书及相关函件（2025年11月05日10:19）项目负责人</a><input type='hidden' id='FLOW_ID_684' value='106' /><input type='hidden' id='BEGIN_DEPT_684' value='4' /><input type='hidden' id='BEGIN_USER_684' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2025-11-05 10:19:45",
+          "",
+          "",
+          "<font color='green'>执行中</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"684\",\"106\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"684\",\"106\",\"4\")>点评&nbsp;</a><a id=\"act684\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act684_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('684','106','{案件号}|[2]-{委托人}|[2]-发交费通知书及相关函件（2025年11月05日10:19）项目负责人');\">催办</a><a class=\"op\" href=\"javascript:focus_run(684,106,'{案件号}|[2]-{委托人}|[2]-发交费通知书及相关函件（2025年11月05日10:19）项目负责人',1)\">关注</a><a href='javascript:end_run(684,106,4);'>结束</a><a href=\"javascript:delete_run(684,106,4);\">删除</a></div>"
+        ],
+        "flow_id": "106"
+      },
+      {
+        "id": 683,
+        "cell": [
+          683,
+          "<a title=\"流程类型：固定流程\n发交费通知书及相关函件\" href=javascript:view_graph(\"106\")>发交费通知书及相关函件</a>",
+          "<a href=javascript:view_work(\"\",\"683\",\"\",\"106\"); title=\"{案件号}|[2]-{委托人}|[2]-发交费通知书及相关函件（2025年11月05日10:03）项目负责人\">{案件号}|[2]-{委托人}|[2]-发交费通知书及相关函件（2025年11月05日10:03）项目负责人</a><input type='hidden' id='FLOW_ID_683' value='106' /><input type='hidden' id='BEGIN_DEPT_683' value='4' /><input type='hidden' id='BEGIN_USER_683' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2025-11-05 10:03:09",
+          "",
+          "",
+          "<font color='green'>执行中</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"683\",\"106\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"683\",\"106\",\"4\")>点评&nbsp;</a><a id=\"act683\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act683_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('683','106','{案件号}|[2]-{委托人}|[2]-发交费通知书及相关函件（2025年11月05日10:03）项目负责人');\">催办</a><a class=\"op\" href=\"javascript:focus_run(683,106,'{案件号}|[2]-{委托人}|[2]-发交费通知书及相关函件（2025年11月05日10:03）项目负责人',1)\">关注</a><a href='javascript:end_run(683,106,4);'>结束</a><a href=\"javascript:delete_run(683,106,4);\">删除</a></div>"
+        ],
+        "flow_id": "106"
+      },
+      {
+        "id": 679,
+        "cell": [
+          679,
+          "<a title=\"流程类型：固定流程\n发交费通知书及相关函件\" href=javascript:view_graph(\"106\")>发交费通知书及相关函件</a>",
+          "<a href=javascript:view_work(\"\",\"679\",\"\",\"106\"); title=\"test123-78989-发交费通知书及相关函件（2025年11月03日20:06）项目负责人\">test123-78989-发交费通知书及相关函件（2025年11月03日20:06）项目负责人</a><input type='hidden' id='FLOW_ID_679' value='106' /><input type='hidden' id='BEGIN_DEPT_679' value='4' /><input type='hidden' id='BEGIN_USER_679' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2025-11-03 20:06:50",
+          "",
+          "",
+          "<font color='green'>执行中</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"679\",\"106\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"679\",\"106\",\"4\")>点评&nbsp;</a><a id=\"act679\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act679_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('679','106','test123-78989-发交费通知书及相关函件（2025年11月03日20:06）项目负责人');\">催办</a><a class=\"op\" href=\"javascript:focus_run(679,106,'test123-78989-发交费通知书及相关函件（2025年11月03日20:06）项目负责人',1)\">关注</a><a href='javascript:end_run(679,106,4);'>结束</a><a href=\"javascript:delete_run(679,106,4);\">删除</a></div>"
+        ],
+        "flow_id": "106"
+      },
+      {
+        "id": 665,
+        "cell": [
+          665,
+          "<a title=\"流程类型：固定流程\n发交费通知书及相关函件\" href=javascript:view_graph(\"106\")>发交费通知书及相关函件</a>",
+          "<a href=javascript:view_work(\"\",\"665\",\"\",\"106\"); title=\"{案件号}|[2]-{委托人}|[2]-发交费通知书及相关函件（2025年10月30日22:13）项目负责人\">{案件号}|[2]-{委托人}|[2]-发交费通知书及相关函件（2025年10月30日22:13）项目负责人</a><input type='hidden' id='FLOW_ID_665' value='106' /><input type='hidden' id='BEGIN_DEPT_665' value='4' /><input type='hidden' id='BEGIN_USER_665' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2025-10-30 22:13:23",
+          "",
+          "",
+          "<font color='green'>执行中</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"665\",\"106\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"665\",\"106\",\"4\")>点评&nbsp;</a><a id=\"act665\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act665_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('665','106','{案件号}|[2]-{委托人}|[2]-发交费通知书及相关函件（2025年10月30日22:13）项目负责人');\">催办</a><a class=\"op\" href=\"javascript:focus_run(665,106,'{案件号}|[2]-{委托人}|[2]-发交费通知书及相关函件（2025年10月30日22:13）项目负责人',1)\">关注</a><a href='javascript:end_run(665,106,4);'>结束</a><a href=\"javascript:delete_run(665,106,4);\">删除</a></div>"
+        ],
+        "flow_id": "106"
+      },
+      {
+        "id": 640,
+        "cell": [
+          640,
+          "<a title=\"流程类型：固定流程\n发交费通知书及相关函件\" href=javascript:view_graph(\"106\")>发交费通知书及相关函件</a>",
+          "<a href=javascript:view_work(\"\",\"640\",\"\",\"106\"); title=\"123-张三1-发交费通知书及相关函件（2025年10月22日20:46）项目负责人\">123-张三1-发交费通知书及相关函件（2025年10月22日20:46）项目负责人</a><input type='hidden' id='FLOW_ID_640' value='106' /><input type='hidden' id='BEGIN_DEPT_640' value='4' /><input type='hidden' id='BEGIN_USER_640' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2025-10-22 20:46:20",
+          "",
+          "",
+          "<font color='green'>执行中</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"640\",\"106\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"640\",\"106\",\"4\")>点评&nbsp;</a><a id=\"act640\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act640_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('640','106','123-张三1-发交费通知书及相关函件（2025年10月22日20:46）项目负责人');\">催办</a><a class=\"op\" href=\"javascript:focus_run(640,106,'123-张三1-发交费通知书及相关函件（2025年10月22日20:46）项目负责人',1)\">关注</a><a href='javascript:end_run(640,106,4);'>结束</a><a href=\"javascript:delete_run(640,106,4);\">删除</a></div>"
+        ],
+        "flow_id": "106"
+      },
+      {
+        "id": 621,
+        "cell": [
+          621,
+          "<a title=\"流程类型：固定流程\n发交费通知书及相关函件\" href=javascript:view_graph(\"106\")>发交费通知书及相关函件</a>",
+          "<a href=javascript:view_work(\"\",\"621\",\"\",\"106\"); title=\"（2025）京民初  4455号-某某法院-发交费通知书及相关函件（2025年10月16日15:57）项目负责人\">（2025）京民初  4455号-某某法院-发交费通知书及相关函件（2025年10月16日15:57）项目负责人</a><input type='hidden' id='FLOW_ID_621' value='106' /><input type='hidden' id='BEGIN_DEPT_621' value='4' /><input type='hidden' id='BEGIN_USER_621' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2025-10-16 15:57:40",
+          "2025-10-16 16:47:15",
+          "",
+          "<font color='red'>已结束</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"621\",\"106\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"621\",\"106\",\"4\")>点评&nbsp;</a><a id=\"act621\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act621_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"将已结束工作恢复到执行中\" href=\"javascript:restore_run(621,106,4);\">恢复执行&nbsp;</a><a class=\"op\" title=\"编辑已结束工作表单数据\" href=\"javascript:edit_run(621,106);\">编辑&nbsp;</a><a href=\"javascript:delete_run(621,106,4);\">删除</a></div>"
+        ],
+        "flow_id": "106"
+      },
+      {
+        "id": 607,
+        "cell": [
+          607,
+          "<a title=\"流程类型：固定流程\n发交费通知书及相关函件\" href=javascript:view_graph(\"106\")>发交费通知书及相关函件</a>",
+          "<a href=javascript:view_work(\"\",\"607\",\"\",\"106\"); title=\"（2025）京民初  4455号-某某法院-发交费通知书及相关函件（2025年10月16日13:45）项目负责人\">（2025）京民初  4455号-某某法院-发交费通知书及相关函件（2025年10月16日13:45）项目负责人</a><input type='hidden' id='FLOW_ID_607' value='106' /><input type='hidden' id='BEGIN_DEPT_607' value='4' /><input type='hidden' id='BEGIN_USER_607' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2025-10-16 13:45:07",
+          "2025-10-16 15:52:42",
+          "",
+          "<font color='red'>已结束</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"607\",\"106\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"607\",\"106\",\"4\")>点评&nbsp;</a><a id=\"act607\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act607_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"将已结束工作恢复到执行中\" href=\"javascript:restore_run(607,106,4);\">恢复执行&nbsp;</a><a class=\"op\" title=\"编辑已结束工作表单数据\" href=\"javascript:edit_run(607,106);\">编辑&nbsp;</a><a href=\"javascript:delete_run(607,106,4);\">删除</a></div>"
+        ],
+        "flow_id": "106"
+      },
+      {
+        "id": 597,
+        "cell": [
+          597,
+          "<a title=\"流程类型：固定流程\n发交费通知书及相关函件\" href=javascript:view_graph(\"106\")>发交费通知书及相关函件</a>",
+          "<a href=javascript:view_work(\"\",\"597\",\"\",\"106\"); title=\"123-张三1-发交费通知书及相关函件（2025年10月15日22:55）项目负责人\">123-张三1-发交费通知书及相关函件（2025年10月15日22:55）项目负责人</a><input type='hidden' id='FLOW_ID_597' value='106' /><input type='hidden' id='BEGIN_DEPT_597' value='4' /><input type='hidden' id='BEGIN_USER_597' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2025-10-15 22:55:38",
+          "2025-10-22 20:52:08",
+          "",
+          "<font color='red'>已结束</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"597\",\"106\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"597\",\"106\",\"4\")>点评&nbsp;</a><a id=\"act597\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act597_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"将已结束工作恢复到执行中\" href=\"javascript:restore_run(597,106,4);\">恢复执行&nbsp;</a><a class=\"op\" title=\"编辑已结束工作表单数据\" href=\"javascript:edit_run(597,106);\">编辑&nbsp;</a><a href=\"javascript:delete_run(597,106,4);\">删除</a></div>"
+        ],
+        "flow_id": "106"
+      },
+      {
+        "id": 585,
+        "cell": [
+          585,
+          "<a title=\"流程类型：固定流程\n发交费通知书及相关函件\" href=javascript:view_graph(\"106\")>发交费通知书及相关函件</a>",
+          "<a href=javascript:view_work(\"\",\"585\",\"\",\"106\"); title=\"（2025）京民初  4455号-某某法院-发交费通知书及相关函件（2025年10月15日15:56）项目负责人\">（2025）京民初  4455号-某某法院-发交费通知书及相关函件（2025年10月15日15:56）项目负责人</a><input type='hidden' id='FLOW_ID_585' value='106' /><input type='hidden' id='BEGIN_DEPT_585' value='4' /><input type='hidden' id='BEGIN_USER_585' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2025-10-15 15:56:17",
+          "2025-10-16 10:51:44",
+          "",
+          "<font color='red'>已结束</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"585\",\"106\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"585\",\"106\",\"4\")>点评&nbsp;</a><a id=\"act585\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act585_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"将已结束工作恢复到执行中\" href=\"javascript:restore_run(585,106,4);\">恢复执行&nbsp;</a><a class=\"op\" title=\"编辑已结束工作表单数据\" href=\"javascript:edit_run(585,106);\">编辑&nbsp;</a><a href=\"javascript:delete_run(585,106,4);\">删除</a></div>"
+        ],
+        "flow_id": "106"
+      },
+      {
+        "id": 582,
+        "cell": [
+          582,
+          "<a title=\"流程类型：固定流程\n发交费通知书及相关函件\" href=javascript:view_graph(\"106\")>发交费通知书及相关函件</a>",
+          "<a href=javascript:view_work(\"\",\"582\",\"\",\"106\"); title=\"（2025）京民初  4455号-某某法院-发交费通知书及相关函件（2025年10月15日15:21）项目负责人\">（2025）京民初  4455号-某某法院-发交费通知书及相关函件（2025年10月15日15:21）项目负责人</a><input type='hidden' id='FLOW_ID_582' value='106' /><input type='hidden' id='BEGIN_DEPT_582' value='4' /><input type='hidden' id='BEGIN_USER_582' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2025-10-15 15:21:55",
+          "",
+          "",
+          "<font color='green'>执行中</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"582\",\"106\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"582\",\"106\",\"4\")>点评&nbsp;</a><a id=\"act582\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act582_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('582','106','（2025）京民初  4455号-某某法院-发交费通知书及相关函件（2025年10月15日15:21）项目负责人');\">催办</a><a class=\"op\" href=\"javascript:focus_run(582,106,'（2025）京民初  4455号-某某法院-发交费通知书及相关函件（2025年10月15日15:21）项目负责人',1)\">关注</a><a href='javascript:end_run(582,106,4);'>结束</a><a href=\"javascript:delete_run(582,106,4);\">删除</a></div>"
+        ],
+        "flow_id": "106"
+      },
+      {
+        "id": 567,
+        "cell": [
+          567,
+          "<a title=\"流程类型：固定流程\n发交费通知书及相关函件\" href=javascript:view_graph(\"106\")>发交费通知书及相关函件</a>",
+          "<a href=javascript:view_work(\"\",\"567\",\"\",\"106\"); title=\"（2025）京民初 1113号-某某法院-发交费通知书及相关函件（2025年10月15日13:53）项目负责人\">（2025）京民初 1113号-某某法院-发交费通知书及相关函件（2025年10月15日13:53）项目负责人</a><input type='hidden' id='FLOW_ID_567' value='106' /><input type='hidden' id='BEGIN_DEPT_567' value='4' /><input type='hidden' id='BEGIN_USER_567' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2025-10-15 13:53:37",
+          "",
+          "",
+          "<font color='green'>执行中</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"567\",\"106\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"567\",\"106\",\"4\")>点评&nbsp;</a><a id=\"act567\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act567_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"给未办结的主办人发送提醒\" href=\"javascript:reminders('567','106','（2025）京民初 1113号-某某法院-发交费通知书及相关函件（2025年10月15日13:53）项目负责人');\">催办</a><a class=\"op\" href=\"javascript:focus_run(567,106,'（2025）京民初 1113号-某某法院-发交费通知书及相关函件（2025年10月15日13:53）项目负责人',1)\">关注</a><a href='javascript:end_run(567,106,4);'>结束</a><a href=\"javascript:delete_run(567,106,4);\">删除</a></div>"
+        ],
+        "flow_id": "106"
+      },
+      {
+        "id": 537,
+        "cell": [
+          537,
+          "<a title=\"流程类型：固定流程\n发交费通知书及相关函件\" href=javascript:view_graph(\"106\")>发交费通知书及相关函件</a>",
+          "<a href=javascript:view_work(\"\",\"537\",\"\",\"106\"); title=\"案件号2-委托人2-发交费通知书及相关函件（2025年10月12日22:25）项目负责人\">案件号2-委托人2-发交费通知书及相关函件（2025年10月12日22:25）项目负责人</a><input type='hidden' id='FLOW_ID_537' value='106' /><input type='hidden' id='BEGIN_DEPT_537' value='4' /><input type='hidden' id='BEGIN_USER_537' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2025-10-12 22:25:22",
+          "2025-10-15 17:05:43",
+          "",
+          "<font color='red'>已结束</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"537\",\"106\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"537\",\"106\",\"4\")>点评&nbsp;</a><a id=\"act537\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act537_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"将已结束工作恢复到执行中\" href=\"javascript:restore_run(537,106,4);\">恢复执行&nbsp;</a><a class=\"op\" title=\"编辑已结束工作表单数据\" href=\"javascript:edit_run(537,106);\">编辑&nbsp;</a><a href=\"javascript:delete_run(537,106,4);\">删除</a></div>"
+        ],
+        "flow_id": "106"
+      },
+      {
+        "id": 525,
+        "cell": [
+          525,
+          "<a title=\"流程类型：固定流程\n发交费通知书及相关函件\" href=javascript:view_graph(\"106\")>发交费通知书及相关函件</a>",
+          "<a href=javascript:view_work(\"\",\"525\",\"\",\"106\"); title=\"发交费通知书及相关函件（2025年10月12日21:38）项目负责人\">发交费通知书及相关函件（2025年10月12日21:38）项目负责人</a><input type='hidden' id='FLOW_ID_525' value='106' /><input type='hidden' id='BEGIN_DEPT_525' value='4' /><input type='hidden' id='BEGIN_USER_525' value='21' />",
+          "研发部",
+          "项目负责人",
+          "2025-10-12 21:38:14",
+          "2025-10-12 22:00:33",
+          "",
+          "<font color='red'>已结束</font>",
+          "<a class=\"op\" href=javascript:flow_view(\"525\",\"106\")>流程图&nbsp;</a><a class=\"op\" title=\"添加点评意见\" href=javascript:comment(\"525\",\"106\",\"4\")>点评&nbsp;</a><a id=\"act525\" href=\"#\" class=\"dropdown\" onmouseover=\"showMenuWorkflow(this.id,1);\" hidefocus=\"true\"><span>更多</span></a>&nbsp;<div id=\"act525_menu\" class=\"attach_div\" style='z-index:5000' align=\"left\"><a class=\"op\" title=\"将已结束工作恢复到执行中\" href=\"javascript:restore_run(525,106,4);\">恢复执行&nbsp;</a><a class=\"op\" title=\"编辑已结束工作表单数据\" href=\"javascript:edit_run(525,106);\">编辑&nbsp;</a><a href=\"javascript:delete_run(525,106,4);\">删除</a></div>"
+        ],
+        "flow_id": "106"
+      }
+    ],
+    "records": "21",
+    "page": 1,
+    "total": 1
+  }
+}

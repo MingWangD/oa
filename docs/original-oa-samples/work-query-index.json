@@ -1,0 +1,112 @@
+[
+  {
+    "runId": 819,
+    "flowId": "104",
+    "flowName": "收到委托书",
+    "runName": "23-23-收到委托书（2026年06月12日12:21）系统管理员",
+    "department": "综合办",
+    "beginUser": "系统管理员",
+    "beginTime": "2026-06-12 12:21:41",
+    "endTime": "",
+    "status": "执行中"
+  },
+  {
+    "runId": 818,
+    "flowId": "104",
+    "flowName": "收到委托书",
+    "runName": "2-2-收到委托书（2026年06月12日12:20）系统管理员",
+    "department": "综合办",
+    "beginUser": "系统管理员",
+    "beginTime": "2026-06-12 12:20:08",
+    "endTime": "",
+    "status": "执行中"
+  },
+  {
+    "runId": 817,
+    "flowId": "113",
+    "flowName": "现场勘验",
+    "runName": "{案件号}|[1]-{委托人}|[1]-现场勘验（2026年06月12日12:11）系统管理员",
+    "department": "综合办",
+    "beginUser": "系统管理员",
+    "beginTime": "2026-06-12 12:11:25",
+    "endTime": "",
+    "status": "执行中"
+  },
+  {
+    "runId": 754,
+    "flowId": "117",
+    "flowName": "收到撤案函",
+    "runName": "145646456--收到撤案函（2026年01月25日17:34）系统管理员",
+    "department": "综合办",
+    "beginUser": "系统管理员",
+    "beginTime": "2026-01-25 17:34:28",
+    "endTime": "",
+    "status": "执行中"
+  },
+  {
+    "runId": 752,
+    "flowId": "104",
+    "flowName": "收到委托书",
+    "runName": "{案件号}|[1]-{委托人}|[1]-收到委托书（2026年01月25日17:09）系统管理员",
+    "department": "综合办",
+    "beginUser": "系统管理员",
+    "beginTime": "2026-01-25 17:09:11",
+    "endTime": "",
+    "status": "执行中"
+  },
+  {
+    "runId": 701,
+    "flowId": "104",
+    "flowName": "收到委托书",
+    "runName": "{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月27日20:24）系统管理员",
+    "department": "综合办",
+    "beginUser": "系统管理员",
+    "beginTime": "2025-11-27 20:24:24",
+    "endTime": "",
+    "status": "执行中"
+  },
+  {
+    "runId": 676,
+    "flowId": "104",
+    "flowName": "收到委托书",
+    "runName": "{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:20）系统管理员",
+    "department": "综合办",
+    "beginUser": "系统管理员",
+    "beginTime": "2025-11-03 19:20:23",
+    "endTime": "",
+    "status": "执行中"
+  },
+  {
+    "runId": 674,
+    "flowId": "104",
+    "flowName": "收到委托书",
+    "runName": "{案件号}|[2]-{委托人}|[2]-收到委托书（2025年11月03日19:13）系统管理员",
+    "department": "综合办",
+    "beginUser": "系统管理员",
+    "beginTime": "2025-11-03 19:13:03",
+    "endTime": "",
+    "status": "执行中"
+  },
+  {
+    "runId": 509,
+    "flowId": "123",
+    "flowName": "安全风险通知",
+    "runName": "安全风险通知(2025-08-13 21:32:22 (509))",
+    "department": "综合办",
+    "beginUser": "系统管理员",
+    "beginTime": "2025-08-13 21:32:22",
+    "endTime": "",
+    "status": "执行中"
+  },
+  {
+    "runId": 508,
+    "flowId": "123",
+    "flowName": "安全风险通知",
+    "runName": "安全风险通知(2025-08-13 21:21:08 (508))",
+    "department": "综合办",
+    "beginUser": "系统管理员",
+    "beginTime": "2025-08-13 21:21:08",
+    "endTime": "",
+    "status": "执行中"
+  }
+]
