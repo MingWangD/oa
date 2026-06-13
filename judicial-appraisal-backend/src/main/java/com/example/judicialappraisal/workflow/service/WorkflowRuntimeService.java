@@ -518,6 +518,8 @@ public class WorkflowRuntimeService {
 
     private void completeCurrentTaskAndNode(CaseInfo caseInfo, CaseTask task, WorkflowActionRequest request, Long operatorId, String operatorName, LocalDateTime now) {
         task.setStatus(TASK_COMPLETED);
+        task.setAssigneeId(operatorId);
+        task.setAssigneeName(defaultName(operatorName));
         task.setStartedTime(task.getStartedTime() == null ? now : task.getStartedTime());
         task.setCompletedTime(now);
         task.setResultAction(request.actionCode().name());

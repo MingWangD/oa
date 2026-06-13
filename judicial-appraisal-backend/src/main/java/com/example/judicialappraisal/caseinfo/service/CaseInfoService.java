@@ -98,9 +98,7 @@ public class CaseInfoService extends ServiceImpl<CaseInfoMapper, CaseInfo> {
         if (!isAdmin(currentUser) && !Objects.equals(caseInfo.getCreatedBy(), currentUser.id())) {
             throw new BusinessException("只能删除本人创建的草稿");
         }
-        caseInfo.setDeleted(1);
-        caseInfo.setUpdatedBy(currentUser.id());
-        updateById(caseInfo);
+        removeById(caseId);
     }
 
     private boolean isAdmin(CurrentUserInfo currentUser) {
