@@ -54,6 +54,119 @@ oa/
 - Redis 6+ (默认端口 6379)
 - MinIO (默认端口 9000)
 
+默认后端配置见 `judicial-appraisal-backend/src/main/resources/application.yml`：
+
+- 后端服务：`http://localhost:8080`
+- 前端开发服务：`http://localhost:5173`
+- MySQL：`localhost:3307/judicial_appraisal`，用户名 `root`，密码 `123456`
+- Redis：`localhost:6379`，数据库 `0`
+- MinIO：`http://localhost:9000`，Access Key `minioadmin`，Secret Key `minioadmin`，Bucket `judicial-appraisal`
+
+### macOS 环境配置
+
+推荐使用 Homebrew 安装基础依赖：
+
+```bash
+brew install openjdk@17 maven node@20 mysql@8.0 redis minio/stable/minio
+```
+
+如果 `java` 或 `node` 命令没有自动指向上述版本，可按 Homebrew 输出提示设置 `PATH`。常见设置如下：
+
+```bash
+export PATH="/opt/homebrew/opt/openjdk@17/bin:$PATH"
+export PATH="/opt/homebrew/opt/node@20/bin:$PATH"
+```
+
+启动 MySQL、Redis：
+
+```bash
+brew services start mysql@8.0
+brew services start redis
+```
+
+本项目默认连接 MySQL `3307` 端口。如果本机 MySQL 默认是 `3306`，可以二选一：
+
+1. 修改 `judicial-appraisal-backend/src/main/resources/application.yml` 中的 JDBC 端口为 `3306`。
+2. 将 MySQL 配置为监听 `3307`。
+
+创建数据库和初始化表结构：
+
+```bash
+mysql -uroot -p123456 -P3307 < judicial-appraisal-backend/src/main/resources/db/schema.sql
+mysql -uroot -p123456 -P3307 judicial_appraisal < judicial-appraisal-backend/src/main/resources/db/migration_v2_rbac.sql
+mysql -uroot -p123456 -P3307 judicial_appraisal < judicial-appraisal-backend/src/main/resources/db/migration_v3_dynamic_platform.sql
+mysql -uroot -p123456 -P3307 judicial_appraisal < judicial-appraisal-backend/src/main/resources/db/migration_v4_file_knowledge_audit.sql
+mysql -uroot -p123456 -P3307 judicial_appraisal < judicial-appraisal-backend/src/main/resources/db/migration_v5_subflow_relation.sql
+mysql -uroot -p123456 -P3307 judicial_appraisal < judicial-appraisal-backend/src/main/resources/db/migration_v6_form_data.sql
+mysql -uroot -p123456 -P3307 judicial_appraisal < judicial-appraisal-backend/src/main/resources/db/migration_v7_contract_mvp.sql
+```
+
+启动 MinIO：
+
+```bash
+mkdir -p ~/minio-data/judicial-appraisal
+MINIO_ROOT_USER=minioadmin MINIO_ROOT_PASSWORD=minioadmin minio server ~/minio-data --console-address ":9001"
+```
+
+MinIO 控制台地址为 `http://localhost:9001`。首次运行后确认存在 `judicial-appraisal` bucket；如果没有，可以在控制台手动创建。
+
+### Windows 环境配置
+
+推荐使用 Windows 11 + PowerShell + Docker Desktop。Java、Maven、Node.js 可使用 winget 安装：
+
+```powershell
+winget install EclipseAdoptium.Temurin.17.JDK
+winget install Apache.Maven
+winget install OpenJS.NodeJS.LTS
+```
+
+打开新的 PowerShell，确认版本：
+
+```powershell
+java -version
+mvn -version
+node -v
+npm -v
+```
+
+使用 Docker 启动 MySQL、Redis、MinIO：
+
+```powershell
+docker run --name judicial-mysql `
+  -e MYSQL_ROOT_PASSWORD=123456 `
+  -e MYSQL_DATABASE=judicial_appraisal `
+  -p 3307:3306 `
+  -d mysql:8.0 `
+  --character-set-server=utf8mb4 `
+  --collation-server=utf8mb4_general_ci
+
+docker run --name judicial-redis `
+  -p 6379:6379 `
+  -d redis:7
+
+docker run --name judicial-minio `
+  -p 9000:9000 `
+  -p 9001:9001 `
+  -e MINIO_ROOT_USER=minioadmin `
+  -e MINIO_ROOT_PASSWORD=minioadmin `
+  -v "$env:USERPROFILE\minio-data:/data" `
+  -d quay.io/minio/minio server /data --console-address ":9001"
+```
+
+初始化数据库：
+
+```powershell
+Get-Content judicial-appraisal-backend\src\main\resources\db\schema.sql | docker exec -i judicial-mysql mysql -uroot -p123456
+Get-Content judicial-appraisal-backend\src\main\resources\db\migration_v2_rbac.sql | docker exec -i judicial-mysql mysql -uroot -p123456 judicial_appraisal
+Get-Content judicial-appraisal-backend\src\main\resources\db\migration_v3_dynamic_platform.sql | docker exec -i judicial-mysql mysql -uroot -p123456 judicial_appraisal
+Get-Content judicial-appraisal-backend\src\main\resources\db\migration_v4_file_knowledge_audit.sql | docker exec -i judicial-mysql mysql -uroot -p123456 judicial_appraisal
+Get-Content judicial-appraisal-backend\src\main\resources\db\migration_v5_subflow_relation.sql | docker exec -i judicial-mysql mysql -uroot -p123456 judicial_appraisal
+Get-Content judicial-appraisal-backend\src\main\resources\db\migration_v6_form_data.sql | docker exec -i judicial-mysql mysql -uroot -p123456 judicial_appraisal
+Get-Content judicial-appraisal-backend\src\main\resources\db\migration_v7_contract_mvp.sql | docker exec -i judicial-mysql mysql -uroot -p123456 judicial_appraisal
+```
+
+MinIO 控制台地址为 `http://localhost:9001`。首次运行后确认存在 `judicial-appraisal` bucket；如果没有，可以在控制台手动创建。
+
 ### 后端启动
 
 ```bash
@@ -67,6 +180,24 @@ mvn spring-boot:run
 cd judicial-appraisal-frontend
 npm install
 npm run dev
+```
+
+前端开发服务器会监听 `5173`，并将 `/api` 请求代理到后端。默认后端地址由 `judicial-appraisal-frontend/vite.config.ts` 中的代理配置决定。
+
+### 常用验证命令
+
+后端全量测试：
+
+```bash
+cd judicial-appraisal-backend
+mvn test
+```
+
+前端构建：
+
+```bash
+cd judicial-appraisal-frontend
+npm run build
 ```
 
 ## 核心验收项
