@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LongValue;
+import net.sf.jsqlparser.expression.Parenthesis;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.JSQLParserException;
@@ -45,10 +46,11 @@ public class CustomDataPermissionHandler implements MultiDataPermissionHandler {
             case SELF -> selfCases(table, userInfo.id());
             case ALL -> null;
         };
+        Expression workflowAccessExpression = workflowParticipantCases(table, userInfo);
         if (scopeExpression == null) {
-            return denyAll();
+            return workflowAccessExpression == null ? denyAll() : workflowAccessExpression;
         }
-        return scopeExpression;
+        return or(scopeExpression, workflowAccessExpression);
     }
 
     DataScopeLevel resolveScope(CurrentUserInfo userInfo) {
@@ -103,6 +105,39 @@ public class CustomDataPermissionHandler implements MultiDataPermissionHandler {
             return CCJSqlParserUtil.parseCondExpression(condition);
         } catch (JSQLParserException ex) {
             throw new IllegalStateException("Failed to build self data scope", ex);
+        }
+    }
+
+    private Expression workflowParticipantCases(Table table, CurrentUserInfo userInfo) {
+        if (userInfo.id() == null) {
+            return null;
+        }
+        String caseIdColumn = qualifiedColumn(table, "id");
+        String roleIds = userInfo.roles().stream()
+                .map(CurrentUserRole::id)
+                .filter(id -> id != null)
+                .map(String::valueOf)
+                .collect(Collectors.joining(", "));
+        String candidateRoleCondition = roleIds.isBlank() ? "1 = 0" : "ctc.candidate_role_id IN (" + roleIds + ")";
+        String condition = "EXISTS (SELECT 1 FROM case_task ct WHERE ct.case_id = " + caseIdColumn
+                + " AND (ct.assignee_id = " + userInfo.id() + " OR ct.claimed_by = " + userInfo.id() + "))"
+                + " OR EXISTS (SELECT 1 FROM case_task_candidate ctc WHERE ctc.case_id = " + caseIdColumn
+                + " AND (ctc.candidate_user_id = " + userInfo.id() + " OR " + candidateRoleCondition + "))";
+        try {
+            return CCJSqlParserUtil.parseCondExpression(condition);
+        } catch (JSQLParserException ex) {
+            throw new IllegalStateException("Failed to build workflow participant data scope", ex);
+        }
+    }
+
+    private Expression or(Expression left, Expression right) {
+        if (right == null) {
+            return left;
+        }
+        try {
+            return new Parenthesis(CCJSqlParserUtil.parseCondExpression("(" + left + ") OR (" + right + ")"));
+        } catch (JSQLParserException ex) {
+            throw new IllegalStateException("Failed to build data scope expression", ex);
         }
     }
 

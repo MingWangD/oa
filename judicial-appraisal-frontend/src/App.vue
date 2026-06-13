@@ -202,7 +202,9 @@ watch(
             <span class="td-userhint">{{ currentUserMeta }}</span>
           </span>
         </button>
-        <el-button text class="td-logout" :loading="loggingOut" @click="handleLogout">退出登录</el-button>
+        <button type="button" class="td-logout" :disabled="loggingOut" @click="handleLogout">
+          {{ loggingOut ? '退出中...' : '退出登录' }}
+        </button>
       </div>
     </el-header>
 

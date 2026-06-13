@@ -149,7 +149,10 @@ class ManualAcceptanceWalkthroughVerificationTest {
                 .andExpect(status().isOk())
                 .andReturn();
         String detailBody = detailResult.getResponse().getContentAsString(StandardCharsets.UTF_8);
-        assertThat(detailBody).contains("REAL-CHAIN-001");
+        assertThat(detailBody)
+                .contains("JA-" + caseId)
+                .contains("真实流程链条验证")
+                .contains("项目负责人决策");
         
         // 验证已办能看到详情
         MvcResult doneResult = mockMvc.perform(get("/api/workbench/done?assigneeId=" + leaderId)

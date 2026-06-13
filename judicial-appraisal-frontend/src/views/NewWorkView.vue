@@ -123,7 +123,7 @@ const visibleWorkflows = computed(() => {
   const categoryCodes = selectedCategory?.workflowCodes;
   const query = keyword.value.trim().toLowerCase();
 
-  let filtered = workflows.value.filter((workflow) => canCreateWorkflow(workflow));
+  let filtered = workflows.value.slice();
 
   if (activeCategory.value !== 'all' && categoryCodes) {
     filtered = filtered.filter((workflow) => categoryCodes.includes(workflow.code));
@@ -166,24 +166,6 @@ onMounted(async () => {
     loading.value = false;
   }
 });
-
-function canCreateWorkflow(workflow: JudicialWorkflowDefinition): boolean {
-  if (isAdmin.value) {
-    return true;
-  }
-  const roleNames = userRoleNames.value;
-  return workflow.roles.some((role) => roleNames.some((name) => roleMatches(name, role)));
-}
-
-function roleMatches(userRole: string, workflowRole: string): boolean {
-  if (userRole === workflowRole || userRole.includes(workflowRole) || workflowRole.includes(userRole)) {
-    return true;
-  }
-  if (workflowRole === '收件人' && userRole === '收案员') {
-    return true;
-  }
-  return workflowRole === '申请人' || workflowRole === '发起人';
-}
 
 function canManualCreate(workflow: JudicialWorkflowDefinition): boolean {
   return manualCreateCodes.has(workflow.code) || workflow.entryMode === 'direct' || workflow.entryMode.includes('direct');

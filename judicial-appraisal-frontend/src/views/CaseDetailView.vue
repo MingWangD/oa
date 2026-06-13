@@ -52,7 +52,8 @@ const returnPath = computed(() => (typeof route.query.from === 'string' ? route.
 const returnLabel = computed(() => (typeof route.query.fromLabel === 'string' ? route.query.fromLabel : '上一页'));
 const sourceBoard = computed(() => (typeof route.query.fromBoard === 'string' ? route.query.fromBoard : ''));
 const routeTaskId = computed(() => Number(route.query.taskId));
-const readonlyMode = computed(() => route.query.readonly === '1');
+const pageMode = computed(() => (typeof route.query.mode === 'string' ? route.query.mode : ''));
+const readonlyMode = computed(() => pageMode.value === 'readonly' || route.query.readonly === '1');
 const hasEntrustOrg = computed(() => Boolean(detail.value?.entrustOrgName));
 const hasStatus = computed(() => Boolean(detail.value?.caseStatus));
 const isDraftCase = computed(() => detail.value?.caseStatus === 'DRAFT');
@@ -389,7 +390,7 @@ onMounted(() => {
         </el-descriptions>
       </section>
 
-      <section v-if="canHandle" class="process-section">
+      <section class="process-section">
         <div class="section-title">
           <h2>动态表单</h2>
           <span>{{ formPreview?.formName || currentForm?.name || detail.caseType || '待匹配表单' }}</span>
@@ -504,7 +505,7 @@ onMounted(() => {
         </div>
       </section>
 
-      <section class="process-section">
+      <section v-if="canHandle" class="process-section">
         <div class="section-title">
           <h2>办理意见</h2>
           <span>退回或终止时必须填写明确原因</span>

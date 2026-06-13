@@ -13,8 +13,13 @@ import com.example.judicialappraisal.auth.dto.CurrentUserInfo;
 import com.example.judicialappraisal.common.PageResult;
 import com.example.judicialappraisal.common.enums.CaseStatus;
 import com.example.judicialappraisal.common.exception.BusinessException;
+import com.example.judicialappraisal.workflow.entity.CaseTask;
+import com.example.judicialappraisal.workflow.entity.CaseTaskCandidate;
 import com.example.judicialappraisal.workflow.dto.WorkflowActionResult;
+import com.example.judicialappraisal.workflow.mapper.CaseTaskCandidateMapper;
+import com.example.judicialappraisal.workflow.mapper.CaseTaskMapper;
 import com.example.judicialappraisal.workflow.service.WorkflowRuntimeService;
+import java.util.List;
 import java.util.Objects;
 import org.springframework.stereotype.Service;
 
@@ -22,9 +27,15 @@ import org.springframework.stereotype.Service;
 public class CaseInfoService extends ServiceImpl<CaseInfoMapper, CaseInfo> {
 
     private final WorkflowRuntimeService workflowRuntimeService;
+    private final CaseTaskMapper caseTaskMapper;
+    private final CaseTaskCandidateMapper caseTaskCandidateMapper;
 
-    public CaseInfoService(WorkflowRuntimeService workflowRuntimeService) {
+    public CaseInfoService(WorkflowRuntimeService workflowRuntimeService,
+                           CaseTaskMapper caseTaskMapper,
+                           CaseTaskCandidateMapper caseTaskCandidateMapper) {
         this.workflowRuntimeService = workflowRuntimeService;
+        this.caseTaskMapper = caseTaskMapper;
+        this.caseTaskCandidateMapper = caseTaskCandidateMapper;
     }
 
     public CaseInfo createDraft(CaseCreateRequest request) {
@@ -75,16 +86,15 @@ public class CaseInfoService extends ServiceImpl<CaseInfoMapper, CaseInfo> {
                 null, submitCode, request.opinion(), null, null, null, null, null);
     }
 
-    public CaseInfo getDetail(Long caseId) {
-        CaseInfo caseInfo = getById(caseId);
-        if (caseInfo != null && !Objects.equals(caseInfo.getDeleted(), 1)) {
-            return caseInfo;
+    public CaseInfo getDetail(Long caseId, CurrentUserInfo currentUser) {
+        CaseInfo caseInfo = baseMapper.selectRawById(caseId);
+        if (caseInfo == null || Objects.equals(caseInfo.getDeleted(), 1)) {
+            throw new BusinessException(404, "案件不存在或已删除");
         }
-        CaseInfo fallback = new CaseInfo();
-        fallback.setId(caseId);
-        fallback.setCaseTitle("示例司法鉴定案件");
-        fallback.setCaseStatus(CaseStatus.DRAFT.name());
-        return fallback;
+        if (!canReadCase(caseInfo, currentUser)) {
+            throw new BusinessException(403, "无权查看该案件");
+        }
+        return caseInfo;
     }
 
     public void deleteDraft(Long caseId, CurrentUserInfo currentUser) {
@@ -103,6 +113,34 @@ public class CaseInfoService extends ServiceImpl<CaseInfoMapper, CaseInfo> {
 
     private boolean isAdmin(CurrentUserInfo currentUser) {
         return currentUser.roles().stream().anyMatch(role -> "ADMIN".equalsIgnoreCase(role.code()));
+    }
+
+    private boolean canReadCase(CaseInfo caseInfo, CurrentUserInfo currentUser) {
+        if (isAdmin(currentUser)) {
+            return true;
+        }
+        Long userId = currentUser.id();
+        if (Objects.equals(caseInfo.getCreatedBy(), userId) || Objects.equals(caseInfo.getCurrentHandlerId(), userId)) {
+            return true;
+        }
+        List<Long> roleIds = currentUser.roles().stream().map(role -> role.id()).filter(Objects::nonNull).toList();
+        List<CaseTask> tasks = caseTaskMapper.selectList(new LambdaQueryWrapper<CaseTask>()
+                .eq(CaseTask::getCaseId, caseInfo.getId())
+                .and(wrapper -> wrapper
+                        .eq(CaseTask::getAssigneeId, userId)
+                        .or()
+                        .eq(CaseTask::getClaimedBy, userId)));
+        if (!tasks.isEmpty()) {
+            return true;
+        }
+        return caseTaskCandidateMapper.selectCount(new LambdaQueryWrapper<CaseTaskCandidate>()
+                .eq(CaseTaskCandidate::getCaseId, caseInfo.getId())
+                .and(wrapper -> {
+                    wrapper.eq(CaseTaskCandidate::getCandidateUserId, userId);
+                    if (!roleIds.isEmpty()) {
+                        wrapper.or().in(CaseTaskCandidate::getCandidateRoleId, roleIds);
+                    }
+                })) > 0;
     }
 
     private CaseListResponse toListResponse(CaseInfo caseInfo) {

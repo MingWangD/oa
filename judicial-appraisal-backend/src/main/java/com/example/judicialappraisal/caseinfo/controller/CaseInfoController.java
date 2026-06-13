@@ -53,8 +53,9 @@ public class CaseInfoController {
     }
 
     @GetMapping("/{caseId}")
-    public ApiResponse<CaseInfo> getDetail(@PathVariable Long caseId) {
-        return ApiResponse.success(caseInfoService.getDetail(caseId));
+    public ApiResponse<CaseInfo> getDetail(@PathVariable Long caseId, Authentication authentication) {
+        CurrentUserInfo currentUser = currentUser(authentication);
+        return ApiResponse.success(caseInfoService.getDetail(caseId, currentUser));
     }
 
     @DeleteMapping("/{caseId}")

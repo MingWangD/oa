@@ -138,7 +138,7 @@ function openTask(row: TaskSummary): void {
     path: `/case/${row.caseId}`,
     query: {
       taskId: String(row.id),
-      readonly: activeTab.value === 'done' ? '1' : undefined,
+      mode: activeTab.value === 'done' ? 'readonly' : 'handle',
       from: route.fullPath,
       fromLabel: activeTab.value === 'done' ? '办结工作' : '待办工作'
     }

@@ -62,10 +62,28 @@ public class PlatformCatalogService {
 
     public JudicialCatalogDto judicialCatalogForRoles(List<String> roleNames, boolean admin) {
         List<JudicialWorkflowDefinitionDto> visibleWorkflows = workflows().stream()
-                .filter(workflow -> admin || workflow.roles().stream().anyMatch(role -> roleMatches(roleNames, role)))
+                .filter(workflow -> admin || canSeeWorkflow(roleNames, workflow))
                 .toList();
         List<JudicialFormDefinitionDto> forms = forms();
         return new JudicialCatalogDto(visibleWorkflows.size(), forms.size(), JUDICIAL_ROLES, visibleWorkflows, forms);
+    }
+
+    private boolean canSeeWorkflow(List<String> userRoleNames, JudicialWorkflowDefinitionDto workflow) {
+        if ("expense-reimbursement".equals(workflow.code())) {
+            return hasRole(userRoleNames, "财务");
+        }
+        if ("seal-application".equals(workflow.code())) {
+            return hasRole(userRoleNames, "申请人", "档案管理员", "盖章经办人");
+        }
+        return workflow.roles().stream().anyMatch(role -> roleMatches(userRoleNames, role));
+    }
+
+    private boolean hasRole(List<String> userRoleNames, String... expectedRoles) {
+        return userRoleNames.stream().anyMatch(userRole ->
+                List.of(expectedRoles).stream().anyMatch(expectedRole ->
+                        userRole.equals(expectedRole) || userRole.contains(expectedRole) || expectedRole.contains(userRole)
+                )
+        );
     }
 
     private boolean roleMatches(List<String> userRoleNames, String workflowRole) {
@@ -76,10 +94,7 @@ public class PlatformCatalogService {
             if ("收件人".equals(workflowRole) && "收案员".equals(userRole)) {
                 return true;
             }
-            if ("申请人".equals(workflowRole) || "发起人".equals(workflowRole)) {
-                return true;
-            }
-            return false;
+            return "申请人".equals(workflowRole) && "申请人".equals(userRole);
         });
     }
 

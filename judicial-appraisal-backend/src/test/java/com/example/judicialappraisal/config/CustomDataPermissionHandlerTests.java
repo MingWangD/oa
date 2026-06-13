@@ -37,7 +37,11 @@ class CustomDataPermissionHandlerTests {
 
         Expression expression = handler.getSqlSegment(new Table("case_info"), null, "selectCases");
 
-        assertThat(expression.toString()).isEqualTo("case_info.current_handler_id = 7");
+        assertThat(expression.toString())
+                .contains("case_info.current_handler_id = 7")
+                .contains("case_info.created_by = 7")
+                .contains("EXISTS (SELECT 1 FROM case_task ct")
+                .contains("EXISTS (SELECT 1 FROM case_task_candidate ctc");
     }
 
     @Test
@@ -46,7 +50,10 @@ class CustomDataPermissionHandlerTests {
 
         Expression expression = handler.getSqlSegment(new Table("case_info"), null, "selectCases");
 
-        assertThat(expression.toString()).isEqualTo("case_info.accept_dept_id = 3");
+        assertThat(expression.toString())
+                .contains("case_info.accept_dept_id = 3")
+                .contains("EXISTS (SELECT 1 FROM case_task ct")
+                .contains("EXISTS (SELECT 1 FROM case_task_candidate ctc");
     }
 
     @Test
@@ -89,7 +96,10 @@ class CustomDataPermissionHandlerTests {
 
         Expression expression = handler.getSqlSegment(new Table("case_info"), null, "selectCases");
 
-        assertThat(expression.toString()).isEqualTo("case_info.accept_dept_id IN (12, 15)");
+        assertThat(expression.toString())
+                .contains("case_info.accept_dept_id IN (12, 15)")
+                .contains("EXISTS (SELECT 1 FROM case_task ct")
+                .contains("EXISTS (SELECT 1 FROM case_task_candidate ctc");
     }
 
     private void authenticate(CurrentUserInfo userInfo) {
