@@ -132,7 +132,7 @@ class DraftOpinionReviewBranchVerificationTest {
                 "nextRecommendation", "出具征求意见稿"
         ), null);
 
-        assertThat(activeTaskNodeCodes(caseId)).contains("ISSUE_DRAFT_OPINION", "PROJECT_SUPPLEMENT");
+        assertThat(activeTaskNodeCodes(caseId)).contains("ISSUE_DRAFT_OPINION", "ASSISTANT_SUPPLEMENT");
         assertThat(runningSubflowCodes(caseId)).contains("issue-draft-opinion");
     }
 

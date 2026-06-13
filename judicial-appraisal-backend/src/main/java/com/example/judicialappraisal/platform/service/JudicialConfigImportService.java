@@ -1586,15 +1586,19 @@ public class JudicialConfigImportService {
                 field("flowName", "流程名称", "text", "流程基础", false, true),
                 field("projectLeaderId", "项目负责人", "user", "流程基础", true, true),
                 field("archivistId", "档案管理员", "user", "流程基础", true, true),
-                field("explainLetterDrafted", "鉴定说明函已编制", "boolean", "材料补充", true, false),
-                field("sealRequired", "是否需要用章", "boolean", "盖章流程", true, false),
-                field("sealedDraftOpinionUploaded", "征求意见稿盖章件已上传", "boolean", "盖章流程", true, false),
+                field("explainLetterDrafted", "鉴定说明函已编制并上传", "boolean", "材料补充", false, false),
+                field("projectReviewPassed", "项目负责人审核通过", "boolean", "项目审核", false, false),
+                field("sealRequired", "是否需要用章", "boolean", "盖章流程", false, false),
+                field("draftOpinionUploaded", "鉴定意见书征求意见稿已上传", "boolean", "盖章流程", false, false),
+                field("sealedDraftOpinionUploaded", "征求意见稿盖章扫描件已上传", "boolean", "盖章流程", false, false),
                 field("deliveryMethod", "送达方式", "select", "送达", true, false,
                         List.of("邮寄", "现场领取", "电子送达", "其他")),
+                field("trackingNo", "快递单号", "text", "送达", false, false),
                 field("deliveryDate", "寄出日期", "date", "送达", false, false),
-                field("feedbackReceived", "是否收到反馈", "boolean", "反馈与异议", true, false),
-                field("feedbackHasObjection", "是否提出异议", "boolean", "反馈与异议", true, false),
-                field("feedbackDecision", "反馈处理结论", "select", "反馈与异议", true, false,
+                field("archiveConfirmed", "归档已触发并确认", "boolean", "归档", false, false),
+                field("feedbackReceived", "是否收到反馈", "boolean", "反馈与异议", false, false),
+                field("feedbackHasObjection", "是否提出异议", "boolean", "反馈与异议", false, false),
+                field("feedbackDecision", "反馈处理结论", "select", "反馈与异议", false, false,
                         List.of("收到异议", "无异议或未反馈")),
                 field("objectionReason", "异议内容简述", "textarea", "反馈与异议", false, false),
                 field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
@@ -1609,7 +1613,7 @@ public class JudicialConfigImportService {
                 toJson(fields),
                 toJson(Map.of(
                         "layout", "grouped",
-                        "groups", List.of("流程基础", "材料补充", "盖章流程", "送达", "反馈与异议", "办理意见")
+                        "groups", List.of("流程基础", "材料补充", "项目审核", "盖章流程", "送达", "归档", "反馈与异议", "办理意见")
                 )),
                 toJson(Map.of(
                         "requiredFields", fields.stream().filter(item -> Boolean.TRUE.equals(item.get("required"))).map(item -> item.get("field")).toList(),
@@ -1625,15 +1629,17 @@ public class JudicialConfigImportService {
                 toJson(Map.of(
                         "groups", Map.of(
                                 "流程基础", Map.of("readOnly", true),
-                                "材料补充", Map.of("roles", List.of("项目负责人")),
-                                "盖章流程", Map.of("roles", List.of("项目负责人", "档案管理员")),
+                                "材料补充", Map.of("roles", List.of("项目辅助人")),
+                                "项目审核", Map.of("roles", List.of("项目负责人")),
+                                "盖章流程", Map.of("roles", List.of("项目辅助人", "档案管理员")),
                                 "送达", Map.of("roles", List.of("档案管理员")),
+                                "归档", Map.of("roles", List.of("档案管理员")),
                                 "反馈与异议", Map.of("roles", List.of("项目负责人"))
                         )
                 )),
                 toJson(Map.of(
                         "flowNameTemplate", "${caseNo}-出具征求意见稿",
-                        "branchFields", List.of("sealRequired", "feedbackReceived", "feedbackHasObjection", "feedbackDecision")
+                        "branchFields", List.of("projectReviewPassed", "sealRequired", "feedbackReceived", "feedbackHasObjection", "feedbackDecision")
                 )),
                 toJson(Map.of(
                         "flowName", "concat(caseNo,'-出具征求意见稿')",
@@ -1642,7 +1648,7 @@ public class JudicialConfigImportService {
                 toJson(Map.of("enabled", true, "inputFiles", form.inputFiles(), "outputFiles", form.outputFiles(), "duplicatePolicy", "warn")),
                 "[]",
                 toJson(List.of(
-                        Map.of("type", "business", "text", "项目负责人补充鉴定说明函后发起用章，档案管理员回传并送达，最后项目负责人登记反馈与异议状态"),
+                        Map.of("type", "business", "text", "项目辅助人编制鉴定说明函，项目负责人审核后转档案管理员申请盖章，项目辅助人上传盖章扫描件后同时进入归档和材料寄出，最后项目负责人登记反馈与异议状态"),
                         Map.of("type", "validation", "text", "选择需要用章时必须回传征求意见稿盖章件，收到异议时必须简述异议内容"),
                         Map.of("type", "archive", "text", "说明函、盖章件、送达记录和异议反馈在节点完成时自动归档保存")
                 ))
@@ -1652,32 +1658,44 @@ public class JudicialConfigImportService {
     private WorkflowDesignRequest issueDraftOpinionWorkflowRequest(JudicialWorkflowDefinitionDto workflow) {
         List<WorkflowNodeRequest> nodes = List.of(
                 node("START", "开始", "start", "single", null, 0, 0, false, null, 0),
-                node("PROJECT_SUPPLEMENT", "项目负责人编制鉴定说明函", "task", "candidate", "项目负责人", 1, 48, true, workflow.formCode(), 10),
-                node("SEAL_APPLICATION", "发起用章申请", "task", "candidate", "项目负责人", 1, 24, true, "seal-application", 20),
-                node("SEALED_UPLOAD", "档案管理员回传盖章件", "task", "candidate", "档案管理员", 1, 24, true, workflow.formCode(), 30),
-                node("DELIVERY", "档案管理员送达寄出", "task", "candidate", "档案管理员", 1, 72, true, workflow.formCode(), 40),
-                node("WAIT_FEEDBACK", "项目负责人等待并登记反馈", "task", "candidate", "项目负责人", 1, 240, true, workflow.formCode(), 50),
-                node("COURT_LETTER", "进入收到法院其他函件(含异议)", "task", "candidate", "项目负责人", 1, 24, true, "court-letter", 60),
-                node("FINAL_OPINION_REVIEW", "无异议直接进入送审稿编制", "task", "candidate", "项目负责人", 1, 24, true, "final-opinion-review", 70),
-                node("END", "流程结束", "end", "single", null, 0, 0, false, null, 80)
+                node("ASSISTANT_SUPPLEMENT", "项目辅助人编制并上传鉴定说明函", "task", "candidate", "项目辅助人", 1, 48, true, workflow.formCode(), 10),
+                node("PROJECT_REVIEW", "项目负责人审核鉴定说明函", "task", "candidate", "项目负责人", 1, 24, true, workflow.formCode(), 20),
+                node("ARCHIVIST_CONFIRM", "档案管理员确认盖章并上传征求意见稿", "task", "candidate", "档案管理员", 1, 24, true, workflow.formCode(), 30),
+                node("SEAL_APPLICATION", "档案管理员提交用章申请", "task", "candidate", "档案管理员", 1, 24, true, "seal-application", 40),
+                node("SEALED_UPLOAD", "项目辅助人上传盖章后扫描件", "task", "candidate", "项目辅助人", 1, 24, true, workflow.formCode(), 50),
+                node("PARALLEL_GATEWAY_SPLIT", "归档和材料寄出并行分支", "gateway", "parallel", null, 0, 0, false, null, 60),
+                node("ARCHIVE_SUBFLOW", "进入归档子流程", "task", "candidate", "档案管理员", 1, 24, true, "archive", 70),
+                node("DELIVERY", "档案管理员送达寄出", "task", "candidate", "档案管理员", 1, 72, true, workflow.formCode(), 80),
+                node("WAIT_FEEDBACK", "项目负责人等待并登记反馈", "task", "candidate", "项目负责人", 1, 240, true, workflow.formCode(), 90),
+                node("COURT_LETTER", "进入收到法院其他函件(含异议)", "task", "candidate", "项目负责人", 1, 24, true, "court-letter", 100),
+                node("FINAL_OPINION_REVIEW", "无异议直接进入送审稿编制", "task", "candidate", "项目负责人", 1, 24, true, "final-opinion-review", 110),
+                node("END", "流程结束", "end", "single", null, 0, 0, false, null, 120)
         );
 
         List<WorkflowTransitionRequest> transitions = List.of(
-                transition("START", "PROJECT_SUPPLEMENT", "APPROVE", "进入出具征求意见稿", null, 0, 10),
-                transition("PROJECT_SUPPLEMENT", "SEAL_APPLICATION", "APPROVE", "发起用章流程", "form.sealRequired == true", 1, 20,
+                transition("START", "ASSISTANT_SUPPLEMENT", "APPROVE", "进入出具征求意见稿", null, 0, 10),
+                transition("ASSISTANT_SUPPLEMENT", "PROJECT_REVIEW", "APPROVE", "转项目负责人审核鉴定说明函", null, 1, 20),
+                transition("PROJECT_REVIEW", "ARCHIVIST_CONFIRM", "APPROVE", "审核通过，转档案管理员", "form.projectReviewPassed == true", 1, 30),
+                transition("PROJECT_REVIEW", "ASSISTANT_SUPPLEMENT", "RETURN", "审核不通过，退回项目辅助人修改说明函", "form.projectReviewPassed == false", 1, 31),
+                transition("ARCHIVIST_CONFIRM", "SEAL_APPLICATION", "APPROVE", "同意盖章并提交用章申请", "form.sealRequired == true", 1, 40,
                         subflowConfig("seal-application", "自动进入用章流程以盖征求意见稿及说明函章")),
-                transition("PROJECT_SUPPLEMENT", "SEALED_UPLOAD", "APPROVE", "无需用章，直接回传", "form.sealRequired == false", 1, 21),
-                transition("SEAL_APPLICATION", "SEALED_UPLOAD", "COMPLETE", "用章流程完成", null, 1, 30),
-                transition("SEALED_UPLOAD", "DELIVERY", "APPROVE", "转档案管理员送达", null, 1, 40),
-                transition("SEALED_UPLOAD", "PROJECT_SUPPLEMENT", "RETURN", "退回项目负责人补充说明函", null, 1, 41),
-                transition("DELIVERY", "WAIT_FEEDBACK", "APPROVE", "寄出后等待反馈", null, 1, 50),
-                transition("DELIVERY", "SEALED_UPLOAD", "RETURN", "退回补充盖章件", null, 1, 51),
-                transition("WAIT_FEEDBACK", "COURT_LETTER", "APPROVE", "收到异议反馈", "form.feedbackDecision == '收到异议'", 1, 60,
+                transition("ARCHIVIST_CONFIRM", "SEALED_UPLOAD", "APPROVE", "无需用章，直接转项目辅助人上传扫描件", "form.sealRequired == false", 1, 41),
+                transition("ARCHIVIST_CONFIRM", "ASSISTANT_SUPPLEMENT", "RETURN", "退回项目辅助人补充说明函或征求意见稿", null, 1, 42),
+                transition("SEAL_APPLICATION", "SEALED_UPLOAD", "COMPLETE", "用章流程完成，转项目辅助人线下盖章并上传扫描件", null, 1, 50),
+                transition("SEALED_UPLOAD", "PARALLEL_GATEWAY_SPLIT", "APPROVE", "盖章扫描件上传后并行归档和寄出", null, 1, 60),
+                transition("SEALED_UPLOAD", "ARCHIVIST_CONFIRM", "RETURN", "退回档案管理员补充盖章或征求意见稿", null, 1, 61),
+                transition("PARALLEL_GATEWAY_SPLIT", "ARCHIVE_SUBFLOW", "APPROVE", "同时进入归档", null, 1, 70,
+                        subflowConfig("archive", "出具征求意见稿盖章扫描件上传后自动进入归档流程")),
+                transition("PARALLEL_GATEWAY_SPLIT", "DELIVERY", "APPROVE", "同时进入材料寄出", null, 1, 71),
+                transition("ARCHIVE_SUBFLOW", "END", "COMPLETE", "归档子流程已触发", null, 1, 80),
+                transition("DELIVERY", "WAIT_FEEDBACK", "APPROVE", "寄出后等待反馈", null, 1, 90),
+                transition("DELIVERY", "SEALED_UPLOAD", "RETURN", "退回补充盖章扫描件", null, 1, 91),
+                transition("WAIT_FEEDBACK", "COURT_LETTER", "APPROVE", "收到异议反馈", "form.feedbackDecision == '收到异议'", 1, 100,
                         subflowConfig("court-letter", "收到异议后自动进入法院函件流程")),
-                transition("WAIT_FEEDBACK", "FINAL_OPINION_REVIEW", "APPROVE", "收到反馈但无异议/超时无反馈", "form.feedbackDecision == '无异议或未反馈'", 1, 61,
+                transition("WAIT_FEEDBACK", "FINAL_OPINION_REVIEW", "APPROVE", "收到反馈但无异议/超时无反馈", "form.feedbackDecision == '无异议或未反馈'", 1, 101,
                         subflowConfig("final-opinion-review", "无异议后自动进入鉴定意见书送审稿编制")),
-                transition("COURT_LETTER", "END", "COMPLETE", "异议函处理流程已触发", null, 1, 70),
-                transition("FINAL_OPINION_REVIEW", "END", "COMPLETE", "送审稿编制流程已触发", null, 1, 71)
+                transition("COURT_LETTER", "END", "COMPLETE", "异议函处理流程已触发", null, 1, 110),
+                transition("FINAL_OPINION_REVIEW", "END", "COMPLETE", "送审稿编制流程已触发", null, 1, 111)
         );
 
         return new WorkflowDesignRequest(

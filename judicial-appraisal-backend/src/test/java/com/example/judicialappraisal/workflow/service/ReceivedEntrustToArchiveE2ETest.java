@@ -271,19 +271,25 @@ class ReceivedEntrustToArchiveE2ETest {
         CaseSubflowInstance issueDraftSubflow = getRunningSubflow(caseId, "issue-draft-opinion");
         assertThat(issueDraftSubflow).isNotNull();
 
-        // issue-draft-opinion chain: PROJECT_SUPPLEMENT -> SEALED_UPLOAD -> DELIVERY -> WAIT_FEEDBACK -> FINAL_OPINION_REVIEW
+        // issue-draft-opinion chain: ASSISTANT_SUPPLEMENT -> PROJECT_REVIEW -> ARCHIVIST_CONFIRM
+        // -> SEALED_UPLOAD -> ARCHIVE_SUBFLOW / DELIVERY -> WAIT_FEEDBACK -> FINAL_OPINION_REVIEW
         Map<String, Object> issueDraftFormData = Map.ofEntries(
                 Map.entry("explainLetterDrafted", true),
+                Map.entry("projectReviewPassed", true),
                 Map.entry("sealRequired", false),
+                Map.entry("draftOpinionUploaded", true),
                 Map.entry("sealedDraftOpinionUploaded", true),
                 Map.entry("deliveryMethod", "电子送达"),
+                Map.entry("archiveConfirmed", true),
                 Map.entry("feedbackReceived", true),
                 Map.entry("feedbackHasObjection", false),
                 Map.entry("feedbackDecision", "无异议或未反馈")
         );
-        completeTask(caseId, "PROJECT_SUPPLEMENT", issueDraftFormData);
-        completeTask(caseId, "SEALED_UPLOAD", Map.of());
-        completeTask(caseId, "DELIVERY", Map.of());
+        completeTask(caseId, "ASSISTANT_SUPPLEMENT", issueDraftFormData);
+        completeTask(caseId, "PROJECT_REVIEW", Map.of("projectReviewPassed", true));
+        completeTask(caseId, "ARCHIVIST_CONFIRM", Map.of("sealRequired", false, "draftOpinionUploaded", true));
+        completeTask(caseId, "SEALED_UPLOAD", Map.of("sealedDraftOpinionUploaded", true, "archiveConfirmed", true));
+        completeTask(caseId, "DELIVERY", Map.of("deliveryMethod", "电子送达"));
         completeTask(caseId, "WAIT_FEEDBACK", Map.of("feedbackDecision", "无异议或未反馈"));
 
         // Wait for final-opinion-review subflow

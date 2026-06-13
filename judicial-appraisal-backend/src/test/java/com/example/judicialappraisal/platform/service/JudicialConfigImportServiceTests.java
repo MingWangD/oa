@@ -424,7 +424,9 @@ class JudicialConfigImportServiceTests {
                 .findFirst()
                 .orElseThrow();
         assertThat(issueDraftOpinionForm.fieldSchemaJson())
-                .contains("explainLetterDrafted", "sealRequired", "sealedDraftOpinionUploaded", "feedbackReceived", "feedbackHasObjection", "feedbackDecision", "objectionReason");
+                .contains("explainLetterDrafted", "projectReviewPassed", "sealRequired", "draftOpinionUploaded",
+                        "sealedDraftOpinionUploaded", "trackingNo", "archiveConfirmed", "feedbackReceived",
+                        "feedbackHasObjection", "feedbackDecision", "objectionReason");
         assertThat(issueDraftOpinionForm.validationSchemaJson())
                 .contains("sealRequired == true", "feedbackDecision == '收到异议'", "objectionReason != null");
 
@@ -435,11 +437,15 @@ class JudicialConfigImportServiceTests {
                 .findFirst()
                 .orElseThrow();
         assertThat(issueDraftOpinionWorkflow.nodes()).extracting("nodeCode")
-                .contains("PROJECT_SUPPLEMENT", "SEAL_APPLICATION", "SEALED_UPLOAD", "DELIVERY", "WAIT_FEEDBACK", "COURT_LETTER", "FINAL_OPINION_REVIEW");
+                .contains("ASSISTANT_SUPPLEMENT", "PROJECT_REVIEW", "ARCHIVIST_CONFIRM", "SEAL_APPLICATION",
+                        "SEALED_UPLOAD", "ARCHIVE_SUBFLOW", "DELIVERY", "WAIT_FEEDBACK", "COURT_LETTER", "FINAL_OPINION_REVIEW");
         assertThat(issueDraftOpinionWorkflow.transitions()).extracting("conditionExpression")
-                .contains("form.sealRequired == true", "form.feedbackDecision == '收到异议'", "form.feedbackDecision == '无异议或未反馈'");
+                .contains("form.projectReviewPassed == true", "form.projectReviewPassed == false",
+                        "form.sealRequired == true", "form.sealRequired == false",
+                        "form.feedbackDecision == '收到异议'", "form.feedbackDecision == '无异议或未反馈'");
         assertThat(issueDraftOpinionWorkflow.transitions()).extracting("transitionConfigJson")
                 .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "seal-application"))
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "archive"))
                 .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "court-letter"))
                 .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "final-opinion-review"));
     }
