@@ -464,9 +464,11 @@ class JudicialConfigImportServiceTests {
                 .findFirst()
                 .orElseThrow();
         assertThat(courtLetterForm.fieldSchemaJson())
-                .contains("linkedWorkflowCode", "letterType", "objectionAccepted", "replyDraftCompleted", "departmentDecision", "sealedReplyUploaded", "nextRecommendation");
+                .contains("linkedWorkflowCode", "receivedLetterUploaded", "projectLeaderAssigned", "letterType",
+                        "objectionAccepted", "replyRequired", "replyDraftCompleted", "sealRequired", "sealedReplyUploaded", "nextRecommendation");
         assertThat(courtLetterForm.validationSchemaJson())
-                .contains("projectReviewPassed == true", "departmentDecision != null", "sealedReplyUploaded == true", "deliveryDate != null");
+                .contains("letterType == '异议函'", "objectionAccepted == false", "projectReviewPassed == true",
+                        "sealedReplyUploaded == true", "deliveryDate != null");
 
         ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
         verify(workflowDesignService, times(19)).saveDraft(workflowCaptor.capture());
@@ -475,12 +477,14 @@ class JudicialConfigImportServiceTests {
                 .findFirst()
                 .orElseThrow();
         assertThat(courtLetterWorkflow.nodes()).extracting("nodeCode")
-                .contains("PROJECT_REGISTER", "ASSISTANT_REPLY", "PROJECT_REVIEW", "DEPARTMENT_REVIEW", "SEAL_APPLICATION",
-                        "SEALED_REPLY_UPLOAD", "FINAL_OPINION_REVIEW", "ISSUE_OPINION", "ARCHIVE_SUBFLOW");
+                .contains("LETTER_UPLOAD", "PROJECT_REGISTER", "ASSISTANT_REPLY", "PROJECT_REVIEW", "ARCHIVIST_CONFIRM",
+                        "SEAL_APPLICATION", "SEALED_REPLY_UPLOAD", "PARALLEL_GATEWAY_SPLIT", "ARCHIVE_SUBFLOW",
+                        "DELIVERY_RELATED_LETTER", "NEXT_FLOW_DECISION", "FINAL_OPINION_REVIEW", "ISSUE_OPINION");
         assertThat(courtLetterWorkflow.transitions()).extracting("conditionExpression")
                 .contains("form.projectReviewPassed == true", "form.projectReviewPassed == false",
-                        "form.departmentDecision == '进入用章'", "form.departmentDecision == '直接寄送回复函'",
-                        "form.departmentDecision == '退回项目负责人'", "form.nextRecommendation == '进入出具鉴定意见书'");
+                        "form.objectionAccepted == true", "form.replyRequired == true", "form.replyRequired == false",
+                        "form.sealRequired == true", "form.sealRequired == false",
+                        "form.nextRecommendation == '进入出具鉴定意见书'");
         assertThat(courtLetterWorkflow.transitions()).extracting("transitionConfigJson")
                 .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "seal-application"))
                 .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "final-opinion-review"))
@@ -502,10 +506,14 @@ class JudicialConfigImportServiceTests {
                 .findFirst()
                 .orElseThrow();
         assertThat(courtAppearanceForm.fieldSchemaJson())
-                .contains("linkedWorkflowCode", "courtName", "appearanceFeeRequired", "feeNoticeIssued", "archiveRetrievalRequired",
-                        "archiveRetrieved", "appearancePlanPrepared", "appearanceCompleted", "postAppearanceMaterialsUploaded", "nextRecommendation");
+                .contains("linkedWorkflowCode", "courtNoticeUploaded", "courtName", "projectNoConfirmed",
+                        "appearanceFeeRequired", "feeNoticeIssued", "archiveRetrievalRequired", "archiveBorrowRegisterUploaded",
+                        "storedInCenterArchive", "centerArchiveHandled", "archiveRetrieved",
+                        "appearancePreparationCompleted", "appearancePreparationFilesUploaded", "appearanceStatusEntered",
+                        "appearanceCompleted", "postAppearanceMaterialsUploaded", "nextRecommendation");
         assertThat(courtAppearanceForm.validationSchemaJson())
-                .contains("appearanceFeeRequired == true", "archiveRetrievalRequired == true", "appearanceCompleted == true", "archiveConfirmed == true");
+                .contains("appearanceFeeRequired == true", "archiveRetrievalRequired == true", "storedInCenterArchive == true",
+                        "appearanceCompleted == true", "archiveConfirmed == true");
 
         ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
         verify(workflowDesignService, times(19)).saveDraft(workflowCaptor.capture());
@@ -514,14 +522,16 @@ class JudicialConfigImportServiceTests {
                 .findFirst()
                 .orElseThrow();
         assertThat(courtAppearanceWorkflow.nodes()).extracting("nodeCode")
-                .contains("PROJECT_REGISTER", "FINANCE_NOTICE", "ARCHIVE_RETRIEVAL", "APPEARANCE_PREPARE",
+                .contains("PROJECT_REGISTER", "PAYMENT_NOTICE", "ARCHIVE_RETRIEVAL", "CENTER_ARCHIVE_RETRIEVAL", "APPEARANCE_PREPARE",
                         "COURT_APPEARANCE", "POST_APPEARANCE", "NEXT_FLOW_DECISION", "FINAL_OPINION_REVIEW", "ISSUE_OPINION", "ARCHIVE_SUBFLOW");
         assertThat(courtAppearanceWorkflow.transitions()).extracting("conditionExpression")
                 .contains("form.appearanceFeeRequired == true", "form.appearanceFeeRequired == false",
-                        "form.archiveRetrievalRequired == true", "form.archiveRetrievalRequired == false",
+                        "form.storedInCenterArchive == true", "form.storedInCenterArchive == false",
+                        "form.appearancePreparationCompleted == true",
                         "form.appearanceCompleted == true", "form.appearanceCompleted == false",
                         "form.nextRecommendation == '进入出具鉴定意见书'");
         assertThat(courtAppearanceWorkflow.transitions()).extracting("transitionConfigJson")
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "payment-notice"))
                 .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "final-opinion-review"))
                 .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "issue-opinion"))
                 .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "archive"));

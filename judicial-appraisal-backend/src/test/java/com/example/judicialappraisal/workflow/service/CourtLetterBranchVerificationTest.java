@@ -37,7 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @Transactional
-class IssueDraftOpinionBranchVerificationTest {
+class CourtLetterBranchVerificationTest {
 
     private static final Long OPERATOR_ID = 9L;
     private static final String OPERATOR_NAME = "管理员";
@@ -85,158 +85,162 @@ class IssueDraftOpinionBranchVerificationTest {
     }
 
     @Test
-    void issueDraftOpinion_shouldStartWithAssistantSupplement() {
-        Long caseId = startIssueDraftOpinionWorkflow("9.10-出具征求意见稿首节点");
+    void courtLetter_shouldStartWithLetterUploadWhenManuallyCreatedAndLinked() {
+        Long caseId = startCourtLetterWorkflow("9.11-手动新建法院函件");
 
-        assertThat(activeTaskNodeCodes(caseId)).containsExactly("ASSISTANT_SUPPLEMENT");
-        assertThat(activeTaskNames(caseId)).containsExactly("项目辅助人编制并上传鉴定说明函");
+        assertThat(activeTaskNodeCodes(caseId)).containsExactly("LETTER_UPLOAD");
+        assertThat(activeTaskNames(caseId)).containsExactly("上传法院函件并选择项目负责人");
     }
 
     @Test
-    void noObjectionPath_shouldArchiveDeliverAndLaunchFinalOpinionReview() {
-        Long caseId = createCaseAtAssistantSealedUpload("9.10-无异议进入送审稿编制", false);
+    void objectionReplyPath_shouldSealArchiveDeliverAndLaunchFinalOpinionReview() {
+        Long caseId = createCaseAtSealedReplyUpload("9.11-异议回复后返回送审稿", true);
 
-        completeTask(caseId, "SEALED_UPLOAD", ActionCode.APPROVE,
-                Map.of("sealedDraftOpinionUploaded", true, "archiveConfirmed", true), null);
+        completeTask(caseId, "SEALED_REPLY_UPLOAD", ActionCode.APPROVE,
+                Map.of("sealedReplyUploaded", true, "archiveConfirmed", true), null);
 
-        assertThat(activeTaskNodeCodes(caseId)).contains("ARCHIVE_SUBFLOW", "ARCHIVIST_PREPARE", "DELIVERY");
+        assertThat(activeTaskNodeCodes(caseId)).contains("ARCHIVE_SUBFLOW", "ARCHIVIST_PREPARE", "DELIVERY_RELATED_LETTER");
         assertThat(runningSubflowCodes(caseId)).contains("archive");
 
-        completeTask(caseId, "DELIVERY", ActionCode.APPROVE,
-                Map.of("deliveryMethod", "邮寄", "trackingNo", "SF-9-10-001"), null);
-        assertThat(activeTaskNodeCodes(caseId)).contains("WAIT_FEEDBACK");
+        completeTask(caseId, "DELIVERY_RELATED_LETTER", ActionCode.APPROVE,
+                Map.of("deliveryMethod", "邮寄", "trackingNo", "SF-9-11-001", "deliveryDate", "2026-06-13"), null);
+        assertThat(activeTaskNodeCodes(caseId)).contains("NEXT_FLOW_DECISION");
 
-        completeTask(caseId, "WAIT_FEEDBACK", ActionCode.APPROVE,
-                Map.of("feedbackReceived", true, "feedbackHasObjection", false, "feedbackDecision", "无异议或未反馈"), null);
+        completeTask(caseId, "NEXT_FLOW_DECISION", ActionCode.APPROVE,
+                Map.of("nextRecommendation", "返回鉴定意见书送审稿编制"), null);
 
         assertThat(activeTaskNodeCodes(caseId)).contains("FINAL_OPINION_REVIEW", "PROJECT_ASSIGN");
         assertThat(runningSubflowCodes(caseId)).contains("final-opinion-review");
         assertThat(caseInfoMapper.selectById(caseId).getFormData())
-                .containsEntry("explainLetterDrafted", true)
+                .containsEntry("receivedLetterUploaded", true)
+                .containsEntry("projectLeaderAssigned", true)
+                .containsEntry("objectionAccepted", true)
+                .containsEntry("replyDraftCompleted", true)
                 .containsEntry("projectReviewPassed", true)
-                .containsEntry("draftOpinionUploaded", true)
-                .containsEntry("sealedDraftOpinionUploaded", true)
-                .containsEntry("archiveConfirmed", true)
-                .containsEntry("trackingNo", "SF-9-10-001")
-                .containsEntry("feedbackDecision", "无异议或未反馈");
+                .containsEntry("sealRequired", true)
+                .containsEntry("sealedReplyUploaded", true)
+                .containsEntry("nextRecommendation", "返回鉴定意见书送审稿编制");
     }
 
     @Test
-    void objectionPath_shouldLaunchCourtLetterSubflow() {
-        Long caseId = createCaseAtWaitFeedback("9.10-收到异议进入法院函件");
+    void nonObjectionReplyPath_shouldAllowNoSealAndLaunchIssueOpinion() {
+        Long caseId = createCaseAtSealedReplyUpload("9.11-非异议需回复后出具意见书", false);
 
-        completeTask(caseId, "WAIT_FEEDBACK", ActionCode.APPROVE, Map.of(
-                "feedbackReceived", true,
-                "feedbackHasObjection", true,
-                "feedbackDecision", "收到异议",
-                "objectionReason", "法院反馈存在异议"
-        ), null);
+        completeTask(caseId, "SEALED_REPLY_UPLOAD", ActionCode.APPROVE, Map.of("sealedReplyUploaded", true), null);
+        completeTask(caseId, "DELIVERY_RELATED_LETTER", ActionCode.APPROVE,
+                Map.of("deliveryMethod", "电子送达", "deliveryDate", "2026-06-13"), null);
+        completeTask(caseId, "NEXT_FLOW_DECISION", ActionCode.APPROVE,
+                Map.of("nextRecommendation", "进入出具鉴定意见书"), null);
 
-        assertThat(activeTaskNodeCodes(caseId)).contains("COURT_LETTER", "LETTER_UPLOAD");
-        assertThat(runningSubflowCodes(caseId)).contains("court-letter");
-        assertThat(activeTaskNodeCodes(caseId)).doesNotContain("FINAL_OPINION_REVIEW");
+        assertThat(activeTaskNodeCodes(caseId)).contains("ISSUE_OPINION", "PROJECT_MODIFY");
+        assertThat(runningSubflowCodes(caseId)).contains("issue-opinion");
     }
 
     @Test
-    void projectReviewReturn_shouldReturnToAssistantSupplement() {
-        Long caseId = createCaseAtProjectReview("9.10-项目负责人审核退回");
+    void nonObjectionNoReplyPath_shouldArchiveDirectly() {
+        Long caseId = createCaseAtProjectRegister("9.11-非异议无需回复直接归档");
+
+        completeTask(caseId, "PROJECT_REGISTER", ActionCode.APPROVE,
+                Map.of("objectionAccepted", false, "replyRequired", false), null);
+
+        assertThat(activeTaskNodeCodes(caseId)).contains("ARCHIVE_SUBFLOW", "ARCHIVIST_PREPARE");
+        assertThat(runningSubflowCodes(caseId)).contains("archive");
+        assertThat(activeTaskNodeCodes(caseId)).doesNotContain("ASSISTANT_REPLY");
+    }
+
+    @Test
+    void projectReviewReturn_shouldReturnToAssistantReply() {
+        Long caseId = createCaseAtProjectReview("9.11-项目负责人退回回复函", true);
 
         completeTask(caseId, "PROJECT_REVIEW", ActionCode.RETURN,
-                Map.of("projectReviewPassed", false), "鉴定说明函需补充");
+                Map.of("projectReviewPassed", false), "回复函内容需补充");
 
-        assertThat(activeTaskNodeCodes(caseId)).contains("ASSISTANT_SUPPLEMENT");
+        assertThat(activeTaskNodeCodes(caseId)).contains("ASSISTANT_REPLY");
         assertThat(activeTaskNodeCodes(caseId)).doesNotContain("ARCHIVIST_CONFIRM");
     }
 
     @Test
-    void archivistReturn_shouldReturnToAssistantSupplement() {
-        Long caseId = createCaseAtArchivistConfirm("9.10-档案管理员退回说明函");
+    void archivistReturn_shouldReturnToProjectReview() {
+        Long caseId = createCaseAtArchivistConfirm("9.11-档案管理员退回复核", true);
 
         completeTask(caseId, "ARCHIVIST_CONFIRM", ActionCode.RETURN,
-                Map.of("draftOpinionUploaded", false), "征求意见稿附件需补充");
+                Map.of("sealRequired", false), "盖章材料需项目负责人复核");
 
-        assertThat(activeTaskNodeCodes(caseId)).contains("ASSISTANT_SUPPLEMENT");
-        assertThat(activeTaskNodeCodes(caseId)).doesNotContain("SEAL_APPLICATION", "SEALED_UPLOAD");
+        assertThat(activeTaskNodeCodes(caseId)).contains("PROJECT_REVIEW");
+        assertThat(activeTaskNodeCodes(caseId)).doesNotContain("SEAL_APPLICATION", "SEALED_REPLY_UPLOAD");
     }
 
     @Test
-    void deliveryReturn_shouldReturnToSealedUpload() {
-        Long caseId = createCaseAtDelivery("9.10-材料寄出退回补充盖章件");
+    void deliveryReturn_shouldReturnToSealedReplyUpload() {
+        Long caseId = createCaseAtSealedReplyUpload("9.11-发函退回补充盖章件", false);
+        completeTask(caseId, "SEALED_REPLY_UPLOAD", ActionCode.APPROVE, Map.of("sealedReplyUploaded", true), null);
 
-        completeTask(caseId, "DELIVERY", ActionCode.RETURN,
-                Map.of("deliveryMethod", "邮寄"), "快递信息或盖章扫描件需补充");
+        completeTask(caseId, "DELIVERY_RELATED_LETTER", ActionCode.RETURN,
+                Map.of("deliveryMethod", "邮寄"), "寄送记录需补充");
 
-        assertThat(activeTaskNodeCodes(caseId)).contains("SEALED_UPLOAD");
-        assertThat(activeTaskNodeCodes(caseId)).doesNotContain("WAIT_FEEDBACK");
+        assertThat(activeTaskNodeCodes(caseId)).contains("SEALED_REPLY_UPLOAD");
+        assertThat(activeTaskNodeCodes(caseId)).doesNotContain("NEXT_FLOW_DECISION");
     }
 
-    private Long createCaseAtDelivery(String title) {
-        Long caseId = createCaseAtAssistantSealedUpload(title, false);
-        completeTask(caseId, "SEALED_UPLOAD", ActionCode.APPROVE,
-                Map.of("sealedDraftOpinionUploaded", true, "archiveConfirmed", true), null);
-        assertThat(activeTaskNodeCodes(caseId)).contains("DELIVERY");
-        return caseId;
-    }
-
-    private Long createCaseAtWaitFeedback(String title) {
-        Long caseId = createCaseAtDelivery(title);
-        completeTask(caseId, "DELIVERY", ActionCode.APPROVE,
-                Map.of("deliveryMethod", "电子送达"), null);
-        assertThat(activeTaskNodeCodes(caseId)).contains("WAIT_FEEDBACK");
-        return caseId;
-    }
-
-    private Long createCaseAtAssistantSealedUpload(String title, boolean sealRequired) {
-        Long caseId = createCaseAtArchivistConfirm(title);
-        completeTask(caseId, "ARCHIVIST_CONFIRM", ActionCode.APPROVE,
-                Map.of("sealRequired", sealRequired, "draftOpinionUploaded", true), null);
+    private Long createCaseAtSealedReplyUpload(String title, boolean sealRequired) {
+        Long caseId = createCaseAtArchivistConfirm(title, !sealRequired);
+        completeTask(caseId, "ARCHIVIST_CONFIRM", ActionCode.APPROVE, Map.of("sealRequired", sealRequired), null);
         if (sealRequired) {
             assertThat(runningSubflowCodes(caseId)).contains("seal-application");
             completeSealApplicationSubflow(caseId);
         }
-        assertThat(activeTaskNodeCodes(caseId)).contains("SEALED_UPLOAD");
+        assertThat(activeTaskNodeCodes(caseId)).contains("SEALED_REPLY_UPLOAD");
         return caseId;
     }
 
-    private Long createCaseAtArchivistConfirm(String title) {
-        Long caseId = createCaseAtProjectReview(title);
+    private Long createCaseAtArchivistConfirm(String title, boolean nonObjection) {
+        Long caseId = createCaseAtProjectReview(title, nonObjection);
         completeTask(caseId, "PROJECT_REVIEW", ActionCode.APPROVE, Map.of("projectReviewPassed", true), null);
         assertThat(activeTaskNodeCodes(caseId)).contains("ARCHIVIST_CONFIRM");
         return caseId;
     }
 
-    private Long createCaseAtProjectReview(String title) {
-        Long caseId = startIssueDraftOpinionWorkflow(title);
-        completeTask(caseId, "ASSISTANT_SUPPLEMENT", ActionCode.APPROVE, issueDraftFormData(), null);
+    private Long createCaseAtProjectReview(String title, boolean nonObjection) {
+        Long caseId = createCaseAtProjectRegister(title);
+        Map<String, Object> decision = nonObjection
+                ? Map.of("objectionAccepted", false, "replyRequired", true)
+                : Map.of("objectionAccepted", true, "replyRequired", false);
+        completeTask(caseId, "PROJECT_REGISTER", ActionCode.APPROVE, decision, null);
+        completeTask(caseId, "ASSISTANT_REPLY", ActionCode.APPROVE,
+                Map.of("replyDraftCompleted", true), null);
         assertThat(activeTaskNodeCodes(caseId)).contains("PROJECT_REVIEW");
         return caseId;
     }
 
-    private Map<String, Object> issueDraftFormData() {
+    private Long createCaseAtProjectRegister(String title) {
+        Long caseId = startCourtLetterWorkflow(title);
+        completeTask(caseId, "LETTER_UPLOAD", ActionCode.APPROVE, courtLetterUploadData(), null);
+        assertThat(activeTaskNodeCodes(caseId)).contains("PROJECT_REGISTER");
+        return caseId;
+    }
+
+    private Map<String, Object> courtLetterUploadData() {
         return Map.ofEntries(
-                Map.entry("caseNo", "JA-ISSUE-DRAFT-9-10"),
+                Map.entry("caseNo", "JA-COURT-LETTER-9-11"),
+                Map.entry("linkedWorkflowCode", "issue-draft-opinion"),
                 Map.entry("projectLeaderId", 3L),
-                Map.entry("archivistId", 4L),
-                Map.entry("explainLetterDrafted", true),
-                Map.entry("projectReviewPassed", true),
-                Map.entry("sealRequired", false),
-                Map.entry("draftOpinionUploaded", true),
-                Map.entry("sealedDraftOpinionUploaded", true),
-                Map.entry("deliveryMethod", "电子送达"),
-                Map.entry("archiveConfirmed", true),
-                Map.entry("feedbackReceived", true),
-                Map.entry("feedbackHasObjection", false),
-                Map.entry("feedbackDecision", "无异议或未反馈")
+                Map.entry("projectAssistantId", 4L),
+                Map.entry("archivistId", 5L),
+                Map.entry("receivedLetterUploaded", true),
+                Map.entry("projectLeaderAssigned", true),
+                Map.entry("letterType", "异议函"),
+                Map.entry("letterReceivedDate", "2026-06-13"),
+                Map.entry("letterSummary", "法院对征求意见稿提出异议")
         );
     }
 
-    private Long startIssueDraftOpinionWorkflow(String title) {
-        CaseInfo caseInfo = caseInfoService.createDraft(new CaseCreateRequest(title, "出具征求意见稿", "测试法院", 1L));
+    private Long startCourtLetterWorkflow(String title) {
+        CaseInfo caseInfo = caseInfoService.createDraft(new CaseCreateRequest(title, "收到法院其他函件", "测试法院", 1L));
         caseInfo.setCaseStatus(CaseStatus.PROCESSING.name());
         caseInfoMapper.updateById(caseInfo);
 
         WfDefinition definition = wfDefinitionMapper.selectOne(new LambdaQueryWrapper<WfDefinition>()
-                .eq(WfDefinition::getWfCode, "issue-draft-opinion")
+                .eq(WfDefinition::getWfCode, "court-letter")
                 .eq(WfDefinition::getPublishStatus, "published")
                 .eq(WfDefinition::getDeleted, 0)
                 .orderByDesc(WfDefinition::getVersionNo)
@@ -250,15 +254,15 @@ class IssueDraftOpinionBranchVerificationTest {
         wfInstance.setWfCode(definition.getWfCode());
         wfInstance.setWfName(definition.getWfName());
         wfInstance.setStatus("running");
-        wfInstance.setCurrentNodeCode("ASSISTANT_SUPPLEMENT");
-        wfInstance.setCurrentNodeName("项目辅助人编制并上传鉴定说明函");
+        wfInstance.setCurrentNodeCode("LETTER_UPLOAD");
+        wfInstance.setCurrentNodeName("上传法院函件并选择项目负责人");
         caseWfInstanceMapper.insert(wfInstance);
 
         CaseNodeInstance nodeInstance = new CaseNodeInstance();
         nodeInstance.setCaseId(caseInfo.getId());
         nodeInstance.setWfInstanceId(wfInstance.getId());
-        nodeInstance.setNodeCode("ASSISTANT_SUPPLEMENT");
-        nodeInstance.setNodeName("项目辅助人编制并上传鉴定说明函");
+        nodeInstance.setNodeCode("LETTER_UPLOAD");
+        nodeInstance.setNodeName("上传法院函件并选择项目负责人");
         nodeInstance.setStatus("running");
         caseNodeInstanceMapper.insert(nodeInstance);
 
@@ -267,9 +271,9 @@ class IssueDraftOpinionBranchVerificationTest {
         task.setWfInstanceId(wfInstance.getId());
         task.setNodeInstanceId(nodeInstance.getId());
         task.setTaskType("candidate");
-        task.setTaskTitle(title + " - 项目辅助人编制并上传鉴定说明函");
-        task.setNodeCode("ASSISTANT_SUPPLEMENT");
-        task.setNodeName("项目辅助人编制并上传鉴定说明函");
+        task.setTaskTitle(title + " - 上传法院函件并选择项目负责人");
+        task.setNodeCode("LETTER_UPLOAD");
+        task.setNodeName("上传法院函件并选择项目负责人");
         task.setStatus("pending");
         task.setAssigneeId(OPERATOR_ID);
         task.setAssigneeName(OPERATOR_NAME);
@@ -281,11 +285,11 @@ class IssueDraftOpinionBranchVerificationTest {
 
     private void completeSealApplicationSubflow(Long caseId) {
         completeTask(caseId, "APPLICANT_SUBMIT", ActionCode.APPROVE, Map.of(
-                "caseNo", "JA-SEAL-9-10",
-                "applicantId", 3L,
-                "archivistId", 4L,
+                "caseNo", "JA-SEAL-9-11",
+                "applicantId", 5L,
+                "archivistId", 5L,
                 "sealOperatorId", 6L,
-                "applicationReason", "征求意见稿和鉴定说明函用章",
+                "applicationReason", "法院函件回复函用章",
                 "sealMode", "线下盖章",
                 "applicationFilesPrepared", true,
                 "archivistReviewed", true,
@@ -337,7 +341,7 @@ class IssueDraftOpinionBranchVerificationTest {
                 + ", active tasks: " + activeTaskNodeCodes(caseId)).isNotNull();
 
         WorkflowActionRequest request = new WorkflowActionRequest(
-                task.getId(), actionCode, opinion == null ? "9.10 自动分支验证" : opinion,
+                task.getId(), actionCode, opinion == null ? "9.11 自动分支验证" : opinion,
                 null, null, null, null, null, formData, null);
         workflowRuntimeService.completeTask(caseId, request, OPERATOR_ID, OPERATOR_NAME);
     }
