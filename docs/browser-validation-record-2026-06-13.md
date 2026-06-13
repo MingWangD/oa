@@ -137,3 +137,28 @@ npm run build
 - `npm install` 报告当前依赖存在 2 个审计提示：1 个 moderate、1 个 high。本次未执行 `npm audit fix --force`，避免引入破坏性依赖升级。
 - 本轮未继续开发 6.16 财务报销、6.17 终止鉴定、6.18 归档、6.19 用章申请表。
 - 本轮验证目标是修复和证明真实页面 P0/P1 闭环：多角色登录、新建工作按角色展示、草稿删除、待办办理入口、办结只读详情、工作查询详情。
+
+## 2026-06-14 业务账号登录与权限基础复验
+
+本次复验只证明账号、密码、角色绑定和菜单授权基础可用，不等同于各流程已经完成手册级真实页面验收。
+
+### curl 登录结果
+
+以下账号均通过：
+
+- `case_acceptor / 123456`：HTTP 200，`code=0`
+- `project_leader / 123456`：HTTP 200，`code=0`
+- `project_assistant / 123456`：HTTP 200，`code=0`
+- `dept_leader / 123456`：HTTP 200，`code=0`
+- `tech_leader / 123456`：HTTP 200，`code=0`
+- `director_review / 123456`：HTTP 200，`code=0`
+- `archivist / 123456`：HTTP 200，`code=0`
+- `center_archivist / 123456`：HTTP 200，`code=0`
+- `business_staff / 123456`：HTTP 200，`code=0`
+- `finance / 123456`：HTTP 200，`code=0`
+
+### 数据库核查摘要
+
+- `sys_user` 中以上 10 个业务账号均为 `enabled`、`deleted=0`。
+- 角色绑定已存在：`case_acceptor` 绑定收案员/收件人/申请人/发起人，`project_leader` 绑定项目负责人/申请人/发起人，`project_assistant`、`dept_leader`、`tech_leader`、`director_review`、`center_archivist` 均绑定对应单角色，`archivist` 绑定档案管理员/盖章经办人/邮寄人员，`business_staff` 绑定综合业务部/申请人/发起人，`finance` 绑定财务/申请人/发起人。
+- 菜单授权摘要：`ADMIN` 为 14 个菜单；除 `INITIATOR` 为 0 个菜单外，其余业务角色均为 7 个菜单。
