@@ -1050,16 +1050,25 @@ public class WorkflowRuntimeService {
         if (nextActiveTask != null) {
             return new TransitionAdvance(List.of(nextActiveTask), false, true);
         }
-        if (MAIN_WF_CODE.equalsIgnoreCase(wfInstance.getWfCode())) {
-            caseInfo.setCaseStatus(CaseStatus.COMPLETED.name());
-            caseInfo.setCurrentNodeCode(null);
-            caseInfo.setCurrentNodeName(null);
-            caseInfo.setCurrentHandlerId(null);
-            caseInfo.setCurrentHandlerName(null);
-            caseInfo.setCompletedTime(now);
-            caseInfoMapper.updateById(caseInfo);
-            finishWorkflowInstance(wfInstance, now);
-            return new TransitionAdvance(List.of(), true, true);
+        
+        // If this instance is root-level or the main flow code
+        if (completedTask.getSubflowInstanceId() == null || MAIN_WF_CODE.equalsIgnoreCase(wfInstance.getWfCode())) {
+            // Check for ANY remaining active tasks for this case
+            long activeCount = caseTaskMapper.selectCount(new LambdaQueryWrapper<CaseTask>()
+                    .eq(CaseTask::getCaseId, caseInfo.getId())
+                    .in(CaseTask::getStatus, TASK_PENDING, TASK_CLAIMED, "processing", TASK_SUBFLOW_RUNNING));
+            
+            if (activeCount == 0) {
+                caseInfo.setCaseStatus(CaseStatus.COMPLETED.name());
+                caseInfo.setCurrentNodeCode(null);
+                caseInfo.setCurrentNodeName(null);
+                caseInfo.setCurrentHandlerId(null);
+                caseInfo.setCurrentHandlerName(null);
+                caseInfo.setCompletedTime(now);
+                caseInfoMapper.updateById(caseInfo);
+                finishWorkflowInstance(wfInstance, now);
+                return new TransitionAdvance(List.of(), true, true);
+            }
         }
 
         caseInfo.setCurrentNodeCode(null);

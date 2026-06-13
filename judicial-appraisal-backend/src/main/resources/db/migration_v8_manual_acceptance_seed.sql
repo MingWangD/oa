@@ -43,6 +43,7 @@ VALUES
 ('财务', 'FINANCE', 'enabled', 'dept'),
 ('收件人', 'RECEIVER', 'enabled', 'self'),
 ('申请人', 'APPLICANT', 'enabled', 'self'),
+('发起人', 'INITIATOR', 'enabled', 'self'),
 ('盖章经办人', 'SEAL_OPERATOR', 'enabled', 'dept'),
 ('邮寄人员', 'MAIL_CLERK', 'enabled', 'dept')
 ON DUPLICATE KEY UPDATE role_name = VALUES(role_name), status = VALUES(status), data_scope = VALUES(data_scope), deleted = 0;
@@ -123,13 +124,13 @@ WHERE u.username = 'admin';
 INSERT IGNORE INTO sys_user_role (user_id, role_id)
 SELECT u.id, r.id
 FROM sys_user u
-JOIN sys_role r ON r.role_code IN ('CASE_ACCEPTOR', 'RECEIVER', 'APPLICANT')
+JOIN sys_role r ON r.role_code IN ('CASE_ACCEPTOR', 'RECEIVER', 'APPLICANT', 'INITIATOR')
 WHERE u.username = 'case_acceptor';
 
 INSERT IGNORE INTO sys_user_role (user_id, role_id)
 SELECT u.id, r.id
 FROM sys_user u
-JOIN sys_role r ON r.role_code IN ('PROJECT_LEADER', 'APPLICANT')
+JOIN sys_role r ON r.role_code IN ('PROJECT_LEADER', 'APPLICANT', 'INITIATOR')
 WHERE u.username = 'project_leader';
 
 INSERT IGNORE INTO sys_user_role (user_id, role_id)
@@ -171,13 +172,13 @@ WHERE u.username = 'center_archivist';
 INSERT IGNORE INTO sys_user_role (user_id, role_id)
 SELECT u.id, r.id
 FROM sys_user u
-JOIN sys_role r ON r.role_code IN ('BUSINESS_COMPREHENSIVE', 'APPLICANT')
+JOIN sys_role r ON r.role_code IN ('BUSINESS_COMPREHENSIVE', 'APPLICANT', 'INITIATOR')
 WHERE u.username = 'business_staff';
 
 INSERT IGNORE INTO sys_user_role (user_id, role_id)
 SELECT u.id, r.id
 FROM sys_user u
-JOIN sys_role r ON r.role_code IN ('FINANCE', 'APPLICANT')
+JOIN sys_role r ON r.role_code IN ('FINANCE', 'APPLICANT', 'INITIATOR')
 WHERE u.username = 'finance';
 
 INSERT IGNORE INTO sys_menu (id, parent_id, menu_name, menu_code, path, component, menu_type, icon, sort_no)

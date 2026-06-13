@@ -363,7 +363,7 @@ public class JudicialConfigImportService {
     private WorkflowDesignRequest receivedEntrustWorkflowRequest(JudicialWorkflowDefinitionDto workflow) {
         List<WorkflowNodeRequest> nodes = List.of(
                 node("START", "开始", "start", "single", null, 0, 0, false, null, 0),
-                node("INIT_FILL", "发起者填写委托信息", "task", "single", null, 1, 24, true, workflow.formCode(), 10),
+                node("INIT_FILL", "发起者填写委托信息", "task", "candidate", "收件人", 1, 24, true, workflow.formCode(), 10),
                 node("CLERK_REGISTER", "收案员登记", "task", "candidate", "收案员", 1, 24, true, workflow.formCode(), 20),
                 node("DEPT_REVIEW", "部门负责人审阅", "task", "candidate", "部门负责人", 1, 48, true, workflow.formCode(), 30),
                 node("PROJECT_DECISION", "项目负责人决策", "task", "candidate", "项目负责人", 1, 48, true, workflow.formCode(), 40),
@@ -425,14 +425,14 @@ public class JudicialConfigImportService {
                 field("flowName", "流程名称", "text", "流程基础", false, true),
                 field("projectLeaderId", "项目负责人", "user", "流程基础", true, true),
                 field("projectAssistantId", "项目辅助人", "user", "流程基础", true, true),
-                field("surveyDate", "初步勘验日期", "date", "勘验安排", true, false),
-                field("surveyLocation", "勘验地点", "text", "勘验安排", true, false),
-                field("surveyPlanUploaded", "现场工作方案已上传", "boolean", "勘验安排", true, false),
-                field("equipmentOutboundRecorded", "设备出入库记录已登记", "boolean", "设备记录", true, false),
-                field("equipmentUsageRecorded", "设备使用记录已登记", "boolean", "设备记录", true, false),
-                field("surveySummary", "初步勘验情况", "textarea", "勘验结论", true, false),
-                field("appraisalConditionMet", "是否具备鉴定条件", "boolean", "勘验结论", true, false),
-                field("nextRecommendation", "下一步建议", "select", "勘验结论", true, false,
+                field("surveyDate", "初步勘验日期", "date", "勘验安排", false, false),
+                field("surveyLocation", "勘验地点", "text", "勘验安排", false, false),
+                field("surveyPlanUploaded", "现场工作方案已上传", "boolean", "勘验安排", false, false),
+                field("equipmentOutboundRecorded", "设备出入库记录已登记", "boolean", "设备记录", false, false),
+                field("equipmentUsageRecorded", "设备使用记录已登记", "boolean", "设备记录", false, false),
+                field("surveySummary", "初步勘验情况", "textarea", "勘验结论", false, false),
+                field("appraisalConditionMet", "是否具备鉴定条件", "boolean", "勘验结论", false, false),
+                field("nextRecommendation", "下一步建议", "select", "勘验结论", false, false,
                         List.of("发交费通知书及相关函件", "终止鉴定")),
                 field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
         );
@@ -2112,12 +2112,12 @@ public class JudicialConfigImportService {
                 field("projectLeaderId", "项目负责人", "user", "流程基础", true, true),
                 field("archivistId", "档案管理员", "user", "流程基础", true, true),
                 field("financeId", "财务", "user", "流程基础", true, true),
-                field("contractChangeCompleted", "合同变更已完成", "boolean", "退费准备", true, false),
-                field("revenueConfirmed", "收入确认已完成", "boolean", "退费准备", true, false),
-                field("refundApplicationSubmitted", "退费申请已提交", "boolean", "退费申请", true, false),
-                field("paymentCompleted", "财务打款已完成", "boolean", "财务打款", true, false),
+                field("contractChangeCompleted", "合同变更已完成", "boolean", "退费准备", false, false),
+                field("revenueConfirmed", "收入确认已完成", "boolean", "退费准备", false, false),
+                field("refundApplicationSubmitted", "退费申请已提交", "boolean", "退费申请", false, false),
+                field("paymentCompleted", "财务打款已完成", "boolean", "财务打款", false, false),
                 field("paymentDate", "打款日期", "date", "财务打款", false, false),
-                field("paymentVoucherUploaded", "打款结果已回传", "boolean", "财务打款", true, false),
+                field("paymentVoucherUploaded", "打款结果已回传", "boolean", "财务打款", false, false),
                 field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
         );
         return new FormDesignRequest(
@@ -2190,13 +2190,13 @@ public class JudicialConfigImportService {
                 field("projectLeaderId", "项目负责人", "user", "流程基础", true, true),
                 field("projectAssistantId", "项目辅助人", "user", "流程基础", true, true),
                 field("archivistId", "档案管理员", "user", "流程基础", true, true),
-                field("terminationType", "终止文书类型", "select", "终止文书", true, false, List.of("鉴定终止函", "鉴定终止确认函")),
-                field("terminationReason", "终止原因", "textarea", "终止文书", true, false),
-                field("draftCompleted", "终止文书草稿已完成", "boolean", "终止文书", true, false),
-                field("projectReviewPassed", "项目负责人审核通过", "boolean", "项目负责人审核", true, false),
-                field("sealRequired", "是否需要用章", "boolean", "用章与回传", true, false),
+                field("terminationType", "终止文书类型", "select", "终止文书", false, false, List.of("鉴定终止函", "鉴定终止确认函")),
+                field("terminationReason", "终止原因", "textarea", "终止文书", false, false),
+                field("draftCompleted", "终止文书草稿已完成", "boolean", "终止文书", false, false),
+                field("projectReviewPassed", "项目负责人审核通过", "boolean", "项目负责人审核", false, false),
+                field("sealRequired", "是否需要用章", "boolean", "用章与回传", false, false),
                 field("sealedTerminationUploaded", "终止文书盖章件已上传", "boolean", "用章与回传", false, false),
-                field("archiveConfirmed", "归档材料已确认", "boolean", "归档", true, false),
+                field("archiveConfirmed", "归档材料已确认", "boolean", "归档", false, false),
                 field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
         );
         return new FormDesignRequest(
@@ -2274,12 +2274,12 @@ public class JudicialConfigImportService {
                 field("archivistId", "档案管理员", "user", "流程基础", true, true),
                 field("centralArchivistId", "中心档案管理员", "user", "流程基础", true, true),
                 field("mailerId", "邮寄人员", "user", "流程基础", true, true),
-                field("projectArchiveUploaded", "项目档案已上传", "boolean", "归档整理", true, false),
-                field("paperScansUploaded", "纸质扫描件已上传", "boolean", "归档整理", true, false),
-                field("electronicArchiveLocation", "电子归档地址", "text", "归档整理", true, false),
-                field("deliveryRoute", "入库方式", "select", "移交与入库", true, false, List.of("邮寄入库", "直接中心审核")),
+                field("projectArchiveUploaded", "项目档案已上传", "boolean", "归档整理", false, false),
+                field("paperScansUploaded", "纸质扫描件已上传", "boolean", "归档整理", false, false),
+                field("electronicArchiveLocation", "电子归档地址", "text", "归档整理", false, false),
+                field("deliveryRoute", "入库方式", "select", "移交与入库", false, false, List.of("邮寄入库", "直接中心审核")),
                 field("mailTrackingNo", "邮寄单号", "text", "移交与入库", false, false),
-                field("centralArchiveApproved", "中心档案管理员审核通过", "boolean", "中心审核", true, false),
+                field("centralArchiveApproved", "中心档案管理员审核通过", "boolean", "中心审核", false, false),
                 field("archiveRoomLocation", "档案室入库位置", "text", "中心审核", false, false),
                 field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
         );
