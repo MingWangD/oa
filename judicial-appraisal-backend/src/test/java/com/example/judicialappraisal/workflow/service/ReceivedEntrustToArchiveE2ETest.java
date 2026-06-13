@@ -313,18 +313,25 @@ class ReceivedEntrustToArchiveE2ETest {
         CaseSubflowInstance issueSubflow = getRunningSubflow(caseId, "issue-opinion");
         assertThat(issueSubflow).isNotNull();
 
-        // issue-opinion chain: PROJECT_SUPPLEMENT -> PARALLEL_GATEWAY_SPLIT (SEALED_UPLOAD / FINANCE_INVOICE) -> PARALLEL_GATEWAY_JOIN -> DELIVERY_ARCHIVE -> ARCHIVE_SUBFLOW
+        // issue-opinion chain: PROJECT_MODIFY -> ASSISTANT_UPLOAD -> PROJECT_REVIEW -> ARCHIVIST_CONFIRM
+        // -> PARALLEL_GATEWAY_SPLIT (SEALED_UPLOAD / FINANCE_INVOICE) -> PARALLEL_GATEWAY_JOIN -> DELIVERY_ARCHIVE -> ARCHIVE_SUBFLOW
         Map<String, Object> issueOpinionFormData = Map.ofEntries(
+                Map.entry("opinionModified", true),
                 Map.entry("commitmentDrafted", true),
                 Map.entry("reviewOpinionDrafted", true),
+                Map.entry("projectReviewPassed", true),
                 Map.entry("sealRequired", false),
+                Map.entry("systemRegistrationUploaded", true),
                 Map.entry("sealedOpinionUploaded", true),
                 Map.entry("invoiceRequired", true),
                 Map.entry("invoiceIssued", true),
                 Map.entry("deliveryMethod", "电子送达"),
                 Map.entry("archiveConfirmed", true)
         );
-        completeTask(caseId, "PROJECT_SUPPLEMENT", issueOpinionFormData);
+        completeTask(caseId, "PROJECT_MODIFY", issueOpinionFormData);
+        completeTask(caseId, "ASSISTANT_UPLOAD", issueOpinionFormData);
+        completeTask(caseId, "PROJECT_REVIEW", Map.of("projectReviewPassed", true));
+        completeTask(caseId, "ARCHIVIST_CONFIRM", Map.of("sealRequired", false, "invoiceRequired", true, "systemRegistrationUploaded", true));
         
         // Parallel gateway split -> should have SEALED_UPLOAD and FINANCE_INVOICE active
         completeTask(caseId, "SEALED_UPLOAD", Map.of("sealedOpinionUploaded", true));
@@ -396,20 +403,26 @@ class ReceivedEntrustToArchiveE2ETest {
     void issueOpinionShouldWaitForSealSubflowWhenInvoiceCompletesFirst() {
         Long caseId = startIssueOpinionSubflowCase("E2E出具意见书等待用章和开票");
 
-        completeTask(caseId, "PROJECT_SUPPLEMENT", Map.ofEntries(
+        completeTask(caseId, "PROJECT_MODIFY", Map.ofEntries(
                 Map.entry("caseNo", "JA-WAIT-1"),
                 Map.entry("projectLeaderId", 3L),
                 Map.entry("archivistId", 4L),
                 Map.entry("financeId", 5L),
+                Map.entry("opinionModified", true),
                 Map.entry("commitmentDrafted", true),
                 Map.entry("reviewOpinionDrafted", true),
+                Map.entry("projectReviewPassed", true),
                 Map.entry("sealRequired", true),
+                Map.entry("systemRegistrationUploaded", true),
                 Map.entry("sealedOpinionUploaded", true),
                 Map.entry("invoiceRequired", true),
                 Map.entry("invoiceIssued", true),
                 Map.entry("deliveryMethod", "电子送达"),
                 Map.entry("archiveConfirmed", true)
         ));
+        completeTask(caseId, "ASSISTANT_UPLOAD", Map.of("commitmentDrafted", true, "reviewOpinionDrafted", true));
+        completeTask(caseId, "PROJECT_REVIEW", Map.of("projectReviewPassed", true));
+        completeTask(caseId, "ARCHIVIST_CONFIRM", Map.of("sealRequired", true, "invoiceRequired", true, "systemRegistrationUploaded", true));
 
         assertThat(getRunningSubflow(caseId, "seal-application")).isNotNull();
         completeTask(caseId, "FINANCE_INVOICE", Map.of("invoiceIssued", true));
@@ -425,20 +438,26 @@ class ReceivedEntrustToArchiveE2ETest {
     void issueOpinionShouldWaitForSealSubflowWhenInvoiceNotRequired() {
         Long caseId = startIssueOpinionSubflowCase("E2E出具意见书等待用章免开票");
 
-        completeTask(caseId, "PROJECT_SUPPLEMENT", Map.ofEntries(
+        completeTask(caseId, "PROJECT_MODIFY", Map.ofEntries(
                 Map.entry("caseNo", "JA-WAIT-2"),
                 Map.entry("projectLeaderId", 3L),
                 Map.entry("archivistId", 4L),
                 Map.entry("financeId", 5L),
+                Map.entry("opinionModified", true),
                 Map.entry("commitmentDrafted", true),
                 Map.entry("reviewOpinionDrafted", true),
+                Map.entry("projectReviewPassed", true),
                 Map.entry("sealRequired", true),
+                Map.entry("systemRegistrationUploaded", true),
                 Map.entry("sealedOpinionUploaded", true),
                 Map.entry("invoiceRequired", false),
                 Map.entry("invoiceIssued", false),
                 Map.entry("deliveryMethod", "电子送达"),
                 Map.entry("archiveConfirmed", true)
         ));
+        completeTask(caseId, "ASSISTANT_UPLOAD", Map.of("commitmentDrafted", true, "reviewOpinionDrafted", true));
+        completeTask(caseId, "PROJECT_REVIEW", Map.of("projectReviewPassed", true));
+        completeTask(caseId, "ARCHIVIST_CONFIRM", Map.of("sealRequired", true, "invoiceRequired", false, "systemRegistrationUploaded", true));
 
         assertThat(getRunningSubflow(caseId, "seal-application")).isNotNull();
         assertThat(countActiveTasks(caseId, "DELIVERY_ARCHIVE")).isZero();
@@ -478,15 +497,15 @@ class ReceivedEntrustToArchiveE2ETest {
         wfInstance.setWfCode(definition.getWfCode());
         wfInstance.setWfName(definition.getWfName());
         wfInstance.setStatus("running");
-        wfInstance.setCurrentNodeCode("PROJECT_SUPPLEMENT");
-        wfInstance.setCurrentNodeName("项目负责人补充承诺书与复核意见");
+        wfInstance.setCurrentNodeCode("PROJECT_MODIFY");
+        wfInstance.setCurrentNodeName("项目负责人修改鉴定意见书");
         caseWfInstanceMapper.insert(wfInstance);
 
         CaseNodeInstance nodeInstance = new CaseNodeInstance();
         nodeInstance.setCaseId(caseInfo.getId());
         nodeInstance.setWfInstanceId(wfInstance.getId());
-        nodeInstance.setNodeCode("PROJECT_SUPPLEMENT");
-        nodeInstance.setNodeName("项目负责人补充承诺书与复核意见");
+        nodeInstance.setNodeCode("PROJECT_MODIFY");
+        nodeInstance.setNodeName("项目负责人修改鉴定意见书");
         nodeInstance.setStatus("running");
         caseNodeInstanceMapper.insert(nodeInstance);
 
@@ -495,9 +514,9 @@ class ReceivedEntrustToArchiveE2ETest {
         task.setWfInstanceId(wfInstance.getId());
         task.setNodeInstanceId(nodeInstance.getId());
         task.setTaskType("candidate");
-        task.setTaskTitle(title + " - 项目负责人补充承诺书与复核意见");
-        task.setNodeCode("PROJECT_SUPPLEMENT");
-        task.setNodeName("项目负责人补充承诺书与复核意见");
+        task.setTaskTitle(title + " - 项目负责人修改鉴定意见书");
+        task.setNodeCode("PROJECT_MODIFY");
+        task.setNodeName("项目负责人修改鉴定意见书");
         task.setStatus("pending");
         task.setAssigneeId(9L);
         task.setAssigneeName("管理员");

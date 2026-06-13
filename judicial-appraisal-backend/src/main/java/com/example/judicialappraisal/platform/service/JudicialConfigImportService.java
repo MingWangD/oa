@@ -1453,16 +1453,19 @@ public class JudicialConfigImportService {
                 field("projectLeaderId", "项目负责人", "user", "流程基础", true, true),
                 field("archivistId", "档案管理员", "user", "流程基础", true, true),
                 field("financeId", "财务", "user", "流程基础", true, true),
-                field("commitmentDrafted", "鉴定人承诺书已编制", "boolean", "材料补充", true, false),
-                field("reviewOpinionDrafted", "复核意见已编制", "boolean", "材料补充", true, false),
-                field("sealRequired", "是否需要用章", "boolean", "盖章流程", true, false),
-                field("sealedOpinionUploaded", "鉴定意见书盖章件已上传", "boolean", "盖章流程", true, false),
-                field("invoiceRequired", "是否开具发票", "boolean", "开票流程", true, false),
-                field("invoiceIssued", "发票已开具并回传", "boolean", "开票流程", true, false),
+                field("opinionModified", "鉴定意见书已修改确认", "boolean", "意见书处理", false, false),
+                field("commitmentDrafted", "鉴定人承诺书已上传", "boolean", "材料补充", false, false),
+                field("reviewOpinionDrafted", "司法鉴定复核意见已上传", "boolean", "材料补充", false, false),
+                field("projectReviewPassed", "项目负责人审核通过", "boolean", "项目审核", false, false),
+                field("sealRequired", "是否需要用章", "boolean", "盖章流程", false, false),
+                field("systemRegistrationUploaded", "中电投系统编号登记表扫描件已上传", "boolean", "盖章流程", false, false),
+                field("sealedOpinionUploaded", "鉴定意见书盖章扫描件已上传", "boolean", "盖章流程", false, false),
+                field("invoiceRequired", "是否开具发票", "boolean", "开票流程", false, false),
+                field("invoiceIssued", "发票已开具并回传", "boolean", "开票流程", false, false),
                 field("deliveryMethod", "送达方式", "select", "送达", true, false,
                         List.of("邮寄", "现场领取", "电子送达", "其他")),
                 field("deliveryDate", "送达日期", "date", "送达", false, false),
-                field("archiveConfirmed", "归档材料已确认", "boolean", "归档", true, false),
+                field("archiveConfirmed", "归档材料已确认", "boolean", "归档", false, false),
                 field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
         );
         return new FormDesignRequest(
@@ -1475,7 +1478,7 @@ public class JudicialConfigImportService {
                 toJson(fields),
                 toJson(Map.of(
                         "layout", "grouped",
-                        "groups", List.of("流程基础", "材料补充", "盖章流程", "开票流程", "送达", "归档", "办理意见")
+                        "groups", List.of("流程基础", "意见书处理", "材料补充", "项目审核", "盖章流程", "开票流程", "送达", "归档", "办理意见")
                 )),
                 toJson(Map.of(
                         "requiredFields", fields.stream().filter(item -> Boolean.TRUE.equals(item.get("required"))).map(item -> item.get("field")).toList(),
@@ -1490,8 +1493,10 @@ public class JudicialConfigImportService {
                 toJson(Map.of(
                         "groups", Map.of(
                                 "流程基础", Map.of("readOnly", true),
-                                "材料补充", Map.of("roles", List.of("项目负责人")),
-                                "盖章流程", Map.of("roles", List.of("项目负责人", "档案管理员")),
+                                "意见书处理", Map.of("roles", List.of("项目负责人")),
+                                "材料补充", Map.of("roles", List.of("项目辅助人")),
+                                "项目审核", Map.of("roles", List.of("项目负责人")),
+                                "盖章流程", Map.of("roles", List.of("项目负责人", "项目辅助人", "档案管理员")),
                                 "开票流程", Map.of("roles", List.of("财务")),
                                 "送达", Map.of("roles", List.of("档案管理员")),
                                 "归档", Map.of("roles", List.of("档案管理员"))
@@ -1508,7 +1513,7 @@ public class JudicialConfigImportService {
                 toJson(Map.of("enabled", true, "inputFiles", form.inputFiles(), "outputFiles", form.outputFiles(), "duplicatePolicy", "warn")),
                 "[]",
                 toJson(List.of(
-                        Map.of("type", "business", "text", "项目负责人补充承诺书和复核意见后进入用章/免章，再进入开票/免开票，最后由档案管理员回传、送达并归档"),
+                        Map.of("type", "business", "text", "项目负责人确认意见书后转项目辅助人上传承诺书和复核意见，项目负责人审核通过后进入盖章和开票并行，最后由档案管理员送达并归档"),
                         Map.of("type", "validation", "text", "选择需要用章时必须回传意见书盖章件，选择需要发票时必须回传发票凭证"),
                         Map.of("type", "archive", "text", "承诺书、复核意见、意见书盖章件、发票记录、送达单和归档确认均在节点完成时自动归档保存")
                 ))
@@ -1518,34 +1523,41 @@ public class JudicialConfigImportService {
     private WorkflowDesignRequest issueOpinionWorkflowRequest(JudicialWorkflowDefinitionDto workflow) {
         List<WorkflowNodeRequest> nodes = List.of(
                 node("START", "开始", "start", "single", null, 0, 0, false, null, 0),
-                node("PROJECT_SUPPLEMENT", "项目负责人补充承诺书与复核意见", "task", "candidate", "项目负责人", 1, 48, true, workflow.formCode(), 10),
-                node("PARALLEL_GATEWAY_SPLIT", "并行分支", "gateway", "parallel", null, 0, 0, false, null, 20),
-                node("SEAL_APPLICATION", "发起用章申请", "task", "candidate", "项目负责人", 1, 24, true, "seal-application", 30),
-                node("SEALED_UPLOAD", "档案管理员回传盖章件", "task", "candidate", "档案管理员", 1, 24, true, workflow.formCode(), 40),
-                node("FINANCE_INVOICE", "财务开具发票", "task", "candidate", "财务", 1, 48, true, workflow.formCode(), 50),
-                node("PARALLEL_GATEWAY_JOIN", "并行汇聚", "gateway", "inclusive", null, 0, 0, false, null, 60),
-                node("DELIVERY_ARCHIVE", "档案管理员送达并确认归档", "task", "candidate", "档案管理员", 1, 72, true, workflow.formCode(), 70),
-                node("ARCHIVE_SUBFLOW", "进入归档子流程", "task", "candidate", "档案管理员", 1, 24, true, "archive", 80),
-                node("END", "流程结束", "end", "single", null, 0, 0, false, null, 90)
+                node("PROJECT_MODIFY", "项目负责人修改鉴定意见书", "task", "candidate", "项目负责人", 1, 24, true, workflow.formCode(), 10),
+                node("ASSISTANT_UPLOAD", "项目辅助人上传承诺书与复核意见", "task", "candidate", "项目辅助人", 1, 48, true, workflow.formCode(), 20),
+                node("PROJECT_REVIEW", "项目负责人审核承诺书与复核意见", "task", "candidate", "项目负责人", 1, 24, true, workflow.formCode(), 30),
+                node("ARCHIVIST_CONFIRM", "档案管理员确认盖章申请并登记编号", "task", "candidate", "档案管理员", 1, 24, true, workflow.formCode(), 40),
+                node("PARALLEL_GATEWAY_SPLIT", "盖章开票并行分支", "gateway", "parallel", null, 0, 0, false, null, 50),
+                node("SEAL_APPLICATION", "发起用章申请", "task", "candidate", "档案管理员", 1, 24, true, "seal-application", 60),
+                node("SEALED_UPLOAD", "项目辅助人上传盖章扫描件", "task", "candidate", "项目辅助人", 1, 24, true, workflow.formCode(), 70),
+                node("FINANCE_INVOICE", "财务开具发票", "task", "candidate", "财务", 1, 48, true, workflow.formCode(), 80),
+                node("PARALLEL_GATEWAY_JOIN", "盖章开票并行汇聚", "gateway", "inclusive", null, 0, 0, false, null, 90),
+                node("DELIVERY_ARCHIVE", "档案管理员送达并确认归档", "task", "candidate", "档案管理员", 1, 72, true, workflow.formCode(), 100),
+                node("ARCHIVE_SUBFLOW", "进入归档子流程", "task", "candidate", "档案管理员", 1, 24, true, "archive", 110),
+                node("END", "流程结束", "end", "single", null, 0, 0, false, null, 120)
         );
 
         List<WorkflowTransitionRequest> transitions = List.of(
-                transition("START", "PROJECT_SUPPLEMENT", "APPROVE", "进入出具鉴定意见书", null, 0, 10),
-                transition("PROJECT_SUPPLEMENT", "PARALLEL_GATEWAY_SPLIT", "APPROVE", "提交补充材料，进入并行分支", null, 1, 20),
-                transition("PARALLEL_GATEWAY_SPLIT", "SEAL_APPLICATION", "APPROVE", "进入用章分支", "form.sealRequired == true", 1, 30,
+                transition("START", "PROJECT_MODIFY", "APPROVE", "进入出具鉴定意见书", null, 0, 10),
+                transition("PROJECT_MODIFY", "ASSISTANT_UPLOAD", "APPROVE", "转项目辅助人上传承诺书与复核意见", null, 1, 20),
+                transition("ASSISTANT_UPLOAD", "PROJECT_REVIEW", "APPROVE", "转项目负责人审核", null, 1, 30),
+                transition("PROJECT_REVIEW", "ARCHIVIST_CONFIRM", "APPROVE", "审核通过，转档案管理员申请盖章和开票", "form.projectReviewPassed == true", 1, 40),
+                transition("PROJECT_REVIEW", "ASSISTANT_UPLOAD", "RETURN", "审核不通过，退回项目辅助人补充材料", "form.projectReviewPassed == false", 1, 41),
+                transition("ARCHIVIST_CONFIRM", "PARALLEL_GATEWAY_SPLIT", "APPROVE", "盖章申请确认并进入并行分支", null, 1, 50),
+                transition("PARALLEL_GATEWAY_SPLIT", "SEAL_APPLICATION", "APPROVE", "进入用章分支", "form.sealRequired == true", 1, 60,
                         subflowConfig("seal-application", "自动进入用章流程以盖鉴定意见书章")),
-                transition("PARALLEL_GATEWAY_SPLIT", "SEALED_UPLOAD", "APPROVE", "无需用章，直接回传", "form.sealRequired == false", 1, 31),
-                transition("SEAL_APPLICATION", "SEALED_UPLOAD", "COMPLETE", "用章流程完成", null, 1, 40),
-                transition("SEALED_UPLOAD", "PARALLEL_GATEWAY_JOIN", "APPROVE", "盖章件回传完成汇聚", null, 1, 50),
-                transition("SEALED_UPLOAD", "PROJECT_SUPPLEMENT", "RETURN", "退回项目负责人补充材料", null, 1, 51),
-                transition("PARALLEL_GATEWAY_SPLIT", "FINANCE_INVOICE", "APPROVE", "进入开票分支", "form.invoiceRequired == true", 1, 60),
-                transition("PARALLEL_GATEWAY_SPLIT", "PARALLEL_GATEWAY_JOIN", "APPROVE", "无需开票分支汇聚", "form.invoiceRequired == false", 1, 61),
-                transition("FINANCE_INVOICE", "PARALLEL_GATEWAY_JOIN", "APPROVE", "开票完成汇聚", null, 1, 70),
-                transition("PARALLEL_GATEWAY_JOIN", "DELIVERY_ARCHIVE", "APPROVE", "合并后转档案管理员送达与归档", null, 1, 80),
-                transition("DELIVERY_ARCHIVE", "ARCHIVE_SUBFLOW", "APPROVE", "送达完成，触发归档", "form.archiveConfirmed == true", 1, 90,
+                transition("PARALLEL_GATEWAY_SPLIT", "SEALED_UPLOAD", "APPROVE", "无需用章，直接上传最终扫描件", "form.sealRequired == false", 1, 61),
+                transition("SEAL_APPLICATION", "SEALED_UPLOAD", "COMPLETE", "用章流程完成，转项目辅助人线下盖章并上传扫描件", null, 1, 70),
+                transition("SEALED_UPLOAD", "PARALLEL_GATEWAY_JOIN", "APPROVE", "盖章扫描件上传完成汇聚", null, 1, 80),
+                transition("SEALED_UPLOAD", "ASSISTANT_UPLOAD", "RETURN", "退回项目辅助人补充承诺书或复核意见", null, 1, 81),
+                transition("PARALLEL_GATEWAY_SPLIT", "FINANCE_INVOICE", "APPROVE", "进入开票分支", "form.invoiceRequired == true", 1, 90),
+                transition("PARALLEL_GATEWAY_SPLIT", "PARALLEL_GATEWAY_JOIN", "APPROVE", "无需开票分支汇聚", "form.invoiceRequired == false", 1, 91),
+                transition("FINANCE_INVOICE", "PARALLEL_GATEWAY_JOIN", "APPROVE", "开票完成汇聚", null, 1, 100),
+                transition("PARALLEL_GATEWAY_JOIN", "DELIVERY_ARCHIVE", "APPROVE", "合并后转档案管理员送达与归档", null, 1, 110),
+                transition("DELIVERY_ARCHIVE", "ARCHIVE_SUBFLOW", "APPROVE", "送达完成，触发归档", "form.archiveConfirmed == true", 1, 120,
                         subflowConfig("archive", "出具鉴定意见书送达并确认归档材料后自动进入归档流程")),
-                transition("DELIVERY_ARCHIVE", "SEALED_UPLOAD", "RETURN", "退回补充盖章件", null, 1, 91),
-                transition("ARCHIVE_SUBFLOW", "END", "COMPLETE", "归档子流程已触发", null, 1, 100)
+                transition("DELIVERY_ARCHIVE", "SEALED_UPLOAD", "RETURN", "退回补充盖章扫描件", null, 1, 121),
+                transition("ARCHIVE_SUBFLOW", "END", "COMPLETE", "归档子流程已触发", null, 1, 130)
         );
 
         return new WorkflowDesignRequest(

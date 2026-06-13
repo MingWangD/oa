@@ -387,7 +387,8 @@ class JudicialConfigImportServiceTests {
                 .findFirst()
                 .orElseThrow();
         assertThat(issueOpinionForm.fieldSchemaJson())
-                .contains("commitmentDrafted", "reviewOpinionDrafted", "sealRequired", "sealedOpinionUploaded", "invoiceRequired", "invoiceIssued", "archiveConfirmed");
+                .contains("opinionModified", "commitmentDrafted", "reviewOpinionDrafted", "projectReviewPassed", "sealRequired",
+                        "systemRegistrationUploaded", "sealedOpinionUploaded", "invoiceRequired", "invoiceIssued", "archiveConfirmed");
         assertThat(issueOpinionForm.validationSchemaJson())
                 .contains("sealRequired == true", "invoiceRequired == true", "archiveConfirmed == true");
 
@@ -398,9 +399,12 @@ class JudicialConfigImportServiceTests {
                 .findFirst()
                 .orElseThrow();
         assertThat(issueOpinionWorkflow.nodes()).extracting("nodeCode")
-                .contains("PROJECT_SUPPLEMENT", "SEAL_APPLICATION", "SEALED_UPLOAD", "FINANCE_INVOICE", "DELIVERY_ARCHIVE", "ARCHIVE_SUBFLOW");
+                .contains("PROJECT_MODIFY", "ASSISTANT_UPLOAD", "PROJECT_REVIEW", "ARCHIVIST_CONFIRM",
+                        "SEAL_APPLICATION", "SEALED_UPLOAD", "FINANCE_INVOICE", "DELIVERY_ARCHIVE", "ARCHIVE_SUBFLOW");
         assertThat(issueOpinionWorkflow.transitions()).extracting("conditionExpression")
-                .contains("form.sealRequired == true", "form.sealRequired == false", "form.invoiceRequired == true", "form.invoiceRequired == false", "form.archiveConfirmed == true");
+                .contains("form.projectReviewPassed == true", "form.projectReviewPassed == false",
+                        "form.sealRequired == true", "form.sealRequired == false", "form.invoiceRequired == true",
+                        "form.invoiceRequired == false", "form.archiveConfirmed == true");
         assertThat(issueOpinionWorkflow.transitions()).extracting("transitionConfigJson")
                 .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "seal-application"))
                 .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "archive"));

@@ -132,7 +132,7 @@ class FinalOpinionReviewBranchVerificationTest {
                 "nextRecommendation", "出具鉴定意见书"
         ), null);
 
-        assertThat(activeTaskNodeCodes(caseId)).contains("ISSUE_OPINION", "PROJECT_SUPPLEMENT");
+        assertThat(activeTaskNodeCodes(caseId)).contains("ISSUE_OPINION", "PROJECT_MODIFY");
         assertThat(runningSubflowCodes(caseId)).contains("issue-opinion");
         assertThat(caseInfoMapper.selectById(caseId).getFormData())
                 .containsEntry("opinionDraftUploaded", true)
