@@ -1463,11 +1463,17 @@ public class WorkflowRuntimeService {
                 .eq(SysRole::getStatus, ENABLED_STATUS)
                 .and(wrapper -> {
                     if (!roleIds.isEmpty() && !roleCodes.isEmpty()) {
-                        wrapper.in(SysRole::getId, roleIds).or().in(SysRole::getRoleCode, roleCodes);
+                        wrapper.in(SysRole::getId, roleIds)
+                                .or()
+                                .in(SysRole::getRoleCode, roleCodes)
+                                .or()
+                                .in(SysRole::getRoleName, roleCodes);
                     } else if (!roleIds.isEmpty()) {
                         wrapper.in(SysRole::getId, roleIds);
                     } else {
-                        wrapper.in(SysRole::getRoleCode, roleCodes);
+                        wrapper.in(SysRole::getRoleCode, roleCodes)
+                                .or()
+                                .in(SysRole::getRoleName, roleCodes);
                     }
                 });
         List<SysRole> roles = sysRoleMapper.selectList(queryWrapper);

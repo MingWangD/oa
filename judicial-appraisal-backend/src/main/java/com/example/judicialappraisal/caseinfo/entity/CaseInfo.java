@@ -42,5 +42,8 @@ public class CaseInfo {
     private LocalDateTime completedTime;
     private LocalDateTime createdTime;
     private LocalDateTime updatedTime;
+    private Long createdBy;
+    private Long updatedBy;
+    private Integer deleted;
     private Integer version;
 }

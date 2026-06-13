@@ -96,10 +96,16 @@ class ReceivedEntrustToArchiveE2ETest {
                         .eq(com.example.judicialappraisal.organization.entity.SysRole::getStatus, "enabled")
                         .eq(com.example.judicialappraisal.organization.entity.SysRole::getDeleted, 0));
         for (com.example.judicialappraisal.organization.entity.SysRole role : enabledRoles) {
-            com.example.judicialappraisal.organization.entity.SysUserRole userRole = new com.example.judicialappraisal.organization.entity.SysUserRole();
-            userRole.setUserId(9L);
-            userRole.setRoleId(role.getId());
-            sysUserRoleMapper.insert(userRole);
+            com.example.judicialappraisal.organization.entity.SysUserRole existingUserRole = sysUserRoleMapper.selectOne(
+                    new LambdaQueryWrapper<com.example.judicialappraisal.organization.entity.SysUserRole>()
+                            .eq(com.example.judicialappraisal.organization.entity.SysUserRole::getUserId, 9L)
+                            .eq(com.example.judicialappraisal.organization.entity.SysUserRole::getRoleId, role.getId()));
+            if (existingUserRole == null) {
+                com.example.judicialappraisal.organization.entity.SysUserRole userRole = new com.example.judicialappraisal.organization.entity.SysUserRole();
+                userRole.setUserId(9L);
+                userRole.setRoleId(role.getId());
+                sysUserRoleMapper.insert(userRole);
+            }
         }
 
         // Ensure configs are imported and force refresh

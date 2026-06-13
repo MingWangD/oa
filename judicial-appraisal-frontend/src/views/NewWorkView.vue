@@ -6,7 +6,7 @@ import { Document, InfoFilled, Search, Share } from '@element-plus/icons-vue';
 
 import {
   createCaseDraft,
-  fetchJudicialCatalog,
+  fetchAvailableJudicialCatalog,
   type JudicialWorkflowDefinition
 } from '../api/judicial';
 import { useAuthStore } from '../stores/auth';
@@ -23,23 +23,9 @@ const loading = ref(false);
 const creatingCode = ref('');
 const keyword = ref('');
 const activeCategory = ref('common');
-const activeRole = ref('all');
 const viewMode = ref<'task' | 'list' | 'overview'>('task');
 const workflows = ref<JudicialWorkflowDefinition[]>([]);
 const judicialRoles = ref<string[]>([]);
-
-const fallbackJudicialRoles = [
-  '部门负责人',
-  '项目负责人',
-  '项目辅助人',
-  '档案管理员',
-  '中心档案管理员',
-  '技术负责人',
-  '审阅所长',
-  '综合业务部',
-  '财务',
-  '收案员'
-];
 
 const manualCreateCodes = new Set([
   'received-entrust',
@@ -130,48 +116,48 @@ const categories: WorkCategory[] = [
 
 const userRoleNames = computed(() => authStore.roleNames);
 const isAdmin = computed(() => authStore.isAdmin);
-const roleFilterOptions = computed(() => ['all', ...(judicialRoles.value.length ? judicialRoles.value : fallbackJudicialRoles)]);
+const currentRoleLabel = computed(() => isAdmin.value ? '系统管理员' : (userRoleNames.value.join('、') || '未分配角色'));
 
 const visibleWorkflows = computed(() => {
   const selectedCategory = categories.find((item) => item.key === activeCategory.value);
   const categoryCodes = selectedCategory?.workflowCodes;
   const query = keyword.value.trim().toLowerCase();
 
-  return workflows.value
-    .filter((workflow) => canCreateWorkflow(workflow))
-    .filter((workflow) => !categoryCodes || categoryCodes.includes(workflow.code))
-    .filter((workflow) => activeRole.value === 'all' || workflow.roles.includes(activeRole.value))
-    .filter((workflow) => {
-      if (!query) {
-        return true;
-      }
+  let filtered = workflows.value.filter((workflow) => canCreateWorkflow(workflow));
+
+  if (activeCategory.value !== 'all' && categoryCodes) {
+    filtered = filtered.filter((workflow) => categoryCodes.includes(workflow.code));
+  }
+
+  if (query) {
+    filtered = filtered.filter((workflow) => {
       return [
         workflow.name,
         workflow.code,
         workflow.formCode,
         workflow.roles.join(' ')
       ].some((value) => value.toLowerCase().includes(query));
-    })
-    .sort((left, right) => {
-      if (!categoryCodes) {
-        return left.name.localeCompare(right.name, 'zh-Hans-CN');
-      }
-      const leftIndex = categoryCodes.indexOf(left.code);
-      const rightIndex = categoryCodes.indexOf(right.code);
-      return (leftIndex === -1 ? 999 : leftIndex) - (rightIndex === -1 ? 999 : rightIndex);
     });
+  }
+
+  return filtered.sort((left, right) => {
+    if (!categoryCodes) {
+      return left.name.localeCompare(right.name, 'zh-Hans-CN');
+    }
+    const leftIndex = categoryCodes.indexOf(left.code);
+    const rightIndex = categoryCodes.indexOf(right.code);
+    return (leftIndex === -1 ? 999 : leftIndex) - (rightIndex === -1 ? 999 : rightIndex);
+  });
 });
 
 const activeCategoryLabel = computed(
   () => categories.find((item) => item.key === activeCategory.value)?.label ?? '全部工作'
 );
 
-const activeRoleLabel = computed(() => activeRole.value === 'all' ? '全部角色' : activeRole.value);
-
 onMounted(async () => {
   loading.value = true;
   try {
-    const catalog = await fetchJudicialCatalog();
+    const catalog = await fetchAvailableJudicialCatalog();
     workflows.value = catalog.workflows;
     judicialRoles.value = catalog.dedicatedRoles;
   } catch (error) {
@@ -185,29 +171,18 @@ function canCreateWorkflow(workflow: JudicialWorkflowDefinition): boolean {
   if (isAdmin.value) {
     return true;
   }
-  if (workflow.entryMode === 'direct' || workflow.entryMode.includes('direct')) {
-    return true;
-  }
   const roleNames = userRoleNames.value;
   return workflow.roles.some((role) => roleNames.some((name) => roleMatches(name, role)));
 }
 
 function roleMatches(userRole: string, workflowRole: string): boolean {
-  return userRole === workflowRole || userRole.includes(workflowRole) || workflowRole.includes(userRole);
-}
-
-function roleCount(role: string): number {
-  if (role === 'all') {
-    return workflows.value.filter((workflow) => canCreateWorkflow(workflow)).length;
-  }
-  return workflows.value.filter((workflow) => canCreateWorkflow(workflow) && workflow.roles.includes(role)).length;
-}
-
-function canUseRoleFilter(role: string): boolean {
-  if (role === 'all' || isAdmin.value) {
+  if (userRole === workflowRole || userRole.includes(workflowRole) || workflowRole.includes(userRole)) {
     return true;
   }
-  return userRoleNames.value.some((userRole) => roleMatches(userRole, role));
+  if (workflowRole === '收件人' && userRole === '收案员') {
+    return true;
+  }
+  return workflowRole === '申请人' || workflowRole === '发起人';
 }
 
 function canManualCreate(workflow: JudicialWorkflowDefinition): boolean {
@@ -321,26 +296,16 @@ async function openGuide(workflow: JudicialWorkflowDefinition): Promise<void> {
           {{ category.label }}
         </button>
 
-        <div class="role-filter-title">司法鉴定角色</div>
-        <button
-          v-for="role in roleFilterOptions"
-          :key="role"
-          class="role-filter"
-          :class="{ 'role-filter--active': activeRole === role }"
-          :disabled="!canUseRoleFilter(role)"
-          type="button"
-          @click="activeRole = role"
-        >
-          <span class="role-avatar" />
-          <span class="role-name">{{ role === 'all' ? '全部角色' : role }}</span>
-          <em>{{ roleCount(role) }}</em>
-        </button>
+        <div class="current-role-card">
+          <span>当前登录角色</span>
+          <strong>{{ currentRoleLabel }}</strong>
+        </div>
       </aside>
 
       <main class="work-list-panel">
         <div class="work-list-title">
           <strong>{{ activeCategoryLabel }}</strong>
-          <span>共 {{ visibleWorkflows.length }} 张表单，当前角色：{{ activeRoleLabel }}</span>
+          <span>共 {{ visibleWorkflows.length }} 张表单，权限来自当前登录账号</span>
         </div>
 
         <el-empty v-if="!loading && visibleWorkflows.length === 0" description="当前角色暂无可新建工作" />
@@ -487,85 +452,25 @@ async function openGuide(workflow: JudicialWorkflowDefinition): Promise<void> {
   transform-origin: center;
 }
 
-.role-filter-title {
-  margin: 18px 18px 8px;
-  padding-top: 14px;
-  border-top: 1px solid #e3e3e3;
+.current-role-card {
+  margin: 18px 14px 0;
+  padding: 12px 14px;
+  border: 1px solid #e3e3e3;
+  background: #ffffff;
+}
+
+.current-role-card span {
+  display: block;
   color: #8994a3;
   font-size: 12px;
 }
 
-.role-filter {
-  display: grid;
-  grid-template-columns: 20px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  min-height: 36px;
-  padding: 0 14px 0 38px;
-  border: 0;
-  border-left: 3px solid transparent;
-  background: transparent;
-  color: #415064;
+.current-role-card strong {
+  display: block;
+  margin-top: 6px;
+  color: #3f4d5c;
   font-size: 13px;
-  text-align: left;
-  cursor: pointer;
-}
-
-.role-filter:disabled {
-  color: #b3bbc6;
-  cursor: not-allowed;
-}
-
-.role-filter--active {
-  border-left-color: #3b8cff;
-  background: #ffffff;
-  color: #1677ff;
-  font-weight: 600;
-}
-
-.role-avatar {
-  position: relative;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #d9e3f5;
-}
-
-.role-avatar::before {
-  position: absolute;
-  top: 2px;
-  left: 5px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #8ea2c4;
-  content: '';
-}
-
-.role-avatar::after {
-  position: absolute;
-  right: 3px;
-  bottom: 2px;
-  left: 3px;
-  height: 6px;
-  border-radius: 6px 6px 3px 3px;
-  background: #ffffff;
-  content: '';
-}
-
-.role-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.role-filter em {
-  min-width: 18px;
-  color: #9aa5b5;
-  font-size: 12px;
-  font-style: normal;
-  text-align: right;
+  line-height: 1.45;
 }
 
 .work-list-panel {
@@ -746,8 +651,7 @@ async function openGuide(workflow: JudicialWorkflowDefinition): Promise<void> {
     border-bottom-color: #3b8cff;
   }
 
-  .role-filter-title,
-  .role-filter {
+  .current-role-card {
     display: none;
   }
 }

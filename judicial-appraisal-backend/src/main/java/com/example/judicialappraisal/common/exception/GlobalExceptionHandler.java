@@ -2,6 +2,7 @@ package com.example.judicialappraisal.common.exception;
 
 import com.example.judicialappraisal.common.ApiResponse;
 import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(AuthenticationException.class)
@@ -47,6 +49,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ApiResponse<Void> handleException(Exception ex) {
+        log.error("Unhandled request exception", ex);
         return ApiResponse.error(500, "系统异常");
     }
 }

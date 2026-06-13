@@ -99,6 +99,7 @@ mysql -uroot -p123456 -P3307 judicial_appraisal < judicial-appraisal-backend/src
 mysql -uroot -p123456 -P3307 judicial_appraisal < judicial-appraisal-backend/src/main/resources/db/migration_v5_subflow_relation.sql
 mysql -uroot -p123456 -P3307 judicial_appraisal < judicial-appraisal-backend/src/main/resources/db/migration_v6_form_data.sql
 mysql -uroot -p123456 -P3307 judicial_appraisal < judicial-appraisal-backend/src/main/resources/db/migration_v7_contract_mvp.sql
+mysql -uroot -p123456 -P3307 judicial_appraisal < judicial-appraisal-backend/src/main/resources/db/migration_v8_manual_acceptance_seed.sql
 ```
 
 启动 MinIO：
@@ -163,9 +164,30 @@ Get-Content judicial-appraisal-backend\src\main\resources\db\migration_v4_file_k
 Get-Content judicial-appraisal-backend\src\main\resources\db\migration_v5_subflow_relation.sql | docker exec -i judicial-mysql mysql -uroot -p123456 judicial_appraisal
 Get-Content judicial-appraisal-backend\src\main\resources\db\migration_v6_form_data.sql | docker exec -i judicial-mysql mysql -uroot -p123456 judicial_appraisal
 Get-Content judicial-appraisal-backend\src\main\resources\db\migration_v7_contract_mvp.sql | docker exec -i judicial-mysql mysql -uroot -p123456 judicial_appraisal
+Get-Content judicial-appraisal-backend\src\main\resources\db\migration_v8_manual_acceptance_seed.sql | docker exec -i judicial-mysql mysql -uroot -p123456 judicial_appraisal
 ```
 
 MinIO 控制台地址为 `http://localhost:9001`。首次运行后确认存在 `judicial-appraisal` bucket；如果没有，可以在控制台手动创建。
+
+### 手册验收测试账号
+
+执行 `migration_v8_manual_acceptance_seed.sql` 后，会初始化使用手册范围内的业务角色账号。默认密码统一为 `123456`。
+
+| 用户名 | 角色 | 主要用途 |
+|---|---|---|
+| `case_acceptor` | 收案员、收件人、申请人 | 发起“收到委托书”，登记法院函件、出庭通知、撤案函等收件类工作 |
+| `project_leader` | 项目负责人、申请人 | 接收项目负责人节点，审核、判断分支、发起用章相关申请 |
+| `project_assistant` | 项目辅助人 | 办理辅助编制、材料上传、意见稿和文书准备节点 |
+| `dept_leader` | 部门负责人 | 办理部门审核、F 类项目审核等节点 |
+| `tech_leader` | 技术负责人 | 办理技术审核节点 |
+| `director_review` | 审阅所长 | 办理所长审阅相关节点 |
+| `archivist` | 档案管理员、盖章经办人、邮寄人员 | 办理档案、用章、寄送、归档节点 |
+| `center_archivist` | 中心档案管理员 | 办理中心档案审核、入库节点 |
+| `business_staff` | 综合业务部、申请人 | 办理综合业务部相关工作和普通申请类工作 |
+| `finance` | 财务、申请人 | 办理退费、财务报销、打款确认节点 |
+| `admin` | 系统管理员 | 仅用于系统配置、用户和流程设计管理，不作为业务流程验收主账号 |
+
+验收主流程时不要使用 `admin` 作为业务经办人。建议从 `case_acceptor` 登录发起“收到委托书”，再切换 `dept_leader`、`project_leader`、`project_assistant`、`archivist`、`finance` 等账号验证待办流转。
 
 ### 后端启动
 

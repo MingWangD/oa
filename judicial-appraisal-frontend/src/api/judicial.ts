@@ -1,4 +1,4 @@
-import { get, getBlob, post, postForm, put } from './http';
+import { del, get, getBlob, post, postForm, put } from './http';
 
 export interface UserRole {
   id?: number | null;
@@ -703,6 +703,10 @@ export function createCaseDraft(payload: CaseDraftPayload): Promise<CaseDetail> 
   return post<CaseDetail>('/cases', payload);
 }
 
+export function deleteCaseDraft(caseId: number): Promise<void> {
+  return del<void>(`/cases/${caseId}`);
+}
+
 export function fetchTaskDetail(taskId: number): Promise<TaskDetail> {
   return get<TaskDetail>(`/tasks/${taskId}`);
 }
@@ -777,6 +781,10 @@ export function fetchJudicialCatalog(): Promise<JudicialCatalog> {
   return get<JudicialCatalog>('/platform/judicial-catalog');
 }
 
+export function fetchAvailableJudicialCatalog(): Promise<JudicialCatalog> {
+  return get<JudicialCatalog>('/platform/judicial-catalog/available');
+}
+
 export function importJudicialCatalog(forceNewVersion = false): Promise<JudicialConfigImportResult> {
   return post<JudicialConfigImportResult>(`/platform/judicial-catalog/import?forceNewVersion=${forceNewVersion}`);
 }
@@ -847,6 +855,10 @@ export function fetchFormDraft(formCode: string): Promise<FormVersionDesign> {
 
 export function fetchFormPreview(formCode: string): Promise<FormVersionDesign> {
   return get<FormVersionDesign>(`/designer/forms/${formCode}/preview`);
+}
+
+export function fetchRuntimeFormPreview(formCode: string): Promise<FormVersionDesign> {
+  return get<FormVersionDesign>(`/forms/${formCode}/preview`);
 }
 
 export function fetchFormVersions(formCode: string): Promise<FormVersionDesign[]> {

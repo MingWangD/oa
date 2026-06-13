@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LongValue;
-import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.JSQLParserException;
@@ -43,13 +42,13 @@ public class CustomDataPermissionHandler implements MultiDataPermissionHandler {
             case CUSTOM -> customDepartments(table, userInfo);
             case DEPT_SUB -> departmentAndSubDepartments(table, userInfo.deptId());
             case DEPT -> equalsTo(table, "accept_dept_id", userInfo.deptId());
-            case SELF -> equalsTo(table, "current_handler_id", userInfo.id());
+            case SELF -> selfCases(table, userInfo.id());
             case ALL -> null;
         };
         if (scopeExpression == null) {
             return denyAll();
         }
-        return where == null ? scopeExpression : new AndExpression(where, scopeExpression);
+        return scopeExpression;
     }
 
     DataScopeLevel resolveScope(CurrentUserInfo userInfo) {
@@ -92,6 +91,19 @@ public class CustomDataPermissionHandler implements MultiDataPermissionHandler {
         expression.setLeftExpression(new Column(qualifiedColumn(table, columnName)));
         expression.setRightExpression(new LongValue(value));
         return expression;
+    }
+
+    private Expression selfCases(Table table, Long userId) {
+        if (userId == null) {
+            return null;
+        }
+        String condition = "(" + qualifiedColumn(table, "current_handler_id") + " = " + userId
+                + " OR " + qualifiedColumn(table, "created_by") + " = " + userId + ")";
+        try {
+            return CCJSqlParserUtil.parseCondExpression(condition);
+        } catch (JSQLParserException ex) {
+            throw new IllegalStateException("Failed to build self data scope", ex);
+        }
     }
 
     private Expression denyAll() {

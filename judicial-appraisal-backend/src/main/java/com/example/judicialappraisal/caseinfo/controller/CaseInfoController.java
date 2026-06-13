@@ -11,6 +11,7 @@ import com.example.judicialappraisal.common.ApiResponse;
 import com.example.judicialappraisal.common.PageResult;
 import com.example.judicialappraisal.workflow.dto.WorkflowActionResult;
 import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,8 +33,10 @@ public class CaseInfoController {
     }
 
     @PostMapping
-    public ApiResponse<CaseInfo> createDraft(@Valid @RequestBody CaseCreateRequest request) {
-        return ApiResponse.success(caseInfoService.createDraft(request));
+    public ApiResponse<CaseInfo> createDraft(@Valid @RequestBody CaseCreateRequest request,
+                                             Authentication authentication) {
+        CurrentUserInfo currentUser = currentUser(authentication);
+        return ApiResponse.success(caseInfoService.createDraft(request, currentUser.id()));
     }
 
     @GetMapping
@@ -52,6 +55,13 @@ public class CaseInfoController {
     @GetMapping("/{caseId}")
     public ApiResponse<CaseInfo> getDetail(@PathVariable Long caseId) {
         return ApiResponse.success(caseInfoService.getDetail(caseId));
+    }
+
+    @DeleteMapping("/{caseId}")
+    public ApiResponse<Void> deleteDraft(@PathVariable Long caseId, Authentication authentication) {
+        CurrentUserInfo currentUser = currentUser(authentication);
+        caseInfoService.deleteDraft(caseId, currentUser);
+        return ApiResponse.success(null);
     }
 
     private CurrentUserInfo currentUser(Authentication authentication) {

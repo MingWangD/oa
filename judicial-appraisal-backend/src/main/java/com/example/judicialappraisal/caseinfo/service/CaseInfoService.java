@@ -9,10 +9,13 @@ import com.example.judicialappraisal.caseinfo.dto.CaseQueryRequest;
 import com.example.judicialappraisal.caseinfo.dto.CaseSubmitRequest;
 import com.example.judicialappraisal.caseinfo.entity.CaseInfo;
 import com.example.judicialappraisal.caseinfo.mapper.CaseInfoMapper;
+import com.example.judicialappraisal.auth.dto.CurrentUserInfo;
 import com.example.judicialappraisal.common.PageResult;
 import com.example.judicialappraisal.common.enums.CaseStatus;
+import com.example.judicialappraisal.common.exception.BusinessException;
 import com.example.judicialappraisal.workflow.dto.WorkflowActionResult;
 import com.example.judicialappraisal.workflow.service.WorkflowRuntimeService;
+import java.util.Objects;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -25,12 +28,19 @@ public class CaseInfoService extends ServiceImpl<CaseInfoMapper, CaseInfo> {
     }
 
     public CaseInfo createDraft(CaseCreateRequest request) {
+        return createDraft(request, null);
+    }
+
+    public CaseInfo createDraft(CaseCreateRequest request, Long currentUserId) {
         CaseInfo caseInfo = new CaseInfo();
         caseInfo.setCaseTitle(request.caseTitle());
         caseInfo.setCaseType(request.caseType());
         caseInfo.setEntrustOrgName(request.entrustOrgName());
         caseInfo.setAcceptDeptId(request.acceptDeptId());
         caseInfo.setCaseStatus(CaseStatus.DRAFT.name());
+        caseInfo.setCreatedBy(currentUserId);
+        caseInfo.setUpdatedBy(currentUserId);
+        caseInfo.setDeleted(0);
         save(caseInfo);
         return caseInfo;
     }
@@ -39,10 +49,14 @@ public class CaseInfoService extends ServiceImpl<CaseInfoMapper, CaseInfo> {
         Page<CaseInfo> page = page(
                 Page.of(request.pageNo(), request.pageSize()),
                 new LambdaQueryWrapper<CaseInfo>()
-                        .like(hasText(request.keyword()), CaseInfo::getCaseTitle, request.keyword())
+                        .and(hasText(request.keyword()), wrapper -> wrapper
+                                .like(CaseInfo::getCaseTitle, request.keyword())
+                                .or()
+                                .like(CaseInfo::getCaseNo, request.keyword()))
                         .eq(hasText(request.caseStatus()), CaseInfo::getCaseStatus, request.caseStatus())
                         .eq(request.acceptDeptId() != null, CaseInfo::getAcceptDeptId, request.acceptDeptId())
                         .eq(request.currentHandlerId() != null, CaseInfo::getCurrentHandlerId, request.currentHandlerId())
+                        .eq(CaseInfo::getDeleted, 0)
                         .orderByDesc(CaseInfo::getId));
         return new PageResult<>(page.getRecords().stream().map(this::toListResponse).toList(), page.getTotal(), page.getCurrent(), page.getSize());
     }
@@ -63,7 +77,7 @@ public class CaseInfoService extends ServiceImpl<CaseInfoMapper, CaseInfo> {
 
     public CaseInfo getDetail(Long caseId) {
         CaseInfo caseInfo = getById(caseId);
-        if (caseInfo != null) {
+        if (caseInfo != null && !Objects.equals(caseInfo.getDeleted(), 1)) {
             return caseInfo;
         }
         CaseInfo fallback = new CaseInfo();
@@ -71,6 +85,26 @@ public class CaseInfoService extends ServiceImpl<CaseInfoMapper, CaseInfo> {
         fallback.setCaseTitle("示例司法鉴定案件");
         fallback.setCaseStatus(CaseStatus.DRAFT.name());
         return fallback;
+    }
+
+    public void deleteDraft(Long caseId, CurrentUserInfo currentUser) {
+        CaseInfo caseInfo = getById(caseId);
+        if (caseInfo == null || Objects.equals(caseInfo.getDeleted(), 1)) {
+            throw new BusinessException("草稿不存在或已删除");
+        }
+        if (!CaseStatus.DRAFT.name().equals(caseInfo.getCaseStatus())) {
+            throw new BusinessException("只有尚未提交的草稿可以删除");
+        }
+        if (!isAdmin(currentUser) && !Objects.equals(caseInfo.getCreatedBy(), currentUser.id())) {
+            throw new BusinessException("只能删除本人创建的草稿");
+        }
+        caseInfo.setDeleted(1);
+        caseInfo.setUpdatedBy(currentUser.id());
+        updateById(caseInfo);
+    }
+
+    private boolean isAdmin(CurrentUserInfo currentUser) {
+        return currentUser.roles().stream().anyMatch(role -> "ADMIN".equalsIgnoreCase(role.code()));
     }
 
     private CaseListResponse toListResponse(CaseInfo caseInfo) {

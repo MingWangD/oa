@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
 import {
   fetchWorkbenchDone,
@@ -11,6 +12,8 @@ import {
 import { useAuthStore } from '../stores/auth';
 
 const authStore = useAuthStore();
+const route = useRoute();
+const router = useRouter();
 const loading = ref(false);
 const errorMessage = ref('');
 const activeTab = ref<'todo' | 'done'>('todo');
@@ -130,6 +133,18 @@ async function loadData(): Promise<void> {
   }
 }
 
+function openTask(row: TaskSummary): void {
+  void router.push({
+    path: `/case/${row.caseId}`,
+    query: {
+      taskId: String(row.id),
+      readonly: activeTab.value === 'done' ? '1' : undefined,
+      from: route.fullPath,
+      fromLabel: activeTab.value === 'done' ? '办结工作' : '待办工作'
+    }
+  });
+}
+
 onMounted(() => {
   void loadData();
 });
@@ -176,13 +191,22 @@ onMounted(() => {
     </div>
 
     <div class="table-frame">
-      <el-table :data="currentList" border stripe :loading="loading">
+      <el-table :data="currentList" border stripe :loading="loading" row-key="id" @row-click="openTask">
         <el-table-column prop="taskTitle" label="任务名称" min-width="220">
           <template #default="scope">
             <div class="name-cell">
-              <span class="primary-text">{{ scope.row.taskTitle || '-' }}</span>
+              <button class="table-link" type="button" @click.stop="openTask(scope.row)">
+                {{ scope.row.taskTitle || '-' }}
+              </button>
               <span class="secondary-text">案件编号：{{ scope.row.caseId ?? '-' }}</span>
             </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="120">
+          <template #default="scope">
+            <el-button link type="primary" @click.stop="openTask(scope.row)">
+              {{ activeTab === 'todo' ? '办理' : '查看' }}
+            </el-button>
           </template>
         </el-table-column>
         <el-table-column prop="nodeName" label="当前环节" min-width="150">

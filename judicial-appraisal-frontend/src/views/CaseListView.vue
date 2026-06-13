@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { ElMessage, ElMessageBox } from 'element-plus';
 
-import { fetchCases, type CaseItem, type PageResult } from '../api/judicial';
+import { deleteCaseDraft, fetchCases, type CaseItem, type PageResult } from '../api/judicial';
 
 const route = useRoute();
 const router = useRouter();
@@ -130,6 +131,28 @@ function openCaseDetail(caseId: number): void {
   });
 }
 
+async function deleteDraft(row: CaseItem): Promise<void> {
+  try {
+    await ElMessageBox.confirm(
+      `确认删除草稿“${row.caseTitle || row.caseNo || row.id}”？删除后列表将不再显示。`,
+      '删除草稿',
+      {
+        confirmButtonText: '删除',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    );
+    await deleteCaseDraft(row.id);
+    ElMessage.success('草稿已删除');
+    await loadCases(pageData.value.pageNo);
+  } catch (error) {
+    if (error === 'cancel' || error === 'close') {
+      return;
+    }
+    ElMessage.error(error instanceof Error ? error.message : '删除草稿失败');
+  }
+}
+
 async function goBackToSource(): Promise<void> {
   if (!returnPath.value) {
     router.back();
@@ -239,9 +262,17 @@ watch(
         <el-table-column label="截止时间" min-width="170">
           <template #default="scope">{{ formatDateTime(scope.row.deadlineTime) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="120">
+        <el-table-column label="操作" width="160">
           <template #default="scope">
             <el-button link type="primary" @click="openCaseDetail(scope.row.id)">查看详情</el-button>
+            <el-button
+              v-if="scope.row.caseStatus === 'DRAFT'"
+              link
+              type="danger"
+              @click="deleteDraft(scope.row)"
+            >
+              删除草稿
+            </el-button>
           </template>
         </el-table-column>
         <template #empty>

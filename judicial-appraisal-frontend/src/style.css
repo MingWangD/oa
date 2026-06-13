@@ -458,6 +458,22 @@ button {
   color: var(--td-text);
 }
 
+.table-link {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #1d4ed8;
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.table-link:hover {
+  color: #b91c1c;
+}
+
 .secondary-text {
   font-size: 12px;
   color: var(--td-text-light);

@@ -164,6 +164,10 @@ export function put<T>(path: string, body?: unknown): Promise<T> {
   });
 }
 
+export function del<T>(path: string): Promise<T> {
+  return request<T>(path, { method: 'DELETE' });
+}
+
 export function postForm<T>(path: string, body: FormData): Promise<T> {
   return request<T>(path, {
     method: 'POST',

@@ -6,8 +6,9 @@ import { ElMessage } from 'element-plus';
 import {
   fetchCaseDetail,
   fetchCaseSubflows,
-  fetchFormPreview,
   fetchJudicialCatalog,
+  fetchRuntimeFormPreview,
+  fetchTaskDetail,
   fetchTaskDetailByCaseNode,
   submitWorkflowAction,
   uploadWorkflowFile,
@@ -50,11 +51,16 @@ const caseId = computed(() => Number(route.params.id));
 const returnPath = computed(() => (typeof route.query.from === 'string' ? route.query.from : ''));
 const returnLabel = computed(() => (typeof route.query.fromLabel === 'string' ? route.query.fromLabel : '上一页'));
 const sourceBoard = computed(() => (typeof route.query.fromBoard === 'string' ? route.query.fromBoard : ''));
+const routeTaskId = computed(() => Number(route.query.taskId));
+const readonlyMode = computed(() => route.query.readonly === '1');
 const hasEntrustOrg = computed(() => Boolean(detail.value?.entrustOrgName));
 const hasStatus = computed(() => Boolean(detail.value?.caseStatus));
 const isDraftCase = computed(() => detail.value?.caseStatus === 'DRAFT');
 const canHandle = computed(() => {
   if (!detail.value) {
+    return false;
+  }
+  if (readonlyMode.value || currentTask.value?.status === 'completed') {
     return false;
   }
   return authStore.isAdmin || !detail.value.currentHandlerId || detail.value.currentHandlerId === authStore.user?.id;
@@ -181,7 +187,7 @@ async function loadFormPreview(): Promise<void> {
     return;
   }
   try {
-    formPreview.value = await fetchFormPreview(formCode);
+    formPreview.value = await fetchRuntimeFormPreview(formCode);
     formData.value = buildDefaultFormData(dynamicFields.value);
   } catch {
     formPreview.value = null;
@@ -207,6 +213,13 @@ function buildDefaultFormData(fields: DynamicFormField[]): Record<string, unknow
 }
 
 async function loadCurrentTask(caseDetail: CaseDetail): Promise<TaskDetail | null> {
+  if (Number.isFinite(routeTaskId.value) && routeTaskId.value > 0) {
+    try {
+      return await fetchTaskDetail(routeTaskId.value);
+    } catch {
+      return null;
+    }
+  }
   if (!caseDetail.currentNodeCode) {
     return null;
   }
@@ -362,7 +375,7 @@ onMounted(() => {
       <section class="process-section">
         <div class="section-title">
           <h2>案件信息</h2>
-          <el-tag :type="canHandle ? 'success' : 'info'" effect="plain">{{ canHandle ? '主办可办理' : '只读查看' }}</el-tag>
+        <el-tag :type="canHandle ? 'success' : 'info'" effect="plain">{{ canHandle ? '主办可办理' : '只读查看' }}</el-tag>
         </div>
         <el-descriptions border :column="2">
           <el-descriptions-item label="案件名称">{{ detail.caseTitle || '-' }}</el-descriptions-item>
@@ -376,7 +389,7 @@ onMounted(() => {
         </el-descriptions>
       </section>
 
-      <section class="process-section">
+      <section v-if="canHandle" class="process-section">
         <div class="section-title">
           <h2>动态表单</h2>
           <span>{{ formPreview?.formName || currentForm?.name || detail.caseType || '待匹配表单' }}</span>
@@ -505,7 +518,7 @@ onMounted(() => {
         />
       </section>
 
-      <section class="process-section transition-section">
+      <section v-if="canHandle" class="process-section transition-section">
         <div class="section-title">
           <h2>流转处理</h2>
           <span>按流程图选择下一步</span>

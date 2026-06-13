@@ -60,6 +60,29 @@ public class PlatformCatalogService {
         return new JudicialCatalogDto(workflows.size(), forms.size(), JUDICIAL_ROLES, workflows, forms);
     }
 
+    public JudicialCatalogDto judicialCatalogForRoles(List<String> roleNames, boolean admin) {
+        List<JudicialWorkflowDefinitionDto> visibleWorkflows = workflows().stream()
+                .filter(workflow -> admin || workflow.roles().stream().anyMatch(role -> roleMatches(roleNames, role)))
+                .toList();
+        List<JudicialFormDefinitionDto> forms = forms();
+        return new JudicialCatalogDto(visibleWorkflows.size(), forms.size(), JUDICIAL_ROLES, visibleWorkflows, forms);
+    }
+
+    private boolean roleMatches(List<String> userRoleNames, String workflowRole) {
+        return userRoleNames.stream().anyMatch(userRole -> {
+            if (userRole.equals(workflowRole) || userRole.contains(workflowRole) || workflowRole.contains(userRole)) {
+                return true;
+            }
+            if ("收件人".equals(workflowRole) && "收案员".equals(userRole)) {
+                return true;
+            }
+            if ("申请人".equals(workflowRole) || "发起人".equals(workflowRole)) {
+                return true;
+            }
+            return false;
+        });
+    }
+
     public List<ReconstructionPhaseDto> reconstructionPlan() {
         return List.of(
                 phase("第一阶段", "公共平台与可运行骨架", "completed",

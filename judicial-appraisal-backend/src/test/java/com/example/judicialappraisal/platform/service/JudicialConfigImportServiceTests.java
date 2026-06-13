@@ -253,9 +253,9 @@ class JudicialConfigImportServiceTests {
                 .findFirst()
                 .orElseThrow();
         assertThat(rejectAcceptanceWorkflow.nodes()).extracting("nodeCode")
-                .contains("ASSISTANT_DRAFT", "PROJECT_REVIEW", "SEAL_APPLICATION", "SEALED_NOTICE_UPLOAD", "DELIVERY_ARCHIVE", "ARCHIVE");
+                .contains("ASSISTANT_DRAFT", "PROJECT_REVIEW", "SEAL_APPLICATION", "SEALED_NOTICE_UPLOAD", "ARCHIVE_SUBFLOW");
         assertThat(rejectAcceptanceWorkflow.transitions()).extracting("conditionExpression")
-                .contains("form.projectReviewPassed == true", "form.projectReviewPassed == false", "form.archiveConfirmed == true");
+                .contains("form.projectReviewPassed == true", "form.projectReviewPassed == false", "form.sealRequired == true", "form.sealRequired == false");
         assertThat(rejectAcceptanceWorkflow.transitions()).extracting("transitionConfigJson")
                 .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "seal-application"))
                 .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "archive"));

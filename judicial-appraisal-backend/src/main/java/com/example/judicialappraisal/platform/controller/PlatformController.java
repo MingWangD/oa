@@ -58,6 +58,16 @@ public class PlatformController {
         return ApiResponse.success(platformCatalogService.judicialCatalog());
     }
 
+    @GetMapping("/judicial-catalog/available")
+    public ApiResponse<JudicialCatalogDto> availableJudicialCatalog(Authentication authentication) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof CurrentUserInfo userInfo)) {
+            return ApiResponse.success(platformCatalogService.judicialCatalogForRoles(List.of(), false));
+        }
+        boolean admin = userInfo.roles().stream().anyMatch(role -> "ADMIN".equalsIgnoreCase(role.code()));
+        List<String> roleNames = userInfo.roles().stream().map(role -> role.name()).toList();
+        return ApiResponse.success(platformCatalogService.judicialCatalogForRoles(roleNames, admin));
+    }
+
     @PostMapping("/judicial-catalog/import")
     public ApiResponse<JudicialConfigImportResult> importJudicialCatalog(@RequestParam(defaultValue = "false") boolean forceNewVersion) {
         return ApiResponse.success(judicialConfigImportService.importCatalog(forceNewVersion));
