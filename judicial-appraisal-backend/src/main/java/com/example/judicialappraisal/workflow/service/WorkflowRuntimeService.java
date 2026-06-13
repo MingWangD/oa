@@ -1048,7 +1048,7 @@ public class WorkflowRuntimeService {
         if (nextActiveTask != null) {
             return new TransitionAdvance(List.of(nextActiveTask), false, true);
         }
-        if (MAIN_WF_CODE.equalsIgnoreCase(wfInstance.getWfCode()) && completedTask.getSubflowInstanceId() == null) {
+        if (MAIN_WF_CODE.equalsIgnoreCase(wfInstance.getWfCode())) {
             caseInfo.setCaseStatus(CaseStatus.COMPLETED.name());
             caseInfo.setCurrentNodeCode(null);
             caseInfo.setCurrentNodeName(null);

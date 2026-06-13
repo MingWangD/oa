@@ -1,6 +1,7 @@
 package com.example.judicialappraisal.platform.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -198,9 +199,11 @@ class JudicialConfigImportServiceTests {
                 .findFirst()
                 .orElseThrow();
         assertThat(fieldSurveyForm.fieldSchemaJson())
-                .contains("surveyPlanUploaded", "fieldRecordUploaded", "equipmentUsageRecorded", "projectAmount", "majorAmountProject", "projectReviewRoute");
+                .contains("surveyPlanUploaded", "fieldRecordUploaded", "equipmentOutboundRecorded", "equipmentUsageRecorded",
+                        "projectAmount", "majorAmountProject", "projectReviewRoute", "projectMaterialReviewPassed");
         assertThat(fieldSurveyForm.validationSchemaJson())
-                .contains("projectAmount > 150000", "projectReviewRoute == '技术负责人审核'", "equipmentUsageRecorded == true");
+                .contains("projectAmount > 150000", "projectReviewRoute == '技术负责人审核'",
+                        "equipmentOutboundRecorded == true", "equipmentUsageRecorded == true");
 
         ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
         verify(workflowDesignService, times(19)).saveDraft(workflowCaptor.capture());
@@ -209,11 +212,13 @@ class JudicialConfigImportServiceTests {
                 .findFirst()
                 .orElseThrow();
         assertThat(fieldSurveyWorkflow.nodes()).extracting("nodeCode")
-                .contains("ASSISTANT_SURVEY", "PROJECT_REVIEW", "TECHNICAL_REVIEW", "DEPARTMENT_REVIEW", "NEXT_FLOW_DECISION",
-                        "MATERIAL_RECEIVE_RETURN", "DRAFT_OPINION_REVIEW", "FINAL_OPINION_REVIEW", "REFUND", "TERMINATE_APPRAISAL");
+                .contains("ASSISTANT_SURVEY", "PROJECT_REVIEW", "TECHNICAL_REVIEW", "DEPARTMENT_REVIEW", "PROJECT_TO_EQUIPMENT",
+                        "ASSISTANT_EQUIPMENT", "PROJECT_MATERIAL_REVIEW", "NEXT_FLOW_DECISION", "MATERIAL_RECEIVE_RETURN",
+                        "DRAFT_OPINION_REVIEW", "FINAL_OPINION_REVIEW", "REFUND", "TERMINATE_APPRAISAL");
         assertThat(fieldSurveyWorkflow.transitions()).extracting("conditionExpression")
                 .contains("form.projectReviewRoute == '技术负责人审核'", "form.projectReviewRoute == '确认后续流程'",
                         "form.technicalReviewPassed == true", "form.departmentReviewPassed == true",
+                        "form.projectMaterialReviewPassed == true", "form.projectMaterialReviewPassed == false",
                         "form.nextRecommendation == '材料接收与返还'", "form.nextRecommendation == '退费'");
         assertThat(fieldSurveyWorkflow.transitions()).extracting("transitionConfigJson")
                 .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "material-receive-return"))
@@ -270,9 +275,13 @@ class JudicialConfigImportServiceTests {
                 .findFirst()
                 .orElseThrow();
         assertThat(materialReceiveReturnForm.fieldSchemaJson())
-                .contains("materialSource", "requireSupplementaryMaterial", "materialDetails", "requireReturn", "nextRecommendation");
+                .contains("materialReceiveType", "materialUploaderId", "supplementaryNoticeUploaded",
+                        "materialsUploaded", "projectMaterialConfirmed", "materialMediaType",
+                        "returnRegistrationCompleted", "requireReturn", "nextRecommendation");
         assertThat(materialReceiveReturnForm.validationSchemaJson())
-                .contains("requireReturn == true", "returnReceiver != null");
+                .contains("requireSupplementaryMaterial == true", "supplementaryNoticeUploaded == true",
+                        "materialReceiveType == '委托方直接提供'", "materialUploaderId != null",
+                        "requireReturn == true", "returnRegistrationCompleted == true");
 
         ArgumentCaptor<WorkflowDesignRequest> workflowCaptor = ArgumentCaptor.forClass(WorkflowDesignRequest.class);
         verify(workflowDesignService, times(19)).saveDraft(workflowCaptor.capture());
@@ -281,16 +290,21 @@ class JudicialConfigImportServiceTests {
                 .findFirst()
                 .orElseThrow();
         assertThat(materialReceiveReturnWorkflow.nodes()).extracting("nodeCode")
-                .contains("PROJECT_CONFIRM", "ASSISTANT_REGISTER", "ARCHIVIST_HANDLE", "PROJECT_DECISION",
+                .contains("PROJECT_CONFIRM", "MATERIAL_UPLOAD", "PROJECT_MATERIAL_CONFIRM", "PAYMENT_NOTICE",
+                        "ASSISTANT_REGISTER", "ASSISTANT_RETURN", "ARCHIVIST_HANDLE", "PARALLEL_GATEWAY_SPLIT", "PROJECT_DECISION",
                         "DRAFT_OPINION_REVIEW", "FINAL_OPINION_REVIEW", "REFUND", "TERMINATE_APPRAISAL", "ARCHIVE");
         assertThat(materialReceiveReturnWorkflow.transitions()).extracting("conditionExpression")
-                .contains("form.nextRecommendation == '鉴定意见书征求意见稿送审稿编制'", "form.nextRecommendation == '终止鉴定'", "form.nextRecommendation == '归档'");
+                .contains("form.materialReceiveType == '委托方直接提供'", "form.requireSupplementaryMaterial == true",
+                        "form.projectMaterialConfirmed == true", "form.projectMaterialConfirmed == false",
+                        "form.requireReturn == true", "form.requireReturn == false",
+                        "form.nextRecommendation == '鉴定意见书征求意见稿送审稿编制'", "form.nextRecommendation == '终止鉴定'");
         assertThat(materialReceiveReturnWorkflow.transitions()).extracting("transitionConfigJson")
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "payment-notice"))
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "archive"))
                 .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "draft-opinion-review"))
                 .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "final-opinion-review"))
                 .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "refund"))
-                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "terminate-appraisal"))
-                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "archive"));
+                .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "terminate-appraisal"));
     }
 
     @Test
@@ -316,9 +330,11 @@ class JudicialConfigImportServiceTests {
                 .findFirst()
                 .orElseThrow();
         assertThat(draftOpinionReviewWorkflow.nodes()).extracting("nodeCode")
-                .contains("ASSISTANT_DRAFT", "PROJECT_REVIEW", "TECHNICAL_REVIEW", "DEPARTMENT_REVIEW", "PROJECT_FINAL_UPLOAD", "ISSUE_DRAFT_OPINION");
+                .contains("PROJECT_ASSIGN", "ASSISTANT_DRAFT", "PROJECT_REVIEW", "TECHNICAL_REVIEW", "DEPARTMENT_REVIEW", "PROJECT_FINAL_UPLOAD", "ISSUE_DRAFT_OPINION");
         assertThat(draftOpinionReviewWorkflow.transitions()).extracting("conditionExpression")
                 .contains("form.projectReviewPassed == true", "form.technicalReviewPassed == true", "form.departmentReviewPassed == true", "form.nextRecommendation == '出具征求意见稿'");
+        assertThat(draftOpinionReviewWorkflow.transitions()).extracting("fromNodeCode", "toNodeCode")
+                .contains(tuple("START", "PROJECT_ASSIGN"), tuple("PROJECT_ASSIGN", "ASSISTANT_DRAFT"));
         assertThat(draftOpinionReviewWorkflow.transitions()).extracting("transitionConfigJson")
                 .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "issue-draft-opinion"));
     }

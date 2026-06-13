@@ -801,6 +801,7 @@ public class JudicialConfigImportService {
                 field("surveyLocation", "勘验地点", "text", "勘验安排", true, false),
                 field("surveyPlanUploaded", "现场工作方案已上传", "boolean", "勘验安排", true, false),
                 field("fieldRecordUploaded", "勘验记录已上传", "boolean", "勘验记录", true, false),
+                field("equipmentOutboundRecorded", "设备出入库记录已登记", "boolean", "设备记录", true, false),
                 field("equipmentUsageRecorded", "设备使用记录已登记", "boolean", "设备记录", true, false),
                 field("equipmentReturnRecorded", "设备归还记录已登记", "boolean", "设备记录", true, false),
                 field("projectAmount", "项目金额", "number", "审核规则", true, false),
@@ -810,6 +811,8 @@ public class JudicialConfigImportService {
                         List.of("技术负责人审核", "确认后续流程", "退回修改")),
                 field("technicalReviewPassed", "技术负责人审核通过", "boolean", "技术负责人审核", false, false),
                 field("departmentReviewPassed", "部门负责人审核通过", "boolean", "部门负责人审核", false, false),
+                field("projectMaterialReviewPassed", "项目负责人材料审核通过", "boolean", "项目负责人审核材料", true, false),
+                field("materialReviewOpinion", "材料审核意见", "textarea", "项目负责人审核材料", false, false),
                 field("nextRecommendation", "下一步建议", "select", "后续流程", true, false,
                         List.of("材料接收与返还", "鉴定意见书征求意见稿送审稿编制", "鉴定意见书送审稿编制", "退费", "终止鉴定")),
                 field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
@@ -824,7 +827,7 @@ public class JudicialConfigImportService {
                 toJson(fields),
                 toJson(Map.of(
                         "layout", "grouped",
-                        "groups", List.of("流程基础", "勘验安排", "勘验记录", "设备记录", "审核规则", "项目负责人审核", "技术负责人审核", "部门负责人审核", "后续流程", "办理意见")
+                        "groups", List.of("流程基础", "勘验安排", "勘验记录", "设备记录", "审核规则", "项目负责人审核", "技术负责人审核", "部门负责人审核", "项目负责人审核材料", "后续流程", "办理意见")
                 )),
                 toJson(Map.of(
                         "requiredFields", fields.stream().filter(item -> Boolean.TRUE.equals(item.get("required"))).map(item -> item.get("field")).toList(),
@@ -836,6 +839,7 @@ public class JudicialConfigImportService {
                                 Map.of("if", "majorAmountProject == false && projectReviewPassed == true", "then", "projectReviewRoute == '确认后续流程'"),
                                 Map.of("if", "projectReviewPassed == false", "then", "projectReviewRoute == '退回修改'"),
                                 Map.of("if", "projectReviewPassed == true", "then", "fieldRecordUploaded == true"),
+                                Map.of("if", "projectMaterialReviewPassed == true", "then", "equipmentOutboundRecorded == true"),
                                 Map.of("if", "projectReviewPassed == true", "then", "equipmentUsageRecorded == true")
                         )
                 )),
@@ -844,12 +848,13 @@ public class JudicialConfigImportService {
                                 "流程基础", Map.of("readOnly", true),
                                 "项目负责人审核", Map.of("roles", List.of("项目负责人")),
                                 "技术负责人审核", Map.of("roles", List.of("技术负责人")),
-                                "部门负责人审核", Map.of("roles", List.of("部门负责人"))
+                                "部门负责人审核", Map.of("roles", List.of("部门负责人")),
+                                "项目负责人审核材料", Map.of("roles", List.of("项目负责人"))
                         )
                 )),
                 toJson(Map.of(
                         "flowNameTemplate", "${caseNo}-现场勘验",
-                        "branchFields", List.of("majorAmountProject", "projectReviewPassed", "projectReviewRoute", "technicalReviewPassed", "departmentReviewPassed", "nextRecommendation")
+                        "branchFields", List.of("majorAmountProject", "projectReviewPassed", "projectReviewRoute", "technicalReviewPassed", "departmentReviewPassed", "projectMaterialReviewPassed", "nextRecommendation")
                 )),
                 toJson(Map.of(
                         "flowName", "concat(caseNo,'-现场勘验')",
@@ -859,8 +864,8 @@ public class JudicialConfigImportService {
                 toJson(Map.of("enabled", true, "inputFiles", form.inputFiles(), "outputFiles", form.outputFiles(), "duplicatePolicy", "warn")),
                 "[]",
                 toJson(List.of(
-                        Map.of("type", "business", "text", "项目辅助人完成现场工作方案、勘验记录和设备记录，项目负责人审核现场勘验结论"),
-                        Map.of("type", "validation", "text", "项目金额大于15万时必须经项目负责人、技术负责人、部门负责人逐级审核"),
+                        Map.of("type", "business", "text", "项目辅助人完成现场工作方案，金额阈值审核通过后由项目负责人转交项目辅助人补充设备出入库和使用记录，再由项目负责人审核材料"),
+                        Map.of("type", "validation", "text", "项目金额大于15万时必须经项目负责人、技术负责人、部门负责人逐级审核；技术负责人和部门负责人发现问题均退回项目辅助人"),
                         Map.of("type", "archive", "text", "现场工作方案、勘验记录、设备记录和审核意见在节点完成后自动归档")
                 ))
         );
@@ -873,40 +878,47 @@ public class JudicialConfigImportService {
                 node("PROJECT_REVIEW", "项目负责人审核现场勘验", "task", "candidate", "项目负责人", 1, 48, true, workflow.formCode(), 20),
                 node("TECHNICAL_REVIEW", "技术负责人审核现场勘验", "task", "candidate", "技术负责人", 1, 48, true, workflow.formCode(), 30),
                 node("DEPARTMENT_REVIEW", "部门负责人审核现场勘验", "task", "candidate", "部门负责人", 1, 48, true, workflow.formCode(), 40),
-                node("NEXT_FLOW_DECISION", "项目负责人确认后续流程", "task", "candidate", "项目负责人", 1, 24, true, workflow.formCode(), 50),
-                node("MATERIAL_RECEIVE_RETURN", "进入材料接收与返还", "task", "candidate", "项目负责人", 1, 24, true, "material-receive-return", 60),
-                node("DRAFT_OPINION_REVIEW", "进入征求意见稿送审稿编制", "task", "candidate", "项目负责人", 1, 24, true, "draft-opinion-review", 70),
-                node("FINAL_OPINION_REVIEW", "进入鉴定意见书送审稿编制", "task", "candidate", "项目负责人", 1, 24, true, "final-opinion-review", 80),
-                node("REFUND", "进入退费", "task", "candidate", "项目负责人", 1, 24, true, "refund", 90),
-                node("TERMINATE_APPRAISAL", "进入终止鉴定", "task", "candidate", "项目负责人", 1, 24, true, "terminate-appraisal", 100),
-                node("END", "流程结束", "end", "single", null, 0, 0, false, null, 110)
+                node("PROJECT_TO_EQUIPMENT", "项目负责人转交设备记录", "task", "candidate", "项目负责人", 1, 24, true, workflow.formCode(), 50),
+                node("ASSISTANT_EQUIPMENT", "项目辅助人填写仪器设备相关表", "task", "candidate", "项目辅助人", 1, 24, true, workflow.formCode(), 60),
+                node("PROJECT_MATERIAL_REVIEW", "项目负责人审核上传材料", "task", "candidate", "项目负责人", 1, 24, true, workflow.formCode(), 70),
+                node("NEXT_FLOW_DECISION", "项目负责人确认后续流程", "task", "candidate", "项目负责人", 1, 24, true, workflow.formCode(), 80),
+                node("MATERIAL_RECEIVE_RETURN", "进入材料接收与返还", "task", "candidate", "项目负责人", 1, 24, true, "material-receive-return", 90),
+                node("DRAFT_OPINION_REVIEW", "进入征求意见稿送审稿编制", "task", "candidate", "项目负责人", 1, 24, true, "draft-opinion-review", 100),
+                node("FINAL_OPINION_REVIEW", "进入鉴定意见书送审稿编制", "task", "candidate", "项目负责人", 1, 24, true, "final-opinion-review", 110),
+                node("REFUND", "进入退费", "task", "candidate", "项目负责人", 1, 24, true, "refund", 120),
+                node("TERMINATE_APPRAISAL", "进入终止鉴定", "task", "candidate", "项目负责人", 1, 24, true, "terminate-appraisal", 130),
+                node("END", "流程结束", "end", "single", null, 0, 0, false, null, 140)
         );
 
         List<WorkflowTransitionRequest> transitions = List.of(
                 transition("START", "ASSISTANT_SURVEY", "APPROVE", "进入现场勘验", null, 0, 10),
                 transition("ASSISTANT_SURVEY", "PROJECT_REVIEW", "APPROVE", "转交项目负责人审核", null, 1, 20),
                 transition("PROJECT_REVIEW", "TECHNICAL_REVIEW", "APPROVE", "金额大于15万，转技术负责人审核", "form.projectReviewRoute == '技术负责人审核'", 1, 30),
-                transition("PROJECT_REVIEW", "NEXT_FLOW_DECISION", "APPROVE", "金额不超过15万，确认后续流程", "form.projectReviewRoute == '确认后续流程'", 1, 31),
+                transition("PROJECT_REVIEW", "PROJECT_TO_EQUIPMENT", "APPROVE", "金额不超过15万，转交设备记录", "form.projectReviewRoute == '确认后续流程'", 1, 31),
                 transition("PROJECT_REVIEW", "ASSISTANT_SURVEY", "RETURN", "退回项目辅助人补充勘验记录", "form.projectReviewRoute == '退回修改'", 1, 32),
                 transition("TECHNICAL_REVIEW", "DEPARTMENT_REVIEW", "APPROVE", "技术负责人审核通过，转部门负责人审核", "form.technicalReviewPassed == true", 1, 40),
-                transition("TECHNICAL_REVIEW", "PROJECT_REVIEW", "RETURN", "退回项目负责人复核", "form.technicalReviewPassed == false", 1, 41),
-                transition("DEPARTMENT_REVIEW", "NEXT_FLOW_DECISION", "APPROVE", "部门负责人审核通过，确认后续流程", "form.departmentReviewPassed == true", 1, 50),
-                transition("DEPARTMENT_REVIEW", "TECHNICAL_REVIEW", "RETURN", "退回技术负责人复核", "form.departmentReviewPassed == false", 1, 51),
-                transition("NEXT_FLOW_DECISION", "MATERIAL_RECEIVE_RETURN", "APPROVE", "进入材料接收与返还", "form.nextRecommendation == '材料接收与返还'", 1, 60,
+                transition("TECHNICAL_REVIEW", "ASSISTANT_SURVEY", "RETURN", "退回项目辅助人补充现场勘验材料", "form.technicalReviewPassed == false", 1, 41),
+                transition("DEPARTMENT_REVIEW", "PROJECT_TO_EQUIPMENT", "APPROVE", "部门负责人审核通过，转项目负责人", "form.departmentReviewPassed == true", 1, 50),
+                transition("DEPARTMENT_REVIEW", "ASSISTANT_SURVEY", "RETURN", "退回项目辅助人补充现场勘验材料", "form.departmentReviewPassed == false", 1, 51),
+                transition("PROJECT_TO_EQUIPMENT", "ASSISTANT_EQUIPMENT", "APPROVE", "转交项目辅助人填写仪器设备相关表", null, 1, 60),
+                transition("ASSISTANT_EQUIPMENT", "PROJECT_MATERIAL_REVIEW", "APPROVE", "转交项目负责人审核上传材料", null, 1, 70),
+                transition("PROJECT_MATERIAL_REVIEW", "NEXT_FLOW_DECISION", "APPROVE", "材料审核通过，确认后续流程", "form.projectMaterialReviewPassed == true", 1, 80),
+                transition("PROJECT_MATERIAL_REVIEW", "ASSISTANT_EQUIPMENT", "RETURN", "退回项目辅助人补充设备记录", "form.projectMaterialReviewPassed == false", 1, 81),
+                transition("NEXT_FLOW_DECISION", "MATERIAL_RECEIVE_RETURN", "APPROVE", "进入材料接收与返还", "form.nextRecommendation == '材料接收与返还'", 1, 90,
                         subflowConfig("material-receive-return", "现场勘验完成后选择进入材料接收与返还")),
-                transition("NEXT_FLOW_DECISION", "DRAFT_OPINION_REVIEW", "APPROVE", "进入征求意见稿送审稿编制", "form.nextRecommendation == '鉴定意见书征求意见稿送审稿编制'", 1, 61,
+                transition("NEXT_FLOW_DECISION", "DRAFT_OPINION_REVIEW", "APPROVE", "进入征求意见稿送审稿编制", "form.nextRecommendation == '鉴定意见书征求意见稿送审稿编制'", 1, 91,
                         subflowConfig("draft-opinion-review", "现场勘验完成后选择进入征求意见稿送审稿编制")),
-                transition("NEXT_FLOW_DECISION", "FINAL_OPINION_REVIEW", "APPROVE", "进入鉴定意见书送审稿编制", "form.nextRecommendation == '鉴定意见书送审稿编制'", 1, 62,
+                transition("NEXT_FLOW_DECISION", "FINAL_OPINION_REVIEW", "APPROVE", "进入鉴定意见书送审稿编制", "form.nextRecommendation == '鉴定意见书送审稿编制'", 1, 92,
                         subflowConfig("final-opinion-review", "现场勘验完成后选择进入鉴定意见书送审稿编制")),
-                transition("NEXT_FLOW_DECISION", "REFUND", "APPROVE", "进入退费", "form.nextRecommendation == '退费'", 1, 63,
+                transition("NEXT_FLOW_DECISION", "REFUND", "APPROVE", "进入退费", "form.nextRecommendation == '退费'", 1, 93,
                         subflowConfig("refund", "现场勘验完成后选择进入退费")),
-                transition("NEXT_FLOW_DECISION", "TERMINATE_APPRAISAL", "APPROVE", "进入终止鉴定", "form.nextRecommendation == '终止鉴定'", 1, 64,
+                transition("NEXT_FLOW_DECISION", "TERMINATE_APPRAISAL", "APPROVE", "进入终止鉴定", "form.nextRecommendation == '终止鉴定'", 1, 94,
                         subflowConfig("terminate-appraisal", "现场勘验完成后选择进入终止鉴定")),
-                transition("MATERIAL_RECEIVE_RETURN", "END", "COMPLETE", "材料接收与返还子流程已触发", null, 1, 70),
-                transition("DRAFT_OPINION_REVIEW", "END", "COMPLETE", "征求意见稿送审稿编制子流程已触发", null, 1, 71),
-                transition("FINAL_OPINION_REVIEW", "END", "COMPLETE", "鉴定意见书送审稿编制子流程已触发", null, 1, 72),
-                transition("REFUND", "END", "COMPLETE", "退费子流程已触发", null, 1, 73),
-                transition("TERMINATE_APPRAISAL", "END", "COMPLETE", "终止鉴定子流程已触发", null, 1, 74)
+                transition("MATERIAL_RECEIVE_RETURN", "END", "COMPLETE", "材料接收与返还子流程已触发", null, 1, 100),
+                transition("DRAFT_OPINION_REVIEW", "END", "COMPLETE", "征求意见稿送审稿编制子流程已触发", null, 1, 101),
+                transition("FINAL_OPINION_REVIEW", "END", "COMPLETE", "鉴定意见书送审稿编制子流程已触发", null, 1, 102),
+                transition("REFUND", "END", "COMPLETE", "退费子流程已触发", null, 1, 103),
+                transition("TERMINATE_APPRAISAL", "END", "COMPLETE", "终止鉴定子流程已触发", null, 1, 104)
         );
 
         return new WorkflowDesignRequest(
@@ -1052,19 +1064,27 @@ public class JudicialConfigImportService {
                 field("projectLeaderId", "项目负责人", "user", "流程基础", true, true),
                 field("projectAssistantId", "项目辅助人", "user", "流程基础", true, true),
                 field("archivistId", "档案管理员", "user", "流程基础", true, true),
+                field("materialReceiveType", "材料接收与返还类型", "select", "材料接收", true, false,
+                        List.of("委托方直接提供", "需要补充材料")),
+                field("materialUploaderId", "材料上传主办人", "user", "材料接收", false, false),
                 field("materialSource", "材料来源", "text", "材料接收", true, false),
                 field("requireSupplementaryMaterial", "是否补充材料", "boolean", "材料接收", true, false),
                 field("supplementaryNotice", "补材通知", "textarea", "材料接收", false, false),
+                field("supplementaryNoticeUploaded", "补充鉴定材料通知书已上传", "boolean", "材料接收", false, false),
+                field("materialsUploaded", "材料已上传", "boolean", "材料接收", false, false),
+                field("projectMaterialConfirmed", "项目负责人已确认材料", "boolean", "材料接收", false, false),
                 field("materialDetails", "材料名称/数量/介质", "textarea", "材料接收", true, false),
                 field("receiveDate", "接收时间", "date", "材料接收", true, false),
+                field("materialMediaType", "材料介质类别", "text", "材料保管", true, false),
                 field("storageLocation", "存放地址", "text", "材料保管", true, false),
                 field("requireReturn", "是否返还", "boolean", "材料保管", true, false),
                 field("storageStatus", "保管状态", "select", "材料保管", true, false,
                         List.of("正常", "损毁", "灭失")),
+                field("returnRegistrationCompleted", "鉴定材料接收及返还登记表已填写", "boolean", "材料返还", false, false),
                 field("returnReceiver", "返还接收人", "text", "材料返还", false, false),
                 field("returnDate", "返还时间", "date", "材料返还", false, false),
                 field("nextRecommendation", "下一步建议", "select", "后续流程", true, false,
-                        List.of("鉴定意见书征求意见稿送审稿编制", "鉴定意见书送审稿编制", "退费", "终止鉴定", "归档")),
+                        List.of("鉴定意见书征求意见稿送审稿编制", "鉴定意见书送审稿编制", "退费", "终止鉴定")),
                 field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
         );
         return new FormDesignRequest(
@@ -1084,8 +1104,13 @@ public class JudicialConfigImportService {
                         "requiredInputs", form.inputFiles(),
                         "requiredOutputs", form.outputFiles(),
                         "crossFieldRules", List.of(
+                                Map.of("if", "requireSupplementaryMaterial == true", "then", "supplementaryNoticeUploaded == true"),
+                                Map.of("if", "materialReceiveType == '委托方直接提供'", "then", "materialUploaderId != null"),
+                                Map.of("if", "materialReceiveType == '委托方直接提供'", "then", "materialsUploaded == true"),
+                                Map.of("if", "projectMaterialConfirmed == false", "then", "materialsUploaded == true"),
                                 Map.of("if", "requireReturn == true", "then", "returnReceiver != null"),
-                                Map.of("if", "requireReturn == true", "then", "returnDate != null")
+                                Map.of("if", "requireReturn == true", "then", "returnDate != null"),
+                                Map.of("if", "requireReturn == true", "then", "returnRegistrationCompleted == true")
                         )
                 )),
                 toJson(Map.of(
@@ -1099,7 +1124,7 @@ public class JudicialConfigImportService {
                 )),
                 toJson(Map.of(
                         "flowNameTemplate", "${caseNo}-材料接收与返还",
-                        "branchFields", List.of("requireSupplementaryMaterial", "requireReturn", "nextRecommendation")
+                        "branchFields", List.of("materialReceiveType", "requireSupplementaryMaterial", "projectMaterialConfirmed", "requireReturn", "nextRecommendation")
                 )),
                 toJson(Map.of(
                         "flowName", "concat(caseNo,'-材料接收与返还')",
@@ -1108,8 +1133,8 @@ public class JudicialConfigImportService {
                 toJson(Map.of("enabled", true, "inputFiles", form.inputFiles(), "outputFiles", form.outputFiles(), "duplicatePolicy", "warn")),
                 "[]",
                 toJson(List.of(
-                        Map.of("type", "business", "text", "项目负责人确认材料需求，项目辅助人登记材料，档案管理员负责接收、保管与返还"),
-                        Map.of("type", "validation", "text", "如果需要返还，则必须填写返还接收人和返还时间"),
+                        Map.of("type", "business", "text", "项目负责人确认材料需求，委托方直接提供时指定同事上传材料，需要补充材料时上传补材通知并进入发交费通知书及相关函件"),
+                        Map.of("type", "validation", "text", "直接提供材料必须指定上传主办人并上传材料；需要返还时必须填写返还登记、接收人和返还时间"),
                         Map.of("type", "archive", "text", "材料来源、明细、补材通知、保管状态及返还记录在各节点完成后自动归档")
                 ))
         );
@@ -1119,40 +1144,56 @@ public class JudicialConfigImportService {
         List<WorkflowNodeRequest> nodes = List.of(
                 node("START", "开始", "start", "single", null, 0, 0, false, null, 0),
                 node("PROJECT_CONFIRM", "项目负责人确认材料需求", "task", "candidate", "项目负责人", 1, 24, true, workflow.formCode(), 10),
-                node("ASSISTANT_REGISTER", "项目辅助人登记材料", "task", "candidate", "项目辅助人", 1, 24, true, workflow.formCode(), 20),
-                node("ARCHIVIST_HANDLE", "档案管理员接收保管与返还", "task", "candidate", "档案管理员", 1, 48, true, workflow.formCode(), 30),
-                node("PROJECT_DECISION", "项目负责人确认后续流程", "task", "candidate", "项目负责人", 1, 24, true, workflow.formCode(), 40),
-                node("DRAFT_OPINION_REVIEW", "进入征求意见稿送审稿编制", "task", "candidate", "项目负责人", 1, 24, true, "draft-opinion-review", 50),
-                node("FINAL_OPINION_REVIEW", "进入鉴定意见书送审稿编制", "task", "candidate", "项目负责人", 1, 24, true, "final-opinion-review", 60),
-                node("REFUND", "进入退费", "task", "candidate", "项目负责人", 1, 24, true, "refund", 70),
-                node("TERMINATE_APPRAISAL", "进入终止鉴定", "task", "candidate", "项目负责人", 1, 24, true, "terminate-appraisal", 80),
+                node("MATERIAL_UPLOAD", "材料上传主办人上传材料", "task", "single", null, 1, 24, true, workflow.formCode(), 20),
+                node("PROJECT_MATERIAL_CONFIRM", "项目负责人确认材料", "task", "candidate", "项目负责人", 1, 24, true, workflow.formCode(), 30),
+                node("PAYMENT_NOTICE", "进入发交费通知书及相关函件", "task", "candidate", "项目负责人", 1, 24, true, "payment-notice", 40),
+                node("ASSISTANT_REGISTER", "项目辅助人登记材料", "task", "candidate", "项目辅助人", 1, 24, true, workflow.formCode(), 50),
+                node("ARCHIVIST_HANDLE", "档案管理员接收保管", "task", "candidate", "档案管理员", 1, 48, true, workflow.formCode(), 60),
+                node("ASSISTANT_RETURN", "项目辅助人返还材料", "task", "candidate", "项目辅助人", 1, 48, true, workflow.formCode(), 70),
+                node("PARALLEL_GATEWAY_SPLIT", "材料处理后并行分支", "gateway", "parallel", null, 0, 0, false, null, 80),
                 node("ARCHIVE", "进入归档", "task", "candidate", "档案管理员", 1, 24, true, "archive", 90),
-                node("END", "流程结束", "end", "single", null, 0, 0, false, null, 100)
+                node("PROJECT_DECISION", "项目负责人确认后续流程", "task", "candidate", "项目负责人", 1, 24, true, workflow.formCode(), 100),
+                node("DRAFT_OPINION_REVIEW", "进入征求意见稿送审稿编制", "task", "candidate", "项目负责人", 1, 24, true, "draft-opinion-review", 110),
+                node("FINAL_OPINION_REVIEW", "进入鉴定意见书送审稿编制", "task", "candidate", "项目负责人", 1, 24, true, "final-opinion-review", 120),
+                node("REFUND", "进入退费", "task", "candidate", "项目负责人", 1, 24, true, "refund", 130),
+                node("TERMINATE_APPRAISAL", "进入终止鉴定", "task", "candidate", "项目负责人", 1, 24, true, "terminate-appraisal", 140),
+                node("END", "流程结束", "end", "single", null, 0, 0, false, null, 150)
         );
 
         List<WorkflowTransitionRequest> transitions = List.of(
                 transition("START", "PROJECT_CONFIRM", "APPROVE", "进入材料接收与返还", null, 0, 10),
-                transition("PROJECT_CONFIRM", "ASSISTANT_REGISTER", "APPROVE", "转交项目辅助人登记材料", null, 1, 20),
-                transition("ASSISTANT_REGISTER", "ARCHIVIST_HANDLE", "APPROVE", "转交档案管理员接收与保管", null, 1, 30),
-                transition("ASSISTANT_REGISTER", "PROJECT_CONFIRM", "RETURN", "退回项目负责人复核材料需求", null, 1, 31),
-                transition("ARCHIVIST_HANDLE", "PROJECT_DECISION", "APPROVE", "转交项目负责人确认后续流程", null, 1, 40),
-                transition("ARCHIVIST_HANDLE", "ASSISTANT_REGISTER", "RETURN", "退回项目辅助人重新登记材料", null, 1, 41),
-                transition("PROJECT_DECISION", "DRAFT_OPINION_REVIEW", "APPROVE", "进入征求意见稿送审稿编制", "form.nextRecommendation == '鉴定意见书征求意见稿送审稿编制'", 1, 50,
+                transition("PROJECT_CONFIRM", "MATERIAL_UPLOAD", "APPROVE", "委托方直接提供，转交主办人上传材料", "form.materialReceiveType == '委托方直接提供'", 1, 20),
+                transition("PROJECT_CONFIRM", "PAYMENT_NOTICE", "APPROVE", "需要补充材料，进入发交费通知书及相关函件", "form.requireSupplementaryMaterial == true", 1, 21,
+                        subflowConfig("payment-notice", "材料接收与返还中需要补充材料，进入发交费通知书及相关函件")),
+                transition("MATERIAL_UPLOAD", "PROJECT_MATERIAL_CONFIRM", "APPROVE", "材料上传后转项目负责人确认", null, 1, 30),
+                transition("MATERIAL_UPLOAD", "PROJECT_CONFIRM", "RETURN", "退回项目负责人复核材料接收类型", null, 1, 31),
+                transition("PROJECT_MATERIAL_CONFIRM", "ASSISTANT_REGISTER", "APPROVE", "项目负责人确认材料，转项目辅助人登记", "form.projectMaterialConfirmed == true", 1, 40),
+                transition("PROJECT_MATERIAL_CONFIRM", "MATERIAL_UPLOAD", "RETURN", "退回材料上传主办人补充材料", "form.projectMaterialConfirmed == false", 1, 41),
+                transition("ASSISTANT_REGISTER", "ASSISTANT_RETURN", "APPROVE", "材料需要返还，转项目辅助人返还材料", "form.requireReturn == true", 1, 50),
+                transition("ASSISTANT_REGISTER", "ARCHIVIST_HANDLE", "APPROVE", "材料无需返还，交档案管理员保管", "form.requireReturn == false", 1, 51),
+                transition("ASSISTANT_REGISTER", "PROJECT_MATERIAL_CONFIRM", "RETURN", "退回项目负责人重新确认材料", null, 1, 52),
+                transition("ASSISTANT_RETURN", "PARALLEL_GATEWAY_SPLIT", "APPROVE", "材料返还完成，进入归档和后续判断", null, 1, 60),
+                transition("ASSISTANT_RETURN", "ASSISTANT_REGISTER", "RETURN", "退回项目辅助人补充接收登记", null, 1, 61),
+                transition("ARCHIVIST_HANDLE", "PARALLEL_GATEWAY_SPLIT", "APPROVE", "材料保管完成，进入归档和后续判断", null, 1, 70),
+                transition("ARCHIVIST_HANDLE", "ASSISTANT_REGISTER", "RETURN", "退回项目辅助人重新登记材料", null, 1, 71),
+                transition("PARALLEL_GATEWAY_SPLIT", "ARCHIVE", "APPROVE", "材料返还或保管后进入归档", null, 1, 80,
+                        subflowConfig("archive", "材料接收与返还完成后进入归档")),
+                transition("PARALLEL_GATEWAY_SPLIT", "PROJECT_DECISION", "APPROVE", "同时转项目负责人确认报告编制条件", null, 1, 81),
+                transition("PROJECT_DECISION", "DRAFT_OPINION_REVIEW", "APPROVE", "进入征求意见稿送审稿编制", "form.nextRecommendation == '鉴定意见书征求意见稿送审稿编制'", 1, 90,
                         subflowConfig("draft-opinion-review", "材料处理完成后选择进入征求意见稿送审稿编制")),
-                transition("PROJECT_DECISION", "FINAL_OPINION_REVIEW", "APPROVE", "进入鉴定意见书送审稿编制", "form.nextRecommendation == '鉴定意见书送审稿编制'", 1, 51,
+                transition("PROJECT_DECISION", "FINAL_OPINION_REVIEW", "APPROVE", "进入鉴定意见书送审稿编制", "form.nextRecommendation == '鉴定意见书送审稿编制'", 1, 91,
                         subflowConfig("final-opinion-review", "材料处理完成后选择进入鉴定意见书送审稿编制")),
-                transition("PROJECT_DECISION", "REFUND", "APPROVE", "进入退费", "form.nextRecommendation == '退费'", 1, 52,
+                transition("PROJECT_DECISION", "REFUND", "APPROVE", "进入退费", "form.nextRecommendation == '退费'", 1, 92,
                         subflowConfig("refund", "材料处理完成后选择进入退费")),
-                transition("PROJECT_DECISION", "TERMINATE_APPRAISAL", "APPROVE", "进入终止鉴定", "form.nextRecommendation == '终止鉴定'", 1, 53,
+                transition("PROJECT_DECISION", "TERMINATE_APPRAISAL", "APPROVE", "进入终止鉴定", "form.nextRecommendation == '终止鉴定'", 1, 93,
                         subflowConfig("terminate-appraisal", "材料处理完成后选择进入终止鉴定")),
-                transition("PROJECT_DECISION", "ARCHIVE", "APPROVE", "进入归档", "form.nextRecommendation == '归档'", 1, 54,
-                        subflowConfig("archive", "材料处理完成后选择进入归档")),
-                transition("PROJECT_DECISION", "ARCHIVIST_HANDLE", "RETURN", "退回档案管理员处理材料", null, 1, 55),
-                transition("DRAFT_OPINION_REVIEW", "END", "COMPLETE", "征求意见稿送审稿编制子流程已触发", null, 1, 60),
-                transition("FINAL_OPINION_REVIEW", "END", "COMPLETE", "鉴定意见书送审稿编制子流程已触发", null, 1, 61),
-                transition("REFUND", "END", "COMPLETE", "退费子流程已触发", null, 1, 62),
-                transition("TERMINATE_APPRAISAL", "END", "COMPLETE", "终止鉴定子流程已触发", null, 1, 63),
-                transition("ARCHIVE", "END", "COMPLETE", "归档子流程已触发", null, 1, 64)
+                transition("PROJECT_DECISION", "ARCHIVIST_HANDLE", "RETURN", "退回档案管理员处理材料", null, 1, 94),
+                transition("PAYMENT_NOTICE", "END", "COMPLETE", "发交费通知子流程已触发", null, 1, 100),
+                transition("ARCHIVE", "END", "COMPLETE", "归档子流程已触发", null, 1, 101),
+                transition("DRAFT_OPINION_REVIEW", "END", "COMPLETE", "征求意见稿送审稿编制子流程已触发", null, 1, 102),
+                transition("FINAL_OPINION_REVIEW", "END", "COMPLETE", "鉴定意见书送审稿编制子流程已触发", null, 1, 103),
+                transition("REFUND", "END", "COMPLETE", "退费子流程已触发", null, 1, 104),
+                transition("TERMINATE_APPRAISAL", "END", "COMPLETE", "终止鉴定子流程已触发", null, 1, 105)
         );
 
         return new WorkflowDesignRequest(
@@ -1183,12 +1224,12 @@ public class JudicialConfigImportService {
                 field("projectAssistantId", "项目辅助人", "user", "流程基础", true, true),
                 field("technicalLeaderId", "技术负责人", "user", "流程基础", true, true),
                 field("departmentHeadId", "部门负责人", "user", "流程基础", true, true),
-                field("draftOpinionUploaded", "征求意见稿初稿已上传", "boolean", "初稿编制", true, false),
-                field("projectReviewPassed", "项目负责人审核通过", "boolean", "项目负责人审核", true, false),
+                field("draftOpinionUploaded", "征求意见稿初稿已上传", "boolean", "初稿编制", false, false),
+                field("projectReviewPassed", "项目负责人审核通过", "boolean", "项目负责人审核", false, false),
                 field("technicalReviewPassed", "技术负责人审核通过", "boolean", "技术负责人审核", false, false),
                 field("departmentReviewPassed", "部门负责人审核通过", "boolean", "部门负责人审核", false, false),
-                field("finalDraftUploaded", "征求意见稿送审稿定稿已上传", "boolean", "定稿上传", true, false),
-                field("nextRecommendation", "下一步建议", "select", "后续流程", true, false,
+                field("finalDraftUploaded", "征求意见稿送审稿定稿已上传", "boolean", "定稿上传", false, false),
+                field("nextRecommendation", "下一步建议", "select", "后续流程", false, false,
                         List.of("出具征求意见稿")),
                 field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
         );
@@ -1240,28 +1281,30 @@ public class JudicialConfigImportService {
     private WorkflowDesignRequest draftOpinionReviewWorkflowRequest(JudicialWorkflowDefinitionDto workflow) {
         List<WorkflowNodeRequest> nodes = List.of(
                 node("START", "开始", "start", "single", null, 0, 0, false, null, 0),
-                node("ASSISTANT_DRAFT", "项目辅助人编制初稿", "task", "candidate", "项目辅助人", 1, 48, true, workflow.formCode(), 10),
-                node("PROJECT_REVIEW", "项目负责人审核", "task", "candidate", "项目负责人", 1, 48, true, workflow.formCode(), 20),
-                node("TECHNICAL_REVIEW", "技术负责人审核", "task", "candidate", "技术负责人", 1, 48, true, workflow.formCode(), 30),
-                node("DEPARTMENT_REVIEW", "部门负责人审核", "task", "candidate", "部门负责人", 1, 48, true, workflow.formCode(), 40),
-                node("PROJECT_FINAL_UPLOAD", "项目负责人上传定稿", "task", "candidate", "项目负责人", 1, 24, true, workflow.formCode(), 50),
-                node("ISSUE_DRAFT_OPINION", "进入出具征求意见稿", "task", "candidate", "项目负责人", 1, 24, true, "issue-draft-opinion", 60),
-                node("END", "流程结束", "end", "single", null, 0, 0, false, null, 70)
+                node("PROJECT_ASSIGN", "项目负责人转交项目辅助人编制初稿", "task", "candidate", "项目负责人", 1, 24, true, null, 10),
+                node("ASSISTANT_DRAFT", "项目辅助人编制初稿", "task", "candidate", "项目辅助人", 1, 48, true, workflow.formCode(), 20),
+                node("PROJECT_REVIEW", "项目负责人审核", "task", "candidate", "项目负责人", 1, 48, true, workflow.formCode(), 30),
+                node("TECHNICAL_REVIEW", "技术负责人审核", "task", "candidate", "技术负责人", 1, 48, true, workflow.formCode(), 40),
+                node("DEPARTMENT_REVIEW", "部门负责人审核", "task", "candidate", "部门负责人", 1, 48, true, workflow.formCode(), 50),
+                node("PROJECT_FINAL_UPLOAD", "项目负责人上传定稿", "task", "candidate", "项目负责人", 1, 24, true, workflow.formCode(), 60),
+                node("ISSUE_DRAFT_OPINION", "进入出具征求意见稿", "task", "candidate", "项目负责人", 1, 24, true, "issue-draft-opinion", 70),
+                node("END", "流程结束", "end", "single", null, 0, 0, false, null, 80)
         );
 
         List<WorkflowTransitionRequest> transitions = List.of(
-                transition("START", "ASSISTANT_DRAFT", "APPROVE", "进入征求意见稿送审稿编制", null, 0, 10),
-                transition("ASSISTANT_DRAFT", "PROJECT_REVIEW", "APPROVE", "转交项目负责人审核", null, 1, 20),
-                transition("PROJECT_REVIEW", "TECHNICAL_REVIEW", "APPROVE", "项目负责人审核通过，转技术负责人", "form.projectReviewPassed == true", 1, 30),
-                transition("PROJECT_REVIEW", "ASSISTANT_DRAFT", "RETURN", "退回项目辅助人修改初稿", "form.projectReviewPassed == false", 1, 31),
-                transition("TECHNICAL_REVIEW", "DEPARTMENT_REVIEW", "APPROVE", "技术负责人审核通过，转部门负责人", "form.technicalReviewPassed == true", 1, 40),
-                transition("TECHNICAL_REVIEW", "PROJECT_REVIEW", "RETURN", "退回项目负责人复核", "form.technicalReviewPassed == false", 1, 41),
-                transition("DEPARTMENT_REVIEW", "PROJECT_FINAL_UPLOAD", "APPROVE", "部门负责人审核通过，转项目负责人定稿", "form.departmentReviewPassed == true", 1, 50),
-                transition("DEPARTMENT_REVIEW", "TECHNICAL_REVIEW", "RETURN", "退回技术负责人复核", "form.departmentReviewPassed == false", 1, 51),
-                transition("PROJECT_FINAL_UPLOAD", "ISSUE_DRAFT_OPINION", "APPROVE", "进入出具征求意见稿", "form.nextRecommendation == '出具征求意见稿'", 1, 60,
+                transition("START", "PROJECT_ASSIGN", "APPROVE", "进入征求意见稿送审稿编制", null, 0, 10),
+                transition("PROJECT_ASSIGN", "ASSISTANT_DRAFT", "APPROVE", "转交项目辅助人编制初稿", null, 1, 20),
+                transition("ASSISTANT_DRAFT", "PROJECT_REVIEW", "APPROVE", "转交项目负责人审核", null, 1, 30),
+                transition("PROJECT_REVIEW", "TECHNICAL_REVIEW", "APPROVE", "项目负责人审核通过，转技术负责人", "form.projectReviewPassed == true", 1, 40),
+                transition("PROJECT_REVIEW", "ASSISTANT_DRAFT", "RETURN", "退回项目辅助人修改初稿", "form.projectReviewPassed == false", 1, 41),
+                transition("TECHNICAL_REVIEW", "DEPARTMENT_REVIEW", "APPROVE", "技术负责人审核通过，转部门负责人", "form.technicalReviewPassed == true", 1, 50),
+                transition("TECHNICAL_REVIEW", "PROJECT_REVIEW", "RETURN", "退回项目负责人复核", "form.technicalReviewPassed == false", 1, 51),
+                transition("DEPARTMENT_REVIEW", "PROJECT_FINAL_UPLOAD", "APPROVE", "部门负责人审核通过，转项目负责人定稿", "form.departmentReviewPassed == true", 1, 60),
+                transition("DEPARTMENT_REVIEW", "TECHNICAL_REVIEW", "RETURN", "退回技术负责人复核", "form.departmentReviewPassed == false", 1, 61),
+                transition("PROJECT_FINAL_UPLOAD", "ISSUE_DRAFT_OPINION", "APPROVE", "进入出具征求意见稿", "form.nextRecommendation == '出具征求意见稿'", 1, 70,
                         subflowConfig("issue-draft-opinion", "征求意见稿送审稿编制完成后选择进入出具征求意见稿")),
-                transition("PROJECT_FINAL_UPLOAD", "DEPARTMENT_REVIEW", "RETURN", "退回部门负责人复核", null, 1, 61),
-                transition("ISSUE_DRAFT_OPINION", "END", "COMPLETE", "出具征求意见稿子流程已触发", null, 1, 70)
+                transition("PROJECT_FINAL_UPLOAD", "DEPARTMENT_REVIEW", "RETURN", "退回部门负责人复核", null, 1, 71),
+                transition("ISSUE_DRAFT_OPINION", "END", "COMPLETE", "出具征求意见稿子流程已触发", null, 1, 80)
         );
 
         return new WorkflowDesignRequest(

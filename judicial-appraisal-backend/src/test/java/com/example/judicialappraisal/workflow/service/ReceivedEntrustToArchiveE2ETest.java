@@ -216,27 +216,42 @@ class ReceivedEntrustToArchiveE2ETest {
         CaseSubflowInstance materialSubflow = getRunningSubflow(caseId, "material-receive-return");
         assertThat(materialSubflow).isNotNull();
 
-        // material-receive-return chain: PROJECT_CONFIRM -> ASSISTANT_REGISTER -> ARCHIVIST_HANDLE -> PROJECT_DECISION -> DRAFT_OPINION_REVIEW
+        // material-receive-return chain:
+        // PROJECT_CONFIRM -> MATERIAL_UPLOAD -> PROJECT_MATERIAL_CONFIRM -> ASSISTANT_REGISTER
+        // -> ARCHIVIST_HANDLE -> ARCHIVE + PROJECT_DECISION -> DRAFT_OPINION_REVIEW
         Map<String, Object> materialFormData = Map.ofEntries(
+                Map.entry("materialReceiveType", "委托方直接提供"),
+                Map.entry("materialUploaderId", 9L),
                 Map.entry("materialSource", "法院寄送"),
                 Map.entry("requireSupplementaryMaterial", false),
+                Map.entry("supplementaryNoticeUploaded", false),
+                Map.entry("materialsUploaded", true),
+                Map.entry("projectMaterialConfirmed", true),
                 Map.entry("materialDetails", "E2E材料详情"),
                 Map.entry("receiveDate", "2026-06-12"),
+                Map.entry("materialMediaType", "纸质原件"),
                 Map.entry("storageLocation", "档案室1号柜"),
                 Map.entry("requireReturn", false),
                 Map.entry("storageStatus", "正常"),
+                Map.entry("returnRegistrationCompleted", false),
                 Map.entry("nextRecommendation", "鉴定意见书征求意见稿送审稿编制")
         );
-        completeTask(caseId, "PROJECT_CONFIRM", materialFormData);
-        completeTask(caseId, "ASSISTANT_REGISTER", Map.of());
-        completeTask(caseId, "ARCHIVIST_HANDLE", Map.of());
+        completeTask(caseId, "PROJECT_CONFIRM", materialFormData, 9L, "管理员");
+        completeTask(caseId, "MATERIAL_UPLOAD", Map.of("materialsUploaded", true));
+        completeTask(caseId, "PROJECT_MATERIAL_CONFIRM", Map.of("projectMaterialConfirmed", true));
+        completeTask(caseId, "ASSISTANT_REGISTER", Map.of(
+                "materialMediaType", "纸质原件",
+                "storageLocation", "档案室1号柜",
+                "requireReturn", false
+        ));
+        completeTask(caseId, "ARCHIVIST_HANDLE", Map.of("storageStatus", "正常"));
         completeTask(caseId, "PROJECT_DECISION", Map.of("nextRecommendation", "鉴定意见书征求意见稿送审稿编制"));
 
         // Wait for draft-opinion-review subflow
         CaseSubflowInstance draftSubflow = getRunningSubflow(caseId, "draft-opinion-review");
         assertThat(draftSubflow).isNotNull();
 
-        // draft-opinion-review chain: ASSISTANT_DRAFT -> PROJECT_REVIEW -> TECHNICAL_REVIEW -> DEPARTMENT_REVIEW -> PROJECT_FINAL_UPLOAD -> ISSUE_DRAFT_OPINION
+        // draft-opinion-review chain: PROJECT_ASSIGN -> ASSISTANT_DRAFT -> PROJECT_REVIEW -> TECHNICAL_REVIEW -> DEPARTMENT_REVIEW -> PROJECT_FINAL_UPLOAD -> ISSUE_DRAFT_OPINION
         Map<String, Object> draftOpinionFormData = Map.ofEntries(
                 Map.entry("draftOpinionUploaded", true),
                 Map.entry("projectReviewPassed", true),
@@ -245,6 +260,7 @@ class ReceivedEntrustToArchiveE2ETest {
                 Map.entry("finalDraftUploaded", true),
                 Map.entry("nextRecommendation", "出具征求意见稿")
         );
+        completeTask(caseId, "PROJECT_ASSIGN", Map.of());
         completeTask(caseId, "ASSISTANT_DRAFT", draftOpinionFormData);
         completeTask(caseId, "PROJECT_REVIEW", Map.of("projectReviewPassed", true));
         completeTask(caseId, "TECHNICAL_REVIEW", Map.of("technicalReviewPassed", true));
@@ -319,20 +335,16 @@ class ReceivedEntrustToArchiveE2ETest {
         CaseSubflowInstance archiveSubflow = getRunningSubflow(caseId, "archive");
         assertThat(archiveSubflow).isNotNull();
 
-        // archive chain: ARCHIVIST_PREPARE -> MAIL_TRANSFER / CENTRAL_REVIEW -> END
-        Map<String, Object> archiveFormData = Map.ofEntries(
-                Map.entry("projectArchiveUploaded", true),
-                Map.entry("paperScansUploaded", true),
-                Map.entry("electronicArchiveLocation", "http://e2e/archive"),
-                Map.entry("deliveryRoute", "直接中心审核"),
-                Map.entry("centralArchiveApproved", true)
-        );
-        completeTask(caseId, "ARCHIVIST_PREPARE", archiveFormData);
-        completeTask(caseId, "CENTRAL_REVIEW", Map.of("centralArchiveApproved", true));
+        // Complete both archive branches: material handling already created one archive subflow,
+        // and issue-opinion creates the final archive subflow.
+        completeAllDirectArchiveSubflows(caseId);
 
         // Now everything should be completed
         caseInfo = caseInfoService.getById(caseId);
-        assertThat(caseInfo.getCaseStatus()).isEqualTo(CaseStatus.COMPLETED.name());
+        assertThat(caseInfo.getCaseStatus())
+                .withFailMessage("Expected case completed, active tasks: %s, running subflows: %s",
+                        activeTaskNodeCodes(caseId), runningSubflowCodes(caseId))
+                .isEqualTo(CaseStatus.COMPLETED.name());
         
         // Assert no active tasks
         long activeTasks = caseTaskMapper.selectCount(new LambdaQueryWrapper<CaseTask>()
@@ -361,6 +373,22 @@ class ReceivedEntrustToArchiveE2ETest {
         assertThat(caseInfo.getCurrentHandlerName()).isNull();
         assertThat(mainWf.getCurrentNodeCode()).isNull();
         assertThat(mainWf.getCurrentNodeName()).isNull();
+    }
+
+    private void completeAllDirectArchiveSubflows(Long caseId) {
+        Map<String, Object> archiveFormData = Map.ofEntries(
+                Map.entry("projectArchiveUploaded", true),
+                Map.entry("paperScansUploaded", true),
+                Map.entry("electronicArchiveLocation", "http://e2e/archive"),
+                Map.entry("deliveryRoute", "直接中心审核"),
+                Map.entry("centralArchiveApproved", true)
+        );
+        while (countActiveTasks(caseId, "ARCHIVIST_PREPARE") > 0) {
+            completeTask(caseId, "ARCHIVIST_PREPARE", archiveFormData);
+        }
+        while (countActiveTasks(caseId, "CENTRAL_REVIEW") > 0) {
+            completeTask(caseId, "CENTRAL_REVIEW", Map.of("centralArchiveApproved", true));
+        }
     }
 
     @Test
@@ -503,7 +531,31 @@ class ReceivedEntrustToArchiveE2ETest {
                 .in(CaseTask::getStatus, "pending", "claimed", "processing", "subflow_running"));
     }
 
+    private List<String> activeTaskNodeCodes(Long caseId) {
+        return caseTaskMapper.selectList(new LambdaQueryWrapper<CaseTask>()
+                        .eq(CaseTask::getCaseId, caseId)
+                        .in(CaseTask::getStatus, "pending", "claimed", "processing", "subflow_running")
+                        .orderByAsc(CaseTask::getId))
+                .stream()
+                .map(CaseTask::getNodeCode)
+                .toList();
+    }
+
+    private List<String> runningSubflowCodes(Long caseId) {
+        return caseSubflowInstanceMapper.selectList(new LambdaQueryWrapper<CaseSubflowInstance>()
+                        .eq(CaseSubflowInstance::getCaseId, caseId)
+                        .eq(CaseSubflowInstance::getStatus, "running")
+                        .orderByAsc(CaseSubflowInstance::getId))
+                .stream()
+                .map(CaseSubflowInstance::getWfCode)
+                .toList();
+    }
+
     private void completeTask(Long caseId, String nodeCode, Map<String, Object> formData) {
+        completeTask(caseId, nodeCode, formData, null, null);
+    }
+
+    private void completeTask(Long caseId, String nodeCode, Map<String, Object> formData, Long nextAssigneeId, String nextAssigneeName) {
         CaseTask task = caseTaskMapper.selectOne(new LambdaQueryWrapper<CaseTask>()
                 .eq(CaseTask::getCaseId, caseId)
                 .eq(CaseTask::getNodeCode, nodeCode)
@@ -513,7 +565,8 @@ class ReceivedEntrustToArchiveE2ETest {
         assertThat(task).withFailMessage("Task not found or not active: " + nodeCode).isNotNull();
 
         WorkflowActionRequest request = new WorkflowActionRequest(
-                task.getId(), ActionCode.APPROVE, "自动E2E执行", null, null, null, formData, null);
+                task.getId(), ActionCode.APPROVE, "自动E2E执行", null, null, null,
+                nextAssigneeId, nextAssigneeName, formData, null);
         workflowRuntimeService.completeTask(caseId, request, 9L, "管理员");
     }
 }
