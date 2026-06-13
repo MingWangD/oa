@@ -2032,9 +2032,9 @@ public class JudicialConfigImportService {
                 field("flowName", "流程名称", "text", "流程基础", false, true),
                 field("linkedWorkflowCode", "关联原流程", "text", "流程基础", false, false),
                 field("projectLeaderId", "项目负责人", "user", "流程基础", true, true),
-                field("withdrawLetterReceivedDate", "撤案函收函日期", "date", "撤案登记", true, false),
-                field("withdrawReason", "撤案原因", "textarea", "撤案登记", true, false),
-                field("refundRequired", "是否需要退费", "boolean", "项目负责人判断", true, false),
+                field("withdrawLetterReceivedDate", "撤案函收函日期", "date", "撤案登记", false, false),
+                field("withdrawReason", "撤案原因", "textarea", "撤案登记", false, false),
+                field("refundRequired", "是否需要退费", "boolean", "项目负责人判断", false, false),
                 field("decisionSummary", "处理结论说明", "textarea", "项目负责人判断", false, false),
                 field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
         );
