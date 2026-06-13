@@ -948,17 +948,17 @@ public class JudicialConfigImportService {
                 field("flowName", "流程名称", "text", "流程基础", false, true),
                 field("projectLeaderId", "项目负责人", "user", "流程基础", true, true),
                 field("projectAssistantId", "项目辅助人", "user", "流程基础", true, true),
-                field("rejectionReason", "不予受理原因", "textarea", "通知编制", true, false),
-                field("noticeDraftCompleted", "不予受理通知书已编制", "boolean", "通知编制", true, false),
-                field("noticeSummary", "通知书内容摘要", "textarea", "通知编制", true, false),
-                field("projectReviewPassed", "项目负责人审核通过", "boolean", "项目负责人审核", true, false),
+                field("rejectionReason", "不予受理原因", "textarea", "通知编制", false, false),
+                field("noticeDraftCompleted", "不予受理通知书已编制", "boolean", "通知编制", false, false),
+                field("noticeSummary", "通知书内容摘要", "textarea", "通知编制", false, false),
+                field("projectReviewPassed", "项目负责人审核通过", "boolean", "项目负责人审核", false, false),
                 field("reviewOpinion", "审核意见", "textarea", "项目负责人审核", false, false),
-                field("sealRequired", "是否需要用章", "boolean", "用章与回传", true, false),
-                field("sealedNoticeUploaded", "盖章通知书扫描件已上传", "boolean", "用章与回传", true, false),
-                field("deliveryMethod", "送达方式", "select", "送达与归档", true, false,
+                field("sealRequired", "是否需要用章", "boolean", "用章与回传", false, false),
+                field("sealedNoticeUploaded", "盖章通知书扫描件已上传", "boolean", "用章与回传", false, false),
+                field("deliveryMethod", "送达方式", "select", "送达与归档", false, false,
                         List.of("邮寄", "现场领取", "电子送达", "其他")),
                 field("deliveryDate", "送达日期", "date", "送达与归档", false, false),
-                field("archiveConfirmed", "归档材料已确认", "boolean", "送达与归档", true, false),
+                field("archiveConfirmed", "归档材料已确认", "boolean", "送达与归档", false, false),
                 field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
         );
         return new FormDesignRequest(
@@ -1014,27 +1014,27 @@ public class JudicialConfigImportService {
                 node("START", "开始", "start", "single", null, 0, 0, false, null, 0),
                 node("ASSISTANT_DRAFT", "项目辅助人编制不予受理通知书", "task", "candidate", "项目辅助人", 1, 24, true, workflow.formCode(), 10),
                 node("PROJECT_REVIEW", "项目负责人审核不予受理通知书", "task", "candidate", "项目负责人", 1, 48, true, workflow.formCode(), 20),
-                node("SEAL_APPLICATION", "进入用章流程", "task", "candidate", "综合业务部", 1, 24, true, "seal-application", 30),
-                node("SEALED_NOTICE_UPLOAD", "档案管理员回传盖章通知书", "task", "candidate", "档案管理员", 1, 24, true, workflow.formCode(), 40),
-                node("DELIVERY_ARCHIVE", "档案管理员送达并归档", "task", "candidate", "档案管理员", 1, 72, true, workflow.formCode(), 50),
-                node("ARCHIVE", "进入归档", "task", "candidate", "档案管理员", 1, 24, true, "archive", 60),
+                node("ARCHIVIST_CONFIRM", "档案管理员同意盖章", "task", "candidate", "档案管理员", 1, 24, true, workflow.formCode(), 30),
+                node("SEAL_APPLICATION", "档案管理员提交用章申请", "task", "candidate", "档案管理员", 1, 24, true, "seal-application", 40),
+                node("SEALED_NOTICE_UPLOAD", "项目辅助人上传盖章扫描版", "task", "candidate", "项目辅助人", 1, 48, true, workflow.formCode(), 50),
+                node("ARCHIVE_SUBFLOW", "进入归档子流程", "task", "candidate", "档案管理员", 1, 24, true, "archive", 60),
                 node("END", "流程结束", "end", "single", null, 0, 0, false, null, 70)
         );
 
         List<WorkflowTransitionRequest> transitions = List.of(
                 transition("START", "ASSISTANT_DRAFT", "APPROVE", "进入不予受理", null, 0, 10),
                 transition("ASSISTANT_DRAFT", "PROJECT_REVIEW", "APPROVE", "转交项目负责人审核", null, 1, 20),
-                transition("PROJECT_REVIEW", "SEAL_APPLICATION", "APPROVE", "审核通过，发起用章", "form.projectReviewPassed == true", 1, 30,
-                        subflowConfig("seal-application", "不予受理通知书审核通过且需要用章后自动进入用章流程")),
+                transition("PROJECT_REVIEW", "ARCHIVIST_CONFIRM", "APPROVE", "审核通过，转档案管理员盖章", "form.projectReviewPassed == true", 1, 30),
                 transition("PROJECT_REVIEW", "ASSISTANT_DRAFT", "RETURN", "退回项目辅助人修改通知书", "form.projectReviewPassed == false", 1, 31),
-                transition("PROJECT_REVIEW", "ASSISTANT_DRAFT", "RETURN", "退回项目辅助人补充材料", null, 1, 32),
-                transition("SEAL_APPLICATION", "SEALED_NOTICE_UPLOAD", "COMPLETE", "用章流程完成", null, 1, 40),
-                transition("SEALED_NOTICE_UPLOAD", "DELIVERY_ARCHIVE", "APPROVE", "转交送达与归档确认", null, 1, 50),
-                transition("SEALED_NOTICE_UPLOAD", "PROJECT_REVIEW", "RETURN", "退回项目负责人复核", null, 1, 51),
-                transition("DELIVERY_ARCHIVE", "ARCHIVE", "APPROVE", "送达完成，进入归档", "form.archiveConfirmed == true", 1, 60,
-                        subflowConfig("archive", "不予受理通知书送达并确认归档材料后自动进入归档流程")),
-                transition("DELIVERY_ARCHIVE", "SEALED_NOTICE_UPLOAD", "RETURN", "退回补充盖章通知书或送达记录", null, 1, 61),
-                transition("ARCHIVE", "END", "COMPLETE", "归档子流程已触发", null, 1, 70)
+                transition("ARCHIVIST_CONFIRM", "SEAL_APPLICATION", "APPROVE", "同意盖章并提交申请", "form.sealRequired == true", 1, 40,
+                        subflowConfig("seal-application", "审核通过后自动进入用章流程")),
+                transition("ARCHIVIST_CONFIRM", "SEALED_NOTICE_UPLOAD", "APPROVE", "无需盖章直接上传", "form.sealRequired == false", 1, 41),
+                transition("ARCHIVIST_CONFIRM", "PROJECT_REVIEW", "RETURN", "退回项目负责人复核", null, 1, 42),
+                transition("SEAL_APPLICATION", "SEALED_NOTICE_UPLOAD", "COMPLETE", "用章流程完成", null, 1, 50),
+                transition("SEALED_NOTICE_UPLOAD", "ARCHIVE_SUBFLOW", "APPROVE", "上传扫描版，进入归档", null, 1, 60,
+                        subflowConfig("archive", "不予受理通知书扫描版上传后自动进入归档流程")),
+                transition("SEALED_NOTICE_UPLOAD", "ARCHIVIST_CONFIRM", "RETURN", "退回档案管理员重新确认盖章", null, 1, 61),
+                transition("ARCHIVE_SUBFLOW", "END", "COMPLETE", "归档子流程已触发", null, 1, 70)
         );
 
         return new WorkflowDesignRequest(
@@ -2351,12 +2351,12 @@ public class JudicialConfigImportService {
                 field("applicantId", "申请人", "user", "流程基础", true, true),
                 field("archivistId", "档案管理员", "user", "流程基础", true, true),
                 field("sealOperatorId", "盖章经办人", "user", "流程基础", true, true),
-                field("applicationReason", "用章原因", "textarea", "申请信息", true, false),
-                field("sealMode", "盖章方式", "select", "申请信息", true, false, List.of("线下盖章", "电子盖章")),
-                field("applicationFilesPrepared", "申请文件已备齐", "boolean", "申请信息", true, false),
-                field("archivistReviewed", "档案管理员已审核", "boolean", "档案审核", true, false),
-                field("sealCompleted", "已完成盖章", "boolean", "盖章处理", true, false),
-                field("sealedScanUploaded", "盖章扫描件已上传", "boolean", "盖章处理", true, false),
+                field("applicationReason", "用章原因", "textarea", "申请信息", false, false),
+                field("sealMode", "盖章方式", "select", "申请信息", false, false, List.of("线下盖章", "电子盖章")),
+                field("applicationFilesPrepared", "申请文件已备齐", "boolean", "申请信息", false, false),
+                field("archivistReviewed", "档案管理员已审核", "boolean", "档案审核", false, false),
+                field("sealCompleted", "已完成盖章", "boolean", "盖章处理", false, false),
+                field("sealedScanUploaded", "盖章扫描件已上传", "boolean", "盖章处理", false, false),
                 field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
         );
         return new FormDesignRequest(
