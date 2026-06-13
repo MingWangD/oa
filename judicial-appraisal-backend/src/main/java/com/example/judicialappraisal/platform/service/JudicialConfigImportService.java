@@ -1335,15 +1335,15 @@ public class JudicialConfigImportService {
                 field("projectAssistantId", "项目辅助人", "user", "流程基础", true, true),
                 field("technicalLeaderId", "技术负责人", "user", "流程基础", true, true),
                 field("departmentHeadId", "部门负责人", "user", "流程基础", true, true),
-                field("opinionDraftUploaded", "初稿已上传", "boolean", "初稿编制", true, false),
-                field("projectReviewPassed", "项目负责人审核通过", "boolean", "项目负责人审核", true, false),
-                field("versionAUploaded", "版本A已上传", "boolean", "项目负责人审核", true, false),
+                field("opinionDraftUploaded", "初稿已上传", "boolean", "初稿编制", false, false),
+                field("projectReviewPassed", "项目负责人审核通过", "boolean", "项目负责人审核", false, false),
+                field("versionAUploaded", "版本A已上传", "boolean", "项目负责人审核", false, false),
                 field("technicalReviewPassed", "技术负责人审核通过", "boolean", "技术负责人审核", false, false),
-                field("versionABUploaded", "版本A-B已上传", "boolean", "技术负责人审核", true, false),
+                field("versionABUploaded", "版本A-B已上传", "boolean", "技术负责人审核", false, false),
                 field("departmentReviewPassed", "部门负责人审核通过", "boolean", "部门负责人审核", false, false),
-                field("versionABCUploaded", "版本A-B-C已上传", "boolean", "部门负责人审核", true, false),
-                field("finalDraftUploaded", "最终送审稿已上传", "boolean", "定稿上传", true, false),
-                field("nextRecommendation", "下一步建议", "select", "后续流程", true, false,
+                field("versionABCUploaded", "版本A-B-C已上传", "boolean", "部门负责人审核", false, false),
+                field("finalDraftUploaded", "最终送审稿已上传", "boolean", "定稿上传", false, false),
+                field("nextRecommendation", "下一步建议", "select", "后续流程", false, false,
                         List.of("出具鉴定意见书")),
                 field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
         );
@@ -1400,28 +1400,30 @@ public class JudicialConfigImportService {
     private WorkflowDesignRequest finalOpinionReviewWorkflowRequest(JudicialWorkflowDefinitionDto workflow) {
         List<WorkflowNodeRequest> nodes = List.of(
                 node("START", "开始", "start", "single", null, 0, 0, false, null, 0),
-                node("ASSISTANT_DRAFT", "项目辅助人编制初稿", "task", "candidate", "项目辅助人", 1, 48, true, workflow.formCode(), 10),
-                node("PROJECT_REVIEW", "项目负责人审核并上传A版", "task", "candidate", "项目负责人", 1, 48, true, workflow.formCode(), 20),
-                node("TECHNICAL_REVIEW", "技术负责人审核并上传A-B版", "task", "candidate", "技术负责人", 1, 48, true, workflow.formCode(), 30),
-                node("DEPARTMENT_REVIEW", "部门负责人审核并上传A-B-C版", "task", "candidate", "部门负责人", 1, 48, true, workflow.formCode(), 40),
-                node("PROJECT_FINAL_UPLOAD", "项目负责人上传最终送审稿", "task", "candidate", "项目负责人", 1, 24, true, workflow.formCode(), 50),
-                node("ISSUE_OPINION", "进入出具鉴定意见书", "task", "candidate", "项目负责人", 1, 24, true, "issue-opinion", 60),
-                node("END", "流程结束", "end", "single", null, 0, 0, false, null, 70)
+                node("PROJECT_ASSIGN", "项目负责人确认并转交项目辅助人编写", "task", "candidate", "项目负责人", 1, 24, true, null, 10),
+                node("ASSISTANT_DRAFT", "项目辅助人编制初稿", "task", "candidate", "项目辅助人", 1, 48, true, workflow.formCode(), 20),
+                node("PROJECT_REVIEW", "项目负责人审核并上传A版", "task", "candidate", "项目负责人", 1, 48, true, workflow.formCode(), 30),
+                node("TECHNICAL_REVIEW", "技术负责人审核并上传A-B版", "task", "candidate", "技术负责人", 1, 48, true, workflow.formCode(), 40),
+                node("DEPARTMENT_REVIEW", "部门负责人审核并上传A-B-C版", "task", "candidate", "部门负责人", 1, 48, true, workflow.formCode(), 50),
+                node("PROJECT_FINAL_UPLOAD", "项目负责人上传最终送审稿", "task", "candidate", "项目负责人", 1, 24, true, workflow.formCode(), 60),
+                node("ISSUE_OPINION", "进入出具鉴定意见书", "task", "candidate", "项目负责人", 1, 24, true, "issue-opinion", 70),
+                node("END", "流程结束", "end", "single", null, 0, 0, false, null, 80)
         );
 
         List<WorkflowTransitionRequest> transitions = List.of(
-                transition("START", "ASSISTANT_DRAFT", "APPROVE", "进入送审稿编制", null, 0, 10),
-                transition("ASSISTANT_DRAFT", "PROJECT_REVIEW", "APPROVE", "转交项目负责人审核", null, 1, 20),
-                transition("PROJECT_REVIEW", "TECHNICAL_REVIEW", "APPROVE", "项目负责人审核通过(A)，转技术负责人", "form.projectReviewPassed == true", 1, 30),
-                transition("PROJECT_REVIEW", "ASSISTANT_DRAFT", "RETURN", "退回项目辅助人修改初稿", "form.projectReviewPassed == false", 1, 31),
-                transition("TECHNICAL_REVIEW", "DEPARTMENT_REVIEW", "APPROVE", "技术负责人审核通过(A-B)，转部门负责人", "form.technicalReviewPassed == true", 1, 40),
-                transition("TECHNICAL_REVIEW", "PROJECT_REVIEW", "RETURN", "退回项目负责人复核", "form.technicalReviewPassed == false", 1, 41),
-                transition("DEPARTMENT_REVIEW", "PROJECT_FINAL_UPLOAD", "APPROVE", "部门负责人审核通过(A-B-C)，转项目负责人定稿", "form.departmentReviewPassed == true", 1, 50),
-                transition("DEPARTMENT_REVIEW", "TECHNICAL_REVIEW", "RETURN", "退回技术负责人复核", "form.departmentReviewPassed == false", 1, 51),
-                transition("PROJECT_FINAL_UPLOAD", "ISSUE_OPINION", "APPROVE", "进入出具鉴定意见书", "form.nextRecommendation == '出具鉴定意见书'", 1, 60,
+                transition("START", "PROJECT_ASSIGN", "APPROVE", "进入送审稿编制", null, 0, 10),
+                transition("PROJECT_ASSIGN", "ASSISTANT_DRAFT", "APPROVE", "确认编写内容并转交项目辅助人", null, 1, 20),
+                transition("ASSISTANT_DRAFT", "PROJECT_REVIEW", "APPROVE", "转交项目负责人审核", null, 1, 30),
+                transition("PROJECT_REVIEW", "TECHNICAL_REVIEW", "APPROVE", "项目负责人审核通过(A)，转技术负责人", "form.projectReviewPassed == true", 1, 40),
+                transition("PROJECT_REVIEW", "ASSISTANT_DRAFT", "RETURN", "退回项目辅助人修改初稿", "form.projectReviewPassed == false", 1, 41),
+                transition("TECHNICAL_REVIEW", "DEPARTMENT_REVIEW", "APPROVE", "技术负责人审核通过(A-B)，转部门负责人", "form.technicalReviewPassed == true", 1, 50),
+                transition("TECHNICAL_REVIEW", "PROJECT_REVIEW", "RETURN", "退回项目负责人复核", "form.technicalReviewPassed == false", 1, 51),
+                transition("DEPARTMENT_REVIEW", "PROJECT_FINAL_UPLOAD", "APPROVE", "部门负责人审核通过(A-B-C)，转项目负责人定稿", "form.departmentReviewPassed == true", 1, 60),
+                transition("DEPARTMENT_REVIEW", "TECHNICAL_REVIEW", "RETURN", "退回技术负责人复核", "form.departmentReviewPassed == false", 1, 61),
+                transition("PROJECT_FINAL_UPLOAD", "ISSUE_OPINION", "APPROVE", "进入出具鉴定意见书", "form.nextRecommendation == '出具鉴定意见书'", 1, 70,
                         subflowConfig("issue-opinion", "鉴定意见书送审稿编制完成后选择进入出具鉴定意见书")),
-                transition("PROJECT_FINAL_UPLOAD", "DEPARTMENT_REVIEW", "RETURN", "退回部门负责人复核", null, 1, 61),
-                transition("ISSUE_OPINION", "END", "COMPLETE", "出具鉴定意见书子流程已触发", null, 1, 70)
+                transition("PROJECT_FINAL_UPLOAD", "DEPARTMENT_REVIEW", "RETURN", "退回部门负责人复核", null, 1, 71),
+                transition("ISSUE_OPINION", "END", "COMPLETE", "出具鉴定意见书子流程已触发", null, 1, 80)
         );
 
         return new WorkflowDesignRequest(

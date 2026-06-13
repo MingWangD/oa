@@ -364,9 +364,11 @@ class JudicialConfigImportServiceTests {
                 .findFirst()
                 .orElseThrow();
         assertThat(finalOpinionReviewWorkflow.nodes()).extracting("nodeCode")
-                .contains("ASSISTANT_DRAFT", "PROJECT_REVIEW", "TECHNICAL_REVIEW", "DEPARTMENT_REVIEW", "PROJECT_FINAL_UPLOAD", "ISSUE_OPINION");
+                .contains("PROJECT_ASSIGN", "ASSISTANT_DRAFT", "PROJECT_REVIEW", "TECHNICAL_REVIEW", "DEPARTMENT_REVIEW", "PROJECT_FINAL_UPLOAD", "ISSUE_OPINION");
         assertThat(finalOpinionReviewWorkflow.transitions()).extracting("conditionExpression")
                 .contains("form.projectReviewPassed == true", "form.technicalReviewPassed == true", "form.departmentReviewPassed == true", "form.nextRecommendation == '出具鉴定意见书'");
+        assertThat(finalOpinionReviewWorkflow.transitions()).extracting("fromNodeCode", "toNodeCode")
+                .contains(tuple("START", "PROJECT_ASSIGN"), tuple("PROJECT_ASSIGN", "ASSISTANT_DRAFT"));
         assertThat(finalOpinionReviewWorkflow.transitions()).extracting("transitionConfigJson")
                 .anySatisfy(config -> assertThat((String) config).contains("launchSubflow", "issue-opinion"));
     }

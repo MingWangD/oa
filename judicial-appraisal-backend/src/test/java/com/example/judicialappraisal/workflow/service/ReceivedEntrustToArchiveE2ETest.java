@@ -290,7 +290,7 @@ class ReceivedEntrustToArchiveE2ETest {
         CaseSubflowInstance finalSubflow = getRunningSubflow(caseId, "final-opinion-review");
         assertThat(finalSubflow).isNotNull();
 
-        // final-opinion-review chain: ASSISTANT_DRAFT -> PROJECT_REVIEW -> TECHNICAL_REVIEW -> DEPARTMENT_REVIEW -> PROJECT_FINAL_UPLOAD -> ISSUE_OPINION
+        // final-opinion-review chain: PROJECT_ASSIGN -> ASSISTANT_DRAFT -> PROJECT_REVIEW -> TECHNICAL_REVIEW -> DEPARTMENT_REVIEW -> PROJECT_FINAL_UPLOAD -> ISSUE_OPINION
         Map<String, Object> finalOpinionFormData = Map.ofEntries(
                 Map.entry("opinionDraftUploaded", true),
                 Map.entry("projectReviewPassed", true),
@@ -302,6 +302,7 @@ class ReceivedEntrustToArchiveE2ETest {
                 Map.entry("finalDraftUploaded", true),
                 Map.entry("nextRecommendation", "出具鉴定意见书")
         );
+        completeTask(caseId, "PROJECT_ASSIGN", Map.of());
         completeTask(caseId, "ASSISTANT_DRAFT", finalOpinionFormData);
         completeTask(caseId, "PROJECT_REVIEW", Map.of("projectReviewPassed", true, "versionAUploaded", true));
         completeTask(caseId, "TECHNICAL_REVIEW", Map.of("technicalReviewPassed", true, "versionABUploaded", true));
