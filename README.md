@@ -88,6 +88,7 @@
 
 1. 打开命令行或 MySQL 客户端工具，登录 MySQL 并创建名为 `judicial_appraisal` 的数据库：
    ```sql
+   DROP DATABASE IF EXISTS judicial_appraisal;
    CREATE DATABASE judicial_appraisal DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
    ```
 2. **配置数据库连接**：
@@ -101,13 +102,19 @@
        username: root
        password: 123456 # 替换为你的 MySQL 密码
    ```
-3. **导入数据**：
-   如果你获取到了完整的 SQL 备份文件（如 `judicial_appraisal_full_dump.sql`），请在命令行中导入：
+3. **导入完整数据库文件**：
+   项目只保留一个完整 SQL 文件，路径为：
+   ```text
+   judicial-appraisal-backend/src/main/resources/db/judicial_appraisal_full_dump.sql
+   ```
+   请在命令行中导入：
    ```bash
    # 请根据实际端口和密码情况调整命令
-   mysql -h localhost -P 3307 -u root -p judicial_appraisal < judicial_appraisal_full_dump.sql
+   mysql -h localhost -P 3307 -u root -p judicial_appraisal < judicial-appraisal-backend/src/main/resources/db/judicial_appraisal_full_dump.sql
    ```
-   *注意：如果未导入完整 SQL 备份文件，后端启动时会自动执行 `db/` 目录下的 Flyway 迁移脚本，生成基础表结构并插入初始配置与角色种子数据。*
+   该文件包含完整表结构、流程定义、案件样例、部门、岗位、角色、菜单权限和默认测试账号。导入后默认账号密码统一为 `123456`。
+
+   项目不再维护拆分版迁移脚本；如需重置数据库，请重新执行本节的 `DROP DATABASE`、`CREATE DATABASE` 和导入命令。
 
 ### 2. 后端启动 (Spring Boot)
 
@@ -141,12 +148,16 @@ npm run dev
 ## 👥 默认账号说明
 
 前端服务启动后，在浏览器访问 `http://localhost:5173/login`。
-为了方便进行多角色业务流程的协同流转测试，系统中预设了以下角色账号（默认密码一般为 `123456`）：
+为了方便进行多角色业务流程的协同流转测试，系统中预设了以下角色账号，默认密码均为 `123456`：
 
 - `admin` (系统管理员 - 拥有全量权限)
-- `finance` (财务 - 处理退费、报销等)
-- `archivist` (档案管理员 - 处理用章、发函、归档等)
+- `case_acceptor` (收案员 - 处理委托接收、收件等)
 - `project_leader` (项目负责人 - 案件流程的主理人，负责核心节点审批)
 - `project_assistant` (项目辅助人 - 协助编制初稿、文书及现场记录)
 - `dept_leader` (部门负责人 - F类项目及重大流转的审核节点)
 - `tech_leader` (技术负责人 - 处理复杂技术把关审核)
+- `director_review` (审阅所长/授权审批人 - 处理授权审批类节点)
+- `archivist` (档案管理员 - 处理用章、发函、归档、邮寄等)
+- `center_archivist` (中心档案管理员 - 处理中心归档审核)
+- `business_staff` (综合业务部 - 处理综合业务类事项)
+- `finance` (财务 - 处理退费、报销等)
