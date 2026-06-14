@@ -7,6 +7,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.example.judicialappraisal.auth.dto.CurrentUserInfo;
+import com.example.judicialappraisal.auth.dto.CurrentUserRole;
 import com.example.judicialappraisal.audit.service.AuditLogService;
 import com.example.judicialappraisal.caseinfo.entity.CaseInfo;
 import com.example.judicialappraisal.caseinfo.mapper.CaseInfoMapper;
@@ -26,8 +28,12 @@ import com.example.judicialappraisal.knowledge.mapper.KnowledgePermissionMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 class KnowledgeServiceTests {
 
@@ -54,6 +60,11 @@ class KnowledgeServiceTests {
             auditLogService,
             new ObjectMapper()
     );
+
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
 
     @Test
     void archiveNodeCreatesDocumentVersionAndArchiveRecord() {
@@ -98,6 +109,11 @@ class KnowledgeServiceTests {
 
     @Test
     void documentsSupportFullTextSearchAcrossSnapshotsAndFileContent() {
+        authenticateAdmin();
+        CaseInfo caseInfo = new CaseInfo();
+        caseInfo.setId(88L);
+        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+
         KnowledgeDocument document = new KnowledgeDocument();
         document.setId(9L);
         document.setDirectoryId(1L);
@@ -121,5 +137,25 @@ class KnowledgeServiceTests {
 
         assertThat(matchedBySnapshot).hasSize(1);
         assertThat(matchedByFile).hasSize(1);
+    }
+
+    private void authenticateAdmin() {
+        CurrentUserInfo userInfo = new CurrentUserInfo(
+                1L,
+                "admin",
+                "管理员",
+                null,
+                null,
+                1L,
+                null,
+                null,
+                null,
+                "enabled",
+                List.of(new CurrentUserRole(1L, "ADMIN", "系统管理员", "all", List.of())),
+                Set.of()
+        );
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(userInfo, "token", List.of())
+        );
     }
 }

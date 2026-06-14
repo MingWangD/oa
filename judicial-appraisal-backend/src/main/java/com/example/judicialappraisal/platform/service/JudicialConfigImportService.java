@@ -2379,7 +2379,7 @@ public class JudicialConfigImportService {
                                 "流程基础", Map.of("readOnly", true),
                                 "申请信息", Map.of("roles", List.of("业务人员")),
                                 "档案审核", Map.of("roles", List.of("档案管理员")),
-                                "盖章处理", Map.of("roles", List.of("盖章经办人", "档案管理员"))
+                                "盖章处理", Map.of("roles", List.of("业务人员", "档案管理员"))
                         )
                 )),
                 toJson(Map.of("flowNameTemplate", "${caseNo}-用章申请", "branchFields", List.of("archivistReviewed", "sealCompleted"))),
@@ -2398,7 +2398,7 @@ public class JudicialConfigImportService {
                 node("START", "开始", "start", "single", null, 0, 0, false, null, 0),
                 node("APPLICANT_SUBMIT", "申请人提交用章申请", "task", "candidate", "业务人员", 1, 24, true, workflow.formCode(), 10),
                 node("ARCHIVIST_REVIEW", "档案管理员审核申请材料", "task", "candidate", "档案管理员", 1, 24, true, workflow.formCode(), 20),
-                node("SEAL_OPERATOR", "盖章经办人完成盖章", "task", "candidate", "盖章经办人", 1, 24, true, workflow.formCode(), 30),
+                node("SEAL_OPERATOR", "盖章经办人完成盖章", "task", "candidate", "业务人员", 1, 24, true, workflow.formCode(), 30),
                 node("ARCHIVIST_UPLOAD", "档案管理员回传盖章扫描件", "task", "candidate", "档案管理员", 1, 24, true, workflow.formCode(), 40),
                 node("END", "流程结束", "end", "single", null, 0, 0, false, null, 50)
         );
