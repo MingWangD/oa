@@ -26,3 +26,4 @@ exports/
 .env
 .env.*
 !.env.example
+docs/

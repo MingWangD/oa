@@ -2426,11 +2426,11 @@ public class JudicialConfigImportService {
                 field("flowName", "流程名称", "text", "流程基础", false, true),
                 field("initiatorId", "发起人", "user", "流程基础", true, true),
                 field("financeId", "财务", "user", "流程基础", true, true),
-                field("expenseSummary", "报销事项", "textarea", "报销申请", true, false),
-                field("expenseAmount", "报销金额", "number", "报销申请", true, false),
-                field("invoiceSummary", "发票汇总", "textarea", "报销申请", true, false),
-                field("financeProcessed", "财务已处理", "boolean", "财务处理", true, false),
-                field("financeResult", "财务处理结果", "select", "财务处理", true, false, List.of("已报销", "退回补充")),
+                field("expenseSummary", "报销事项", "textarea", "报销申请", false, false),
+                field("expenseAmount", "报销金额", "number", "报销申请", false, false),
+                field("invoiceSummary", "发票汇总", "textarea", "报销申请", false, false),
+                field("financeProcessed", "财务已处理", "boolean", "财务处理", false, false),
+                field("financeResult", "财务处理结果", "select", "财务处理", false, false, List.of("已报销", "退回补充")),
                 field("paymentDate", "实际支付时间", "date", "财务处理", false, false),
                 field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
         );

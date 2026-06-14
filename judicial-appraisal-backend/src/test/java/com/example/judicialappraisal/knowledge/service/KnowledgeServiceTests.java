@@ -37,6 +37,8 @@ class KnowledgeServiceTests {
     private final KnowledgePermissionMapper permissionMapper = mock(KnowledgePermissionMapper.class);
     private final CaseArchiveRecordMapper archiveRecordMapper = mock(CaseArchiveRecordMapper.class);
     private final CaseInfoMapper caseInfoMapper = mock(CaseInfoMapper.class);
+    private final com.example.judicialappraisal.workflow.mapper.CaseTaskMapper caseTaskMapper = mock(com.example.judicialappraisal.workflow.mapper.CaseTaskMapper.class);
+    private final com.example.judicialappraisal.workflow.mapper.CaseTaskCandidateMapper caseTaskCandidateMapper = mock(com.example.judicialappraisal.workflow.mapper.CaseTaskCandidateMapper.class);
     private final FileStorageService fileStorageService = mock(FileStorageService.class);
     private final AuditLogService auditLogService = mock(AuditLogService.class);
     private final KnowledgeService service = new KnowledgeService(
@@ -46,6 +48,8 @@ class KnowledgeServiceTests {
             permissionMapper,
             archiveRecordMapper,
             caseInfoMapper,
+            caseTaskMapper,
+            caseTaskCandidateMapper,
             fileStorageService,
             auditLogService,
             new ObjectMapper()
