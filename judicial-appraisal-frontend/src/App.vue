@@ -27,7 +27,7 @@ const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 
-const homePath = '/home';
+const homePath = '/my-work';
 const loggingOut = ref(false);
 const isLoginPage = computed(() => route.path === '/login');
 const currentUserName = computed(() => authStore.displayName);
@@ -111,7 +111,7 @@ const menuGroups = computed<MenuGroup[]>(() => {
   return groups;
 });
 
-const openTabs = ref<TabItem[]>([{ title: '首页', path: homePath, closable: false }]);
+const openTabs = ref<TabItem[]>([{ title: '我的工作', path: homePath, closable: false }]);
 const activePath = computed(() => route.path);
 const currentPageTitle = computed(() => {
   return findMenuTitleByPath(route.path, authStore.menus) ?? String(route.meta.title ?? '');
@@ -150,7 +150,7 @@ function closeTab(path: string): void {
   openTabs.value.splice(index, 1);
 
   if (openTabs.value.length === 0) {
-    openTabs.value.push({ title: '首页', path: homePath, closable: false });
+    openTabs.value.push({ title: '我的工作', path: homePath, closable: false });
     void router.push(homePath);
     return;
   }
@@ -165,7 +165,7 @@ async function handleLogout(): Promise<void> {
   loggingOut.value = true;
   try {
     await authStore.signOut();
-    openTabs.value = [{ title: '首页', path: homePath, closable: false }];
+    openTabs.value = [{ title: '我的工作', path: homePath, closable: false }];
     ElMessage.success('已退出登录');
     void router.push('/login');
   } catch (error) {

@@ -4,7 +4,6 @@ import type { Pinia } from 'pinia';
 import { useAuthStore } from '../stores/auth';
 
 const LoginView = () => import('../views/LoginView.vue');
-const HomeView = () => import('../views/HomeView.vue');
 const NewWorkView = () => import('../views/NewWorkView.vue');
 const CaseDetailView = () => import('../views/CaseDetailView.vue');
 const WorkbenchView = () => import('../views/WorkbenchView.vue');
@@ -29,17 +28,6 @@ export const routes: RouteRecordRaw[] = [
     meta: {
       title: '登录',
       public: true
-    }
-  },
-  {
-    path: '/home',
-    name: 'home',
-    component: HomeView,
-    meta: {
-      title: '首页',
-      tabKey: 'home',
-      menuGroup: 'workflow',
-      requiresAuth: true
     }
   },
   {

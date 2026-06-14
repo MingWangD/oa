@@ -44,9 +44,9 @@ async function submit(): Promise<void> {
   <main class="login-page">
     <section class="login-card">
       <div class="login-brand">
-        <p class="login-eyebrow">完整 OA 系统重构</p>
-        <h1>电子司法鉴定所司法鉴定管理系统</h1>
-        <p>基于 Spring Boot + Vue 的完整 OA 平台重构，保留旧系统业务语义并逐步现代化。</p>
+        <p class="login-eyebrow">欢迎使用</p>
+        <h1>司法鉴定业务管理系统</h1>
+        <p>提供专业、规范、高效的电子司法鉴定全流程管理服务。</p>
       </div>
 
       <el-form ref="formRef" class="login-form" :model="form" :rules="rules" label-position="top" @submit.prevent="submit">
