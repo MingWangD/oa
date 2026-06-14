@@ -69,7 +69,9 @@ export const useAuthStore = defineStore('auth', {
     roleNames: (state) => state.user?.roles?.map((role) => role.name).filter(Boolean) ?? [],
     isAdmin: (state) =>
       Boolean(
-        state.user?.roles?.some((role) => ['ADMIN', 'ROLE_ADMIN'].includes(role.code.toUpperCase()))
+        state.user?.roles?.some((role) =>
+          ['ADMIN', 'ROLE_ADMIN'].includes(role.code?.toUpperCase() ?? '')
+        )
       ),
     statusLabel: (state) => {
       if (!state.user?.status) {

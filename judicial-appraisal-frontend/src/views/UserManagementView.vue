@@ -236,7 +236,9 @@ onMounted(() => {
           <template #default="scope">{{ scope.row.postName || '-' }}</template>
         </el-table-column>
         <el-table-column label="角色" min-width="220">
-          <template #default="scope">{{ scope.row.roles.map((role: AdminRole) => role.roleName).join('、') || '-' }}</template>
+          <template #default="scope">
+            {{ (scope.row.roles || []).map((role: any) => role.roleName).join('、') || '-' }}
+          </template>
         </el-table-column>
         <el-table-column prop="status" label="状态" width="110" />
         <el-table-column label="操作" width="180">
