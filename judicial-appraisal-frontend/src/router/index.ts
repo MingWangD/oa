@@ -15,6 +15,7 @@ const WorkflowProcessDesignerView = () => import('../views/WorkflowProcessDesign
 const UserManagementView = () => import('../views/UserManagementView.vue');
 const ProfileView = () => import('../views/ProfileView.vue');
 const PlaceholderView = () => import('../views/PlaceholderView.vue');
+const ReportCenterView = () => import('../views/ReportCenterView.vue');
 
 export const routes: RouteRecordRaw[] = [
   {
@@ -70,6 +71,17 @@ export const routes: RouteRecordRaw[] = [
     meta: {
       title: '工作查询',
       tabKey: 'work-query',
+      menuGroup: 'workflow',
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/work-report',
+    name: 'report-center',
+    component: ReportCenterView,
+    meta: {
+      title: '数据报表',
+      tabKey: 'report-center',
       menuGroup: 'workflow',
       requiresAuth: true
     }

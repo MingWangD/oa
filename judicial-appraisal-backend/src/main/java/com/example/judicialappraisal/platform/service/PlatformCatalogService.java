@@ -32,7 +32,7 @@ public class PlatformCatalogService {
                         leaf("workflow-new", "新建工作", "/case/new", "workflow", "partial", 10),
                         leaf("workflow-mine", "我的工作", "/my-work", "workflow", "partial", 20),
                         leaf("workflow-query", "工作查询", "/work-query", "workflow", "partial", 30),
-                        leaf("workflow-report", "数据报表", "/placeholder/workflow/report", "workflow", "planned", 40)),
+                        leaf("workflow-report", "数据报表", "/work-report", "workflow", "implemented", 40)),
                 group("knowledge", "知识管理", "/knowledge", 40,
                         leaf("knowledge-base", "知识库", "/knowledge", "knowledge", "partial", 10),
                         leaf("knowledge-archive", "案件自动归档", "/placeholder/knowledge/archive", "knowledge", "planned", 20))

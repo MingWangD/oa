@@ -781,14 +781,46 @@ public class LedgerService {
     }
 
     private LedgerBoardDto reportCenterBoard(List<CaseInfo> cases) {
-        List<CaseInfo> source = cases.isEmpty() ? sampleCases() : cases;
-        return sampleBoard("report-center", "报表中心", "先承接案件状态、紧急度、归档与时效统计报表。", List.of(
-                new LedgerMetricDto("案件总量", String.valueOf(source.size()), false), new LedgerMetricDto("办理中", String.valueOf(source.stream().filter(item -> "PROCESSING".equals(item.getCaseStatus())).count()), true),
-                new LedgerMetricDto("已办结", String.valueOf(source.stream().filter(item -> "COMPLETED".equals(item.getCaseStatus())).count()), false), new LedgerMetricDto("超期", String.valueOf(source.stream().filter(this::isOverdue).count()), true)),
+        List<CaseInfo> source = cases.isEmpty() ? loadCases(null) : cases;
+        
+        long processingCount = source.stream().filter(item -> "PROCESSING".equals(item.getCaseStatus())).count();
+        long completedCount = source.stream().filter(item -> "COMPLETED".equals(item.getCaseStatus())).count();
+        long urgentCount = source.stream().filter(item -> Integer.valueOf(1).equals(item.getUrgentFlag())).count();
+        long overdueCount = source.stream().filter(this::isOverdue).count();
+
+        return new LedgerBoardDto(
+                "report-center",
+                "报表中心",
+                "根据真实案件流转情况自动收集的统计信息，支持多维度业务数据分析。",
+                "live",
+                List.of("全部状态", "办理中", "已办结", "超期提醒"),
                 List.of(
-                        row("report-1", "案件状态报表", "来源：case_info", "基础报表", "系统", "可用", "可按状态统计案件数量", "建议补导出和筛选条件", "后续接报表配置", nowMinusDays(1), null, List.of("统计"), List.of("建议按部门分组", "建议按时间趋势统计", "建议接 Excel 导出")),
-                        row("report-2", "时效预警报表", "来源：case_info", "基础报表", "系统", "可用", "可识别超期和紧急案件", "建议补责任人和节点维度", "后续接图表组件", nowMinusHours(8), null, List.of("预警"), List.of("建议按节点分析", "建议按责任人分析", "建议接门户展示"))),
-                List.of("补筛选和导出", "补图表视图", "接入权限与订阅"));
+                        new LedgerMetricDto("案件总数", String.valueOf(source.size()), false),
+                        new LedgerMetricDto("办理中", String.valueOf(processingCount), true),
+                        new LedgerMetricDto("已办结", String.valueOf(completedCount), false),
+                        new LedgerMetricDto("紧急案件", String.valueOf(urgentCount), true)
+                ),
+                source.stream().map(item -> new LedgerRowDto(
+                        "case-" + item.getId(),
+                        fallback(item.getCaseNo(), "待编案号"),
+                        fallback(item.getCaseTitle(), "未命名案件"),
+                        fallback(item.getCaseType(), "司法鉴定"),
+                        fallback(item.getEntrustOrgName(), "未知委托方"),
+                        "COMPLETED".equals(item.getCaseStatus()) ? "已办结" : "流转中",
+                        fallback(item.getCurrentNodeName(), "结束"),
+                        "紧急度：" + (Integer.valueOf(1).equals(item.getUrgentFlag()) ? "紧急" : "普通"),
+                        "更新时间：" + firstNonNull(item.getUpdatedTime(), item.getCreatedTime()),
+                        firstNonNull(item.getUpdatedTime(), item.getCreatedTime()),
+                        null,
+                        List.of(fallback(item.getCaseType(), "司法鉴定"), "COMPLETED".equals(item.getCaseStatus()) ? "已办结" : "办理中"),
+                        List.of(
+                                "委托方：" + fallback(item.getEntrustOrgName(), "待补"),
+                                "当前节点：" + fallback(item.getCurrentNodeName(), "已结束")
+                        ),
+                        "/case/" + item.getId()
+                )).limit(20).toList(),
+                List.of("导出 Excel", "PDF 导出", "导出统计汇总")
+        );
     }
 
     private LedgerBoardDto unifiedTodoBoard(List<CaseInfo> cases, int rowLimit) {
