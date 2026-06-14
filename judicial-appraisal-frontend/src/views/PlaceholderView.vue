@@ -627,230 +627,166 @@ watch([keyword, statusFilter], () => {
 </script>
 
 <template>
-  <section class="page-block">
-    <div class="overview-strip">
-      <el-card shadow="never" class="overview-card">
-        <p class="overview-label">当前域</p>
-        <p class="overview-value overview-value--compact">{{ currentSection?.title ?? '完整 OA' }}</p>
-      </el-card>
-      <el-card shadow="never" class="overview-card">
-        <p class="overview-label">当前模块</p>
-        <p class="overview-value overview-value--compact">{{ currentTitle }}</p>
-      </el-card>
-      <el-card shadow="never" class="overview-card">
-        <p class="overview-label">共享能力</p>
-        <p class="overview-value">{{ currentModule?.requiredCapabilities.length ?? 0 }}</p>
-      </el-card>
-      <el-card shadow="never" class="overview-card is-accent">
-        <p class="overview-label">当前阶段</p>
-        <p class="overview-value">{{ activePhase?.phase.replace('第', '').replace('阶段', '') ?? '5' }}</p>
-      </el-card>
-    </div>
-  </section>
+  <main class="page-container">
+    <section class="content-card page-block">
+      <div class="panel-heading panel-heading--warm">
+        <div>
+          <h3 class="panel-title">{{ currentTitle }}</h3>
+          <p class="panel-subtitle">
+            {{ currentSection?.focus ?? '该模块正在建设中，将逐步接入核心业务域。' }}
+          </p>
+        </div>
+        <el-button type="primary" :loading="loading" @click="loadData">刷新</el-button>
+      </div>
 
-  <section class="content-card page-block">
-    <div class="panel-heading panel-heading--warm">
-      <div>
-        <h3 class="panel-title">{{ currentTitle }}</h3>
-        <p class="panel-subtitle">
-          {{ currentSection?.focus ?? '该模块已纳入完整 OA 重构范围，当前开始进入第五阶段业务域建设。' }}
+      <div v-if="errorMessage" class="state-banner is-error">{{ errorMessage }}</div>
+
+      <div class="module-center-layout">
+        <div class="module-center-panel">
+          <div class="module-center-panel__head">
+            <h4>功能入口</h4>
+            <span>{{ currentGroup?.menuName ?? currentSection?.title ?? '模块分组' }}</span>
+          </div>
+          <div class="entry-list">
+            <button
+              v-for="entry in siblingEntries"
+              :key="entry.path"
+              type="button"
+              class="entry-item"
+              :class="{ 'is-current': entry.current }"
+              @click="router.push(entry.path)"
+            >
+              <span>{{ entry.title }}</span>
+              <el-tag size="small" effect="plain">{{ entryStateLabel(entry.path, entry.current) }}</el-tag>
+            </button>
+          </div>
+        </div>
+
+        <div class="module-center-panel">
+          <div class="module-center-panel__head">
+            <h4>{{ currentSection?.milestoneTitle ?? '当前建设方向' }}</h4>
+            <span>{{ statusText(currentModule?.implementationStatus ?? 'planned') }}</span>
+          </div>
+          <ul class="compact-list">
+            <li v-for="item in currentSection?.milestones ?? []" :key="item">{{ item }}</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section v-if="showsLedgerBoard && ledgerBoard" class="content-card page-block">
+      <div class="panel-heading">
+        <div>
+          <h3 class="panel-title">{{ ledgerBoard.moduleName }}</h3>
+          <p class="panel-subtitle">{{ ledgerBoard.description }}</p>
+        </div>
+        <div class="inline-actions">
+          <el-tag :type="sourceTag.type" effect="plain">{{ sourceTag.label }}</el-tag>
+          <el-button :loading="exporting" @click="exportBoard">导出 CSV</el-button>
+        </div>
+      </div>
+
+      <el-form class="query-bar" :inline="true" @submit.prevent="applyFilters">
+        <el-form-item label="关键词">
+          <el-input v-model="keyword" placeholder="名称、编号、委托单位" clearable style="width: 260px" />
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-radio-group v-model="statusFilter" class="ledger-filter-group">
+            <el-radio-button v-for="option in statusButtons" :key="option" :label="option">
+              {{ statusLabels[option] ?? option }}
+            </el-radio-button>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item>
+          <div class="query-actions">
+            <el-button type="primary" :loading="loading" @click="applyFilters">查询</el-button>
+            <el-button @click="resetFilters">重置</el-button>
+          </div>
+        </el-form-item>
+      </el-form>
+
+      <div class="query-summary">
+        <p class="query-summary-text">
+          当前条件：<strong>{{ filterSummary }}</strong>
+        </p>
+        <p class="query-summary-text">
+          当前记录：<strong>{{ ledgerBoard.rows.length }}</strong> 条
         </p>
       </div>
-      <el-button type="primary" :loading="loading" @click="loadData">刷新</el-button>
-    </div>
 
-    <div v-if="errorMessage" class="state-banner is-error">{{ errorMessage }}</div>
-    <div v-else class="state-banner">
-      第五阶段已经开工。当前页面不再是纯占位，而是作为该业务域的模块中心，承接共享能力、建设重点和后续落地顺序。
-    </div>
-
-    <div class="module-center-layout">
-      <div class="module-center-panel">
-        <div class="module-center-panel__head">
-          <h4>同域入口</h4>
-          <span>{{ currentGroup?.menuName ?? currentSection?.title ?? '模块分组' }}</span>
-        </div>
-        <div class="entry-list">
-          <button
-            v-for="entry in siblingEntries"
-            :key="entry.path"
-            type="button"
-            class="entry-item"
-            :class="{ 'is-current': entry.current }"
-            @click="router.push(entry.path)"
-          >
-            <span>{{ entry.title }}</span>
-            <el-tag size="small" effect="plain">{{ entryStateLabel(entry.path, entry.current) }}</el-tag>
-          </button>
-        </div>
+      <div class="board-action-bar">
+        <el-button
+          v-for="action in boardActions"
+          :key="action.label"
+          :type="action.type === 'route' ? 'primary' : 'default'"
+          plain
+          @click="runQuickAction(action)"
+        >
+          {{ action.label }}
+        </el-button>
       </div>
 
-      <div class="module-center-panel">
-        <div class="module-center-panel__head">
-          <h4>{{ currentSection?.milestoneTitle ?? '当前建设方向' }}</h4>
-          <span>{{ statusText(currentModule?.implementationStatus ?? 'planned') }}</span>
-        </div>
-        <ul class="compact-list">
-          <li v-for="item in currentSection?.milestones ?? []" :key="item">{{ item }}</li>
-        </ul>
+      <div class="ledger-metric-grid">
+        <article v-for="metric in ledgerBoard.metrics" :key="metric.label" class="ledger-metric-card" :class="{ 'is-accent': metric.accent }">
+          <p class="overview-label">{{ metric.label }}</p>
+          <p class="overview-value ledger-metric-value">{{ metric.value }}</p>
+        </article>
       </div>
-    </div>
-  </section>
 
-  <section v-if="showsLedgerBoard && ledgerBoard" class="content-card page-block">
-    <div class="panel-heading">
-      <div>
-        <h3 class="panel-title">{{ ledgerBoard.moduleName }}</h3>
-        <p class="panel-subtitle">{{ ledgerBoard.description }}</p>
+      <div class="table-frame">
+        <el-table :data="ledgerBoard.rows" border stripe>
+          <el-table-column label="名称" min-width="220">
+            <template #default="scope">
+              <div class="name-cell">
+                <span class="primary-text">{{ scope.row.primaryText || '-' }}</span>
+                <span class="secondary-text">{{ scope.row.secondaryText || '-' }}</span>
+                <span class="secondary-text">{{ scope.row.tertiaryText || '-' }}</span>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="ownerName" label="负责人" min-width="120">
+            <template #default="scope">{{ scope.row.ownerName || '-' }}</template>
+          </el-table-column>
+          <el-table-column label="状态" width="120">
+            <template #default="scope">
+              <el-tag class="status-tag" :class="getStatusClass(scope.row.statusLabel)" effect="plain">
+                {{ scope.row.statusLabel || '-' }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column :label="listMetricLabel" min-width="220">
+            <template #default="scope">{{ scope.row.metricText || '-' }}</template>
+          </el-table-column>
+          <el-table-column label="推进说明" min-width="220">
+            <template #default="scope">{{ scope.row.progressLabel || '-' }}</template>
+          </el-table-column>
+          <el-table-column label="标签" min-width="180">
+            <template #default="scope">
+              <div class="tag-row">
+                <el-tag v-for="tag in scope.row.tags" :key="tag" size="small" effect="plain">{{ tag }}</el-tag>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column label="最近更新" min-width="170">
+            <template #default="scope">{{ formatDateTime(scope.row.updatedTime) }}</template>
+          </el-table-column>
+          <el-table-column label="截止时间" min-width="170">
+            <template #default="scope">{{ formatDateTime(scope.row.deadlineTime) }}</template>
+          </el-table-column>
+          <el-table-column label="操作" width="180">
+            <template #default="scope">
+              <div class="row-actions">
+                <el-button link type="primary" @click="openRowDetail(scope.row)">查看详情</el-button>
+                <el-button v-if="scope.row.relatedPath" link @click="openRelatedPath(scope.row)">{{ relatedActionLabel(scope.row) }}</el-button>
+                <el-button v-if="supportsWorkQueryDrilldown()" link @click="openWorkQueryDrilldown(scope.row)">{{ workQueryActionLabel() }}</el-button>
+              </div>
+            </template>
+          </el-table-column>
+        </el-table>
       </div>
-      <div class="inline-actions">
-        <el-tag :type="sourceTag.type" effect="plain">{{ sourceTag.label }}</el-tag>
-        <el-button :loading="exporting" @click="exportBoard">导出 CSV</el-button>
-      </div>
-    </div>
+    </section>
 
-    <el-form class="query-bar" :inline="true" @submit.prevent="applyFilters">
-      <el-form-item label="关键词">
-        <el-input v-model="keyword" placeholder="名称、编号、委托单位" clearable style="width: 260px" />
-      </el-form-item>
-      <el-form-item label="状态">
-        <el-radio-group v-model="statusFilter" class="ledger-filter-group">
-          <el-radio-button v-for="option in statusButtons" :key="option" :label="option">
-            {{ statusLabels[option] ?? option }}
-          </el-radio-button>
-        </el-radio-group>
-      </el-form-item>
-      <el-form-item>
-        <div class="query-actions">
-          <el-button type="primary" :loading="loading" @click="applyFilters">查询</el-button>
-          <el-button @click="resetFilters">重置</el-button>
-        </div>
-      </el-form-item>
-    </el-form>
-
-    <div class="query-summary">
-      <p class="query-summary-text">
-        当前条件：<strong>{{ filterSummary }}</strong>
-      </p>
-      <p class="query-summary-text">
-        当前记录：<strong>{{ ledgerBoard.rows.length }}</strong> 条
-      </p>
-    </div>
-
-    <div class="board-action-bar">
-      <el-button
-        v-for="action in boardActions"
-        :key="action.label"
-        :type="action.type === 'route' ? 'primary' : 'default'"
-        plain
-        @click="runQuickAction(action)"
-      >
-        {{ action.label }}
-      </el-button>
-    </div>
-
-    <div class="ledger-metric-grid">
-      <article v-for="metric in ledgerBoard.metrics" :key="metric.label" class="ledger-metric-card" :class="{ 'is-accent': metric.accent }">
-        <p class="overview-label">{{ metric.label }}</p>
-        <p class="overview-value ledger-metric-value">{{ metric.value }}</p>
-      </article>
-    </div>
-
-    <div class="table-frame">
-      <el-table :data="ledgerBoard.rows" border stripe>
-        <el-table-column label="名称" min-width="220">
-          <template #default="scope">
-            <div class="name-cell">
-              <span class="primary-text">{{ scope.row.primaryText || '-' }}</span>
-              <span class="secondary-text">{{ scope.row.secondaryText || '-' }}</span>
-              <span class="secondary-text">{{ scope.row.tertiaryText || '-' }}</span>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column prop="ownerName" label="负责人" min-width="120">
-          <template #default="scope">{{ scope.row.ownerName || '-' }}</template>
-        </el-table-column>
-        <el-table-column label="状态" width="120">
-          <template #default="scope">
-            <el-tag class="status-tag" :class="getStatusClass(scope.row.statusLabel)" effect="plain">
-              {{ scope.row.statusLabel || '-' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column :label="listMetricLabel" min-width="220">
-          <template #default="scope">{{ scope.row.metricText || '-' }}</template>
-        </el-table-column>
-        <el-table-column label="推进说明" min-width="220">
-          <template #default="scope">{{ scope.row.progressLabel || '-' }}</template>
-        </el-table-column>
-        <el-table-column label="标签" min-width="180">
-          <template #default="scope">
-            <div class="tag-row">
-              <el-tag v-for="tag in scope.row.tags" :key="tag" size="small" effect="plain">{{ tag }}</el-tag>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column label="最近更新" min-width="170">
-          <template #default="scope">{{ formatDateTime(scope.row.updatedTime) }}</template>
-        </el-table-column>
-        <el-table-column label="截止时间" min-width="170">
-          <template #default="scope">{{ formatDateTime(scope.row.deadlineTime) }}</template>
-        </el-table-column>
-        <el-table-column label="操作" width="180">
-          <template #default="scope">
-            <div class="row-actions">
-              <el-button link type="primary" @click="openRowDetail(scope.row)">查看详情</el-button>
-              <el-button v-if="scope.row.relatedPath" link @click="openRelatedPath(scope.row)">{{ relatedActionLabel(scope.row) }}</el-button>
-              <el-button v-if="supportsWorkQueryDrilldown()" link @click="openWorkQueryDrilldown(scope.row)">{{ workQueryActionLabel() }}</el-button>
-            </div>
-          </template>
-        </el-table-column>
-      </el-table>
-    </div>
-  </section>
-
-  <section class="content-card page-block">
-    <div class="panel-heading">
-      <div>
-        <h3 class="panel-title">共享能力承接</h3>
-        <p class="panel-subtitle">
-          业务域会统一复用权限、流程、附件、审计、数据权限和报表能力，不再为每个模块各自造一套底层。
-        </p>
-      </div>
-    </div>
-
-    <div class="module-grid">
-      <article class="module-card">
-        <div class="module-card-head">
-          <h4>{{ currentModule?.name ?? '完整 OA 业务域' }}</h4>
-          <el-tag effect="plain">{{ statusText(currentModule?.implementationStatus ?? 'in_progress') }}</el-tag>
-        </div>
-        <p>{{ currentModule?.scope ?? '按模块逐步复刻管理员可见的完整 OA 能力。' }}</p>
-        <div class="tag-row">
-          <el-tag
-            v-for="capability in currentModule?.requiredCapabilities ?? ['流程能力', '附件服务', '数据权限', '统一审计']"
-            :key="capability"
-            size="small"
-            effect="plain"
-          >
-            {{ capability }}
-          </el-tag>
-        </div>
-      </article>
-
-      <article class="module-card">
-        <div class="module-card-head">
-          <h4>下一步</h4>
-          <el-tag effect="plain" type="warning">收口顺序</el-tag>
-        </div>
-        <ul class="compact-list">
-          <li v-for="item in ledgerBoard?.nextActions ?? currentSection?.nextActions ?? []" :key="item">{{ item }}</li>
-        </ul>
-      </article>
-    </div>
-  </section>
-
-  <el-drawer v-model="detailVisible" :with-header="false" size="420px">
+    <el-drawer v-model="detailVisible" :with-header="false" size="420px">
     <div v-if="detailRow" class="ledger-drawer">
       <div class="ledger-drawer__head">
         <div>

@@ -80,17 +80,7 @@ onMounted(() => {
 
 <template>
   <main class="page-container">
-    <!-- 1. 自动收集统计信息展示区 -->
-    <section class="page-block">
-      <div class="overview-strip" v-if="board">
-        <el-card v-for="metric in board.metrics" :key="metric.label" shadow="never" class="overview-card" :class="{ 'is-accent': metric.isAlert }">
-          <p class="overview-label">{{ metric.label }}</p>
-          <p class="overview-value">{{ metric.value }}</p>
-        </el-card>
-      </div>
-    </section>
-
-    <!-- 2. 数据报表核心内容区 -->
+    <!-- 1. 数据报表核心内容区 -->
     <section class="content-card page-block">
       <div class="panel-heading panel-heading--warm">
         <div>
