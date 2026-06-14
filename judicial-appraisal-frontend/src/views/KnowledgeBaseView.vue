@@ -19,8 +19,10 @@ interface TreeNode {
 }
 
 const loading = ref(false);
+const batchDownloading = ref(false);
 const directories = ref<KnowledgeDirectory[]>([]);
 const documents = ref<KnowledgeDocument[]>([]);
+const selectedDocuments = ref<KnowledgeDocument[]>([]);
 const activeDirectoryId = ref<number | undefined>();
 const keyword = ref('');
 
@@ -124,6 +126,27 @@ async function download(row: KnowledgeDocument): Promise<void> {
   }
 }
 
+async function batchDownload(): Promise<void> {
+  const downloadable = selectedDocuments.value.filter((item) => item.currentFileId);
+  if (!downloadable.length) {
+    ElMessage.warning('请先选择有文件的归档文档');
+    return;
+  }
+  batchDownloading.value = true;
+  try {
+    for (const row of downloadable) {
+      await download(row);
+    }
+    ElMessage.success(`已触发 ${downloadable.length} 个文件下载`);
+  } finally {
+    batchDownloading.value = false;
+  }
+}
+
+function handleSelectionChange(rows: KnowledgeDocument[]): void {
+  selectedDocuments.value = rows;
+}
+
 onMounted(() => {
   void refresh();
 });
@@ -168,10 +191,19 @@ onMounted(() => {
         <div class="knowledge-toolbar">
           <p class="knowledge-toolbar-text">当前收录 {{ documents.length }} 份材料，预览/下载都会写入审计日志。</p>
           <p class="knowledge-toolbar-text">当前分类：{{ activeDirectoryName }}</p>
+          <el-button
+            type="primary"
+            :disabled="!selectedDocuments.some((item) => item.currentFileId)"
+            :loading="batchDownloading"
+            @click="batchDownload"
+          >
+            批量下载
+          </el-button>
         </div>
 
         <div class="table-frame">
-          <el-table v-loading="loading" :data="documents" border stripe>
+          <el-table v-loading="loading" :data="documents" border stripe @selection-change="handleSelectionChange">
+            <el-table-column type="selection" width="48" />
             <el-table-column prop="title" label="标题" min-width="280">
               <template #default="scope">
                 <div class="knowledge-title">

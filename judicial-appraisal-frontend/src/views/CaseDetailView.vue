@@ -198,6 +198,7 @@ async function loadFormPreview(): Promise<void> {
 
 function buildDefaultFormData(fields: DynamicFormField[]): Record<string, unknown> {
   const defaults: Record<string, unknown> = {
+    ...(detail.value?.formData ?? {}),
     caseNo: detail.value?.caseNo ?? '',
     flowName: detail.value?.caseTitle ?? '',
     caseTitle: detail.value?.caseTitle ?? '',

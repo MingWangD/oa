@@ -97,6 +97,16 @@ const SECTION_DEFINITIONS: SectionDefinition[] = [
     milestones: ['承接权限管理、管理日志和系统数据源入口', '复用 RBAC、审计和配置基线', '为上线治理做后台准备'],
     nextActions: ['补权限矩阵管理页', '补管理日志查询页', '补数据源与集成配置页'],
     prefixes: ['/placeholder/system']
+  },
+  {
+    code: 'workflow-report',
+    title: '数据报表',
+    moduleCode: 'business-suite',
+    focus: '汇总司法鉴定流程办理结果、待办办结状态和归档情况，支撑手册要求的数据报表查看与导出。',
+    milestoneTitle: '当前报表能力',
+    milestones: ['按真实流程数据汇总统计信息', '支持状态筛选、关键字筛选和页面导出', '支持从报表行下钻到相关工作查询'],
+    nextActions: ['补齐手册截图中的全部统计字段', '扩展部门、人员和时间维度筛选', '固化导出格式选择'],
+    prefixes: ['/placeholder/workflow/report']
   }
 ];
 
@@ -139,6 +149,7 @@ const BOARD_CODE_BY_PREFIX: Array<{ prefix: string; code: string }> = [
   { prefix: '/placeholder/archive', code: 'archive' },
   { prefix: '/placeholder/community', code: 'community' },
   { prefix: '/placeholder/supervision', code: 'supervision' },
+  { prefix: '/placeholder/workflow/report', code: 'report-center' },
   { prefix: '/placeholder/portal', code: 'portal' },
   { prefix: '/placeholder/report-center', code: 'report-center' },
   { prefix: '/placeholder/integration/open-api', code: 'open-api' },

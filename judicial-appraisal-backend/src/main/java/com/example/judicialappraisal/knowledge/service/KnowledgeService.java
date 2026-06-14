@@ -22,11 +22,16 @@ import com.example.judicialappraisal.knowledge.mapper.KnowledgeDirectoryMapper;
 import com.example.judicialappraisal.knowledge.mapper.KnowledgeDocumentMapper;
 import com.example.judicialappraisal.knowledge.mapper.KnowledgeDocumentVersionMapper;
 import com.example.judicialappraisal.knowledge.mapper.KnowledgePermissionMapper;
+import com.example.judicialappraisal.workflow.entity.CaseTask;
+import com.example.judicialappraisal.workflow.entity.CaseTaskCandidate;
+import com.example.judicialappraisal.workflow.mapper.CaseTaskCandidateMapper;
+import com.example.judicialappraisal.workflow.mapper.CaseTaskMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -46,6 +51,8 @@ public class KnowledgeService {
     private final KnowledgePermissionMapper permissionMapper;
     private final CaseArchiveRecordMapper archiveRecordMapper;
     private final CaseInfoMapper caseInfoMapper;
+    private final CaseTaskMapper caseTaskMapper;
+    private final CaseTaskCandidateMapper caseTaskCandidateMapper;
     private final FileStorageService fileStorageService;
     private final AuditLogService auditLogService;
     private final ObjectMapper objectMapper;
@@ -56,6 +63,8 @@ public class KnowledgeService {
                             KnowledgePermissionMapper permissionMapper,
                             CaseArchiveRecordMapper archiveRecordMapper,
                             CaseInfoMapper caseInfoMapper,
+                            CaseTaskMapper caseTaskMapper,
+                            CaseTaskCandidateMapper caseTaskCandidateMapper,
                             FileStorageService fileStorageService,
                             AuditLogService auditLogService,
                             ObjectMapper objectMapper) {
@@ -65,6 +74,8 @@ public class KnowledgeService {
         this.permissionMapper = permissionMapper;
         this.archiveRecordMapper = archiveRecordMapper;
         this.caseInfoMapper = caseInfoMapper;
+        this.caseTaskMapper = caseTaskMapper;
+        this.caseTaskCandidateMapper = caseTaskCandidateMapper;
         this.fileStorageService = fileStorageService;
         this.auditLogService = auditLogService;
         this.objectMapper = objectMapper;
@@ -397,6 +408,9 @@ public class KnowledgeService {
         if (document == null) {
             return false;
         }
+        if (document.getCaseId() != null && !canAccessArchivedCase(document.getCaseId())) {
+            return false;
+        }
         if (hasPermission(null, document.getId(), permissionCode)) {
             return true;
         }
@@ -408,6 +422,9 @@ public class KnowledgeService {
         if (directory == null) {
             return false;
         }
+        if (directory.getCaseId() != null && !canAccessArchivedCase(directory.getCaseId())) {
+            return false;
+        }
         CurrentUserInfo user = currentUserOrNull();
         if ("personal".equals(directory.getDirectoryType()) && user != null && user.id().equals(directory.getOwnerUserId())) {
             return true;
@@ -416,6 +433,56 @@ public class KnowledgeService {
             return true;
         }
         return hasPermission(directory.getId(), null, permissionCode);
+    }
+
+    private boolean canAccessArchivedCase(Long caseId) {
+        CurrentUserInfo user = currentUserOrNull();
+        if (user == null) {
+            return false;
+        }
+        CaseInfo caseInfo = caseInfoMapper.selectById(caseId);
+        if (caseInfo == null || Objects.equals(caseInfo.getDeleted(), 1)) {
+            return false;
+        }
+        if (user.roles().stream().anyMatch(role -> "ADMIN".equalsIgnoreCase(role.code()))) {
+            return true;
+        }
+        Long userId = user.id();
+        if (Objects.equals(caseInfo.getCreatedBy(), userId) || Objects.equals(caseInfo.getCurrentHandlerId(), userId)) {
+            return true;
+        }
+        List<CaseTask> tasks = caseTaskMapper.selectList(new LambdaQueryWrapper<CaseTask>()
+                .eq(CaseTask::getCaseId, caseId)
+                .and(wrapper -> wrapper
+                        .eq(CaseTask::getAssigneeId, userId)
+                        .or()
+                        .eq(CaseTask::getClaimedBy, userId)));
+        if (!tasks.isEmpty()) {
+            return true;
+        }
+        List<Long> activeTaskIds = caseTaskMapper.selectList(new LambdaQueryWrapper<CaseTask>()
+                        .select(CaseTask::getId)
+                        .eq(CaseTask::getCaseId, caseId)
+                        .in(CaseTask::getStatus, "pending", "processing"))
+                .stream()
+                .map(CaseTask::getId)
+                .toList();
+        if (activeTaskIds.isEmpty()) {
+            return false;
+        }
+        List<Long> roleIds = user.roles().stream()
+                .map(com.example.judicialappraisal.auth.dto.CurrentUserRole::id)
+                .filter(Objects::nonNull)
+                .toList();
+        return caseTaskCandidateMapper.selectCount(new LambdaQueryWrapper<CaseTaskCandidate>()
+                .eq(CaseTaskCandidate::getCaseId, caseId)
+                .in(CaseTaskCandidate::getTaskId, activeTaskIds)
+                .and(wrapper -> {
+                    wrapper.eq(CaseTaskCandidate::getCandidateUserId, userId);
+                    if (!roleIds.isEmpty()) {
+                        wrapper.or().in(CaseTaskCandidate::getCandidateRoleId, roleIds);
+                    }
+                })) > 0;
     }
 
     private boolean hasPermission(Long directoryId, Long documentId, String permissionCode) {
@@ -462,7 +529,7 @@ public class KnowledgeService {
 
     private void requireDocumentPermission(KnowledgeDocument document, String permissionCode) {
         if (!canAccessDocument(document, permissionCode)) {
-            throw new BusinessException("无权访问该知识文档");
+            throw new BusinessException(403, "无权访问该知识文档");
         }
     }
 

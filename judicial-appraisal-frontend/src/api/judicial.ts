@@ -185,6 +185,7 @@ export interface CaseDetail {
   completedTime: string | null;
   createdTime: string | null;
   updatedTime: string | null;
+  formData: Record<string, unknown> | null;
   version: number | null;
 }
 

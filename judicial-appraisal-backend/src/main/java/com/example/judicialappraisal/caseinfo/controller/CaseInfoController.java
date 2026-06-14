@@ -40,8 +40,10 @@ public class CaseInfoController {
     }
 
     @GetMapping
-    public ApiResponse<PageResult<CaseListResponse>> pageList(@ModelAttribute CaseQueryRequest request) {
-        return ApiResponse.success(caseInfoService.pageList(request));
+    public ApiResponse<PageResult<CaseListResponse>> pageList(@ModelAttribute CaseQueryRequest request,
+                                                              Authentication authentication) {
+        CurrentUserInfo currentUser = currentUser(authentication);
+        return ApiResponse.success(caseInfoService.pageList(request, currentUser));
     }
 
     @PostMapping("/{caseId}/submit")

@@ -28,7 +28,7 @@
 oa/
 ├── judicial-appraisal-backend/   Spring Boot 后端
 ├── judicial-appraisal-frontend/  Vue 3 前端
-├── docs/                         使用手册、流程图基准、验收矩阵、执行计划
+├── docs/                         使用手册、总体验收模板、流程图基准、验收矩阵和验证记录
 │   └── flowcharts/               主流程图与细化流程图
 ├── AGENT.md                      协作约定、优先级、工作习惯 (已对齐手册范围)
 ├── GEMINI.md                     Gemini 协作记录与上下文对齐 (已对齐手册范围)

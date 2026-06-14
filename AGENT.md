@@ -3,7 +3,7 @@
 ## 用户使用习惯
 
 - 每次开始任务前，必须先阅读项目根目录下的 `GEMINI.md`，以获取最新的开发进度及当前上下文对齐信息。
-- 每次实现、测试或验收司法鉴定功能前，必须对照 `docs/judicial-appraisal-master-checklist.md`。
+- 每次实现、测试或验收司法鉴定功能前，必须对照 `docs/manual-scope-acceptance-template.md` 和 `docs/judicial-appraisal-master-checklist.md`。
 - 当前唯一必要目标是：**严格按照《司法鉴定系统使用手册.docx》完美实现司法鉴定管理系统全部功能。**
 - 不再以“完整 OA”为当前必要目标。合同、CRM、项目、人资、行政等模块已标记为历史非必要范围。
 - 每次修改代码后，运行可用的前后端测试和构建。

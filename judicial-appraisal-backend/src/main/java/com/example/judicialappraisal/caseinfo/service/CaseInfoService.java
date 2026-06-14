@@ -19,6 +19,7 @@ import com.example.judicialappraisal.workflow.dto.WorkflowActionResult;
 import com.example.judicialappraisal.workflow.mapper.CaseTaskCandidateMapper;
 import com.example.judicialappraisal.workflow.mapper.CaseTaskMapper;
 import com.example.judicialappraisal.workflow.service.WorkflowRuntimeService;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.stereotype.Service;
@@ -57,19 +58,38 @@ public class CaseInfoService extends ServiceImpl<CaseInfoMapper, CaseInfo> {
     }
 
     public PageResult<CaseListResponse> pageList(CaseQueryRequest request) {
-        Page<CaseInfo> page = page(
-                Page.of(request.pageNo(), request.pageSize()),
-                new LambdaQueryWrapper<CaseInfo>()
-                        .and(hasText(request.keyword()), wrapper -> wrapper
-                                .like(CaseInfo::getCaseTitle, request.keyword())
-                                .or()
-                                .like(CaseInfo::getCaseNo, request.keyword()))
-                        .eq(hasText(request.caseStatus()), CaseInfo::getCaseStatus, request.caseStatus())
-                        .eq(request.acceptDeptId() != null, CaseInfo::getAcceptDeptId, request.acceptDeptId())
-                        .eq(request.currentHandlerId() != null, CaseInfo::getCurrentHandlerId, request.currentHandlerId())
-                        .eq(CaseInfo::getDeleted, 0)
-                        .orderByDesc(CaseInfo::getId));
+        Page<CaseInfo> page = page(Page.of(request.pageNo(), request.pageSize()), caseQueryWrapper(request));
         return new PageResult<>(page.getRecords().stream().map(this::toListResponse).toList(), page.getTotal(), page.getCurrent(), page.getSize());
+    }
+
+    public PageResult<CaseListResponse> pageList(CaseQueryRequest request, CurrentUserInfo currentUser) {
+        if (isAdmin(currentUser)) {
+            return pageList(request);
+        }
+        List<CaseListResponse> filtered = list(caseQueryWrapper(request)).stream()
+                .filter(caseInfo -> canReadCase(caseInfo, currentUser))
+                .map(this::toListResponse)
+                .toList();
+        long total = filtered.size();
+        long fromIndex = Math.max(0L, (request.pageNo() - 1L) * request.pageSize());
+        if (fromIndex >= total) {
+            return new PageResult<>(Collections.emptyList(), total, request.pageNo(), request.pageSize());
+        }
+        long toIndex = Math.min(total, fromIndex + request.pageSize());
+        return new PageResult<>(filtered.subList((int) fromIndex, (int) toIndex), total, request.pageNo(), request.pageSize());
+    }
+
+    private LambdaQueryWrapper<CaseInfo> caseQueryWrapper(CaseQueryRequest request) {
+        return new LambdaQueryWrapper<CaseInfo>()
+                .and(hasText(request.keyword()), wrapper -> wrapper
+                        .like(CaseInfo::getCaseTitle, request.keyword())
+                        .or()
+                        .like(CaseInfo::getCaseNo, request.keyword()))
+                .eq(hasText(request.caseStatus()), CaseInfo::getCaseStatus, request.caseStatus())
+                .eq(request.acceptDeptId() != null, CaseInfo::getAcceptDeptId, request.acceptDeptId())
+                .eq(request.currentHandlerId() != null, CaseInfo::getCurrentHandlerId, request.currentHandlerId())
+                .eq(CaseInfo::getDeleted, 0)
+                .orderByDesc(CaseInfo::getId);
     }
 
     public WorkflowActionResult submitCase(Long caseId, CaseSubmitRequest request) {
@@ -133,8 +153,19 @@ public class CaseInfoService extends ServiceImpl<CaseInfoMapper, CaseInfo> {
         if (!tasks.isEmpty()) {
             return true;
         }
+        List<Long> activeTaskIds = caseTaskMapper.selectList(new LambdaQueryWrapper<CaseTask>()
+                        .select(CaseTask::getId)
+                        .eq(CaseTask::getCaseId, caseInfo.getId())
+                        .in(CaseTask::getStatus, "pending", "processing"))
+                .stream()
+                .map(CaseTask::getId)
+                .toList();
+        if (activeTaskIds.isEmpty()) {
+            return false;
+        }
         return caseTaskCandidateMapper.selectCount(new LambdaQueryWrapper<CaseTaskCandidate>()
                 .eq(CaseTaskCandidate::getCaseId, caseInfo.getId())
+                .in(CaseTaskCandidate::getTaskId, activeTaskIds)
                 .and(wrapper -> {
                     wrapper.eq(CaseTaskCandidate::getCandidateUserId, userId);
                     if (!roleIds.isEmpty()) {

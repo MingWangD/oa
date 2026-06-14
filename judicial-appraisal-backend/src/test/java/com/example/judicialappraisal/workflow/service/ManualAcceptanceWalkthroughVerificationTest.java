@@ -150,7 +150,7 @@ class ManualAcceptanceWalkthroughVerificationTest {
                 .andReturn();
         String detailBody = detailResult.getResponse().getContentAsString(StandardCharsets.UTF_8);
         assertThat(detailBody)
-                .contains("JA-" + caseId)
+                .contains("REAL-CHAIN-001")
                 .contains("真实流程链条验证")
                 .contains("项目负责人决策");
         

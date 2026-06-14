@@ -191,6 +191,31 @@ public class WorkflowRuntimeService {
         }
         existing.putAll(incomingFormData);
         caseInfo.setFormData(existing);
+        syncCaseSummaryFields(caseInfo, existing);
+    }
+
+    private void syncCaseSummaryFields(CaseInfo caseInfo, Map<String, Object> formData) {
+        String caseNo = firstText(formData, "caseNo", "projectNo");
+        if (!isBlank(caseNo)) {
+            caseInfo.setCaseNo(caseNo);
+        }
+        String entrustOrgName = firstText(formData, "entrustOrgName", "clientName");
+        if (!isBlank(entrustOrgName)) {
+            caseInfo.setEntrustOrgName(entrustOrgName);
+        }
+    }
+
+    private String firstText(Map<String, Object> formData, String... keys) {
+        if (formData == null || formData.isEmpty()) {
+            return null;
+        }
+        for (String key : keys) {
+            Object value = formData.get(key);
+            if (value != null && !isBlank(String.valueOf(value))) {
+                return String.valueOf(value).trim();
+            }
+        }
+        return null;
     }
 
 
