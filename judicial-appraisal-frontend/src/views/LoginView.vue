@@ -11,8 +11,8 @@ const authStore = useAuthStore();
 const formRef = ref<FormInstance>();
 const loading = ref(false);
 const form = reactive({
-  username: 'admin',
-  password: 'Admin123'
+  username: '',
+  password: ''
 });
 
 const rules: FormRules<typeof form> = {
@@ -51,10 +51,10 @@ async function submit(): Promise<void> {
 
       <el-form ref="formRef" class="login-form" :model="form" :rules="rules" label-position="top" @submit.prevent="submit">
         <el-form-item label="账号" prop="username">
-          <el-input v-model="form.username" autocomplete="username" />
+          <el-input v-model="form.username" autocomplete="off" />
         </el-form-item>
         <el-form-item label="密码" prop="password">
-          <el-input v-model="form.password" type="password" autocomplete="current-password" show-password />
+          <el-input v-model="form.password" type="password" autocomplete="off" show-password />
         </el-form-item>
         <el-button class="login-submit" type="primary" :loading="loading" @click="submit">登录</el-button>
       </el-form>
