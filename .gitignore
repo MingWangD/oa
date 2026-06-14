@@ -27,6 +27,3 @@ exports/
 .env.*
 !.env.example
 docs/
-GEMINI.md
-checklist.md
-AGENT.md
