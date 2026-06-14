@@ -14,9 +14,8 @@
 
 1. **`docs/司法鉴定系统使用手册.docx`**：定义了 18 个流程章节（3.1 至 3.18）。
 2. **`docs/judicial-appraisal-flowchart-baseline.md`**：登记主流程图与细化流程图，作为后续逐流程跑通、分支覆盖和退回路径验证的主要操作基准。
-3. **`docs/judicial-appraisal-manual-based-requirements-v2.md`** (或 `exports/司法鉴定系统使用手册.txt`)：基于手册细化的需求。
+3. **`docs/judicial-appraisal-manual-based-requirements-v2.md`**：基于手册细化的需求。
 4. **当前仓库中的现有代码**。
-5. `docs/` 目录中的旧 Markdown 文档：**仅作历史参考，与手册冲突时以手册为准。**
 
 注意：
 - 手册正文列明 18 个流程章节，其中 3.15 提到“财务报销”为独立流程，故合计 **19 个验收流程**。
@@ -28,7 +27,7 @@
 oa/
 ├── judicial-appraisal-backend/   Spring Boot 后端
 ├── judicial-appraisal-frontend/  Vue 3 前端
-├── docs/                         使用手册、总体验收模板、流程图基准、验收矩阵和验证记录
+├── docs/                         使用手册、总体验收模板、流程图基准和验收矩阵
 │   └── flowcharts/               主流程图与细化流程图
 ├── AGENT.md                      协作约定、优先级、工作习惯 (已对齐手册范围)
 ├── GEMINI.md                     Gemini 协作记录与上下文对齐 (已对齐手册范围)

@@ -53,17 +53,10 @@
 | 前端地址 | `http://localhost:5173` |
 | 后端地址 | `http://localhost:8080` |
 | 浏览器/工具 | Chrome / Playwright / curl / SQL |
-| 证据根目录 | `docs/browser-validation/manual-acceptance/YYYY-MM-DD/` |
-| 验证记录文件 | `docs/browser-validation-record-YYYY-MM-DD.md` |
+| 证据位置 | 测试文件、脱敏记录或本模板对应章节 |
 | 当前总状态 | `[ ]` / `[~]` / `[x]` |
 | 是否允许结项 | 是 / 否 |
 | 结项阻塞摘要 |  |
-
-### 1.1 近期专项记录
-
-| 批次 | 日期 | 范围 | 证据 | 结论 |
-| -- | -- | -- | -- | -- |
-| `MA-20260614-02` | 2026-06-14 | 第一条主干流程试跑：收到委托书至归档、工作查询和办结只读 | `docs/browser-validation/manual-acceptance/2026-06-14/02-mainline-flow.md` | `[~]` 主干实例 `2758` 已打穿业务闭环并修复业务案号同步、详情表单回显；因节点办理采用真实业务账号 API 辅助提交，仍缺每节点真实页面办理证据 |
 
 ## 2. 必查依据
 
@@ -75,7 +68,6 @@
 - [ ] `docs/judicial-appraisal-flow-verification-matrix.md`
 - [ ] `docs/judicial-appraisal-manual-based-requirements-v2.md`
 - [ ] `docs/judicial-appraisal-flowchart-baseline.md`
-- [ ] `docs/browser-validation-record-2026-06-13.md`
 - [ ] `README.md`
 - [ ] `GEMINI.md`
 - [ ] 当前代码、测试文件、数据库配置和前端页面
@@ -400,7 +392,6 @@ npx playwright test
 | `checklist.md` |  |  |  |
 | `docs/judicial-appraisal-master-checklist.md` |  |  |  |
 | `docs/judicial-appraisal-flow-verification-matrix.md` |  |  |  |
-| `docs/browser-validation-record-YYYY-MM-DD.md` |  |  |  |
 | `GEMINI.md` |  |  |  |
 | `README.md` |  |  |  |
 | 本模板 |  |  |  |
