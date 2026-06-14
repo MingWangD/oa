@@ -324,6 +324,34 @@ export interface LedgerBoard {
   nextActions: string[];
 }
 
+export interface ReportChartItem {
+  label: string;
+  value: number;
+}
+
+export interface ReportChart {
+  code: string;
+  title: string;
+  type: 'bar' | 'line' | 'donut' | string;
+  items: ReportChartItem[];
+}
+
+export interface ReportCenter {
+  moduleCode: string;
+  moduleName: string;
+  description: string;
+  sourceType: string;
+  statusOptions: string[];
+  metrics: LedgerMetric[];
+  charts: ReportChart[];
+  rows: LedgerRow[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+  nextActions: string[];
+}
+
 export interface JudicialWorkflowDefinition {
   code: string;
   name: string;
@@ -776,6 +804,22 @@ export function fetchLedgerBoard(
   params?: { keyword?: string; status?: string; limit?: number }
 ): Promise<LedgerBoard> {
   return get<LedgerBoard>(`/ledger/modules/${moduleCode}`, params);
+}
+
+export function fetchReportCenter(params?: {
+  keyword?: string;
+  status?: string;
+  page?: number;
+  pageSize?: number;
+}): Promise<ReportCenter> {
+  return get<ReportCenter>('/ledger/report-center', params);
+}
+
+export function exportReportCenter(params?: {
+  keyword?: string;
+  status?: string;
+}): Promise<{ blob: Blob; filename: string }> {
+  return getBlob('/ledger/report-center/export', params);
 }
 
 export function fetchJudicialCatalog(): Promise<JudicialCatalog> {

@@ -13,6 +13,9 @@ import com.example.judicialappraisal.knowledge.mapper.KnowledgeDocumentMapper;
 import com.example.judicialappraisal.ledger.dto.LedgerBoardDto;
 import com.example.judicialappraisal.ledger.dto.LedgerMetricDto;
 import com.example.judicialappraisal.ledger.dto.LedgerRowDto;
+import com.example.judicialappraisal.ledger.dto.ReportCenterDto;
+import com.example.judicialappraisal.ledger.dto.ReportChartDto;
+import com.example.judicialappraisal.ledger.dto.ReportChartItemDto;
 import com.example.judicialappraisal.organization.entity.SysMenu;
 import com.example.judicialappraisal.organization.entity.SysRole;
 import com.example.judicialappraisal.organization.entity.SysUser;
@@ -23,6 +26,7 @@ import io.minio.BucketExistsArgs;
 import io.minio.MinioClient;
 import java.sql.Connection;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -30,6 +34,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -125,11 +130,87 @@ public class LedgerService {
         };
     }
 
+    public ReportCenterDto reportCenter(String keyword, String status, Integer page, Integer pageSize) {
+        List<CaseInfo> allCases = loadReportCases(keyword);
+        List<CaseInfo> filteredCases = allCases.stream()
+                .filter(item -> reportStatusMatches(item, status))
+                .sorted(Comparator.comparing(this::caseUpdatedTime, Comparator.nullsLast(Comparator.reverseOrder())))
+                .toList();
+        Map<Long, Long> allArchiveCounts = reportArchiveCounts(allCases);
+        Map<Long, Long> filteredArchiveCounts = reportArchiveCounts(filteredCases);
+        int safePageSize = normalizePageSize(pageSize);
+        int safePage = normalizePage(page);
+        long total = filteredCases.size();
+        int totalPages = total == 0 ? 0 : (int) Math.ceil((double) total / safePageSize);
+        if (totalPages > 0 && safePage > totalPages) {
+            safePage = totalPages;
+        }
+        int fromIndex = total == 0 ? 0 : Math.min((safePage - 1) * safePageSize, filteredCases.size());
+        int toIndex = Math.min(fromIndex + safePageSize, filteredCases.size());
+        List<CaseInfo> pageCases = filteredCases.subList(fromIndex, toIndex);
+
+        return new ReportCenterDto(
+                "report-center",
+                "报表中心",
+                "根据真实案件流转情况自动收集的统计信息，支持分页、导出、多维统计和业务数据分析。",
+                "live",
+                reportStatusOptions(),
+                reportMetrics(allCases, filteredCases, allArchiveCounts),
+                reportCharts(allCases, allArchiveCounts),
+                pageCases.stream().map(item -> reportRow(item, filteredArchiveCounts.getOrDefault(item.getId(), 0L))).toList(),
+                safePage,
+                safePageSize,
+                total,
+                totalPages,
+                List.of("导出 CSV", "查看案件详情", "按状态筛选", "按关键词搜索")
+        );
+    }
+
+    public String exportReportCenterCsv(String keyword, String status) {
+        List<CaseInfo> cases = loadReportCases(keyword).stream()
+                .filter(item -> reportStatusMatches(item, status))
+                .sorted(Comparator.comparing(this::caseUpdatedTime, Comparator.nullsLast(Comparator.reverseOrder())))
+                .toList();
+        Map<Long, Long> archiveCounts = reportArchiveCounts(cases);
+        List<String> lines = new ArrayList<>();
+        lines.add(csvLine(List.of("案件编号", "案件标题", "委托单位", "案件类别", "业务状态", "当前节点", "紧急", "超期", "归档记录数", "更新时间", "完成时间")));
+        cases.forEach(item -> lines.add(csvLine(List.of(
+                fallback(item.getCaseNo(), ""),
+                fallback(item.getCaseTitle(), ""),
+                fallback(item.getEntrustOrgName(), ""),
+                fallback(item.getCaseType(), ""),
+                reportStatusLabel(item),
+                fallback(item.getCurrentNodeName(), "已结束"),
+                Objects.equals(item.getUrgentFlag(), 1) ? "是" : "否",
+                isOverdue(item) ? "是" : "否",
+                String.valueOf(archiveCounts.getOrDefault(item.getId(), 0L)),
+                String.valueOf(caseUpdatedTime(item)),
+                item.getCompletedTime() == null ? "" : String.valueOf(item.getCompletedTime())
+        ))));
+        return "\uFEFF" + String.join("\n", lines);
+    }
+
     private List<CaseInfo> loadCases(String keyword) {
         LambdaQueryWrapper<CaseInfo> query = new LambdaQueryWrapper<CaseInfo>()
                 .orderByDesc(CaseInfo::getUpdatedTime)
                 .orderByDesc(CaseInfo::getId)
                 .last("limit 200");
+        if (hasText(keyword)) {
+            query.and(wrapper -> wrapper
+                    .like(CaseInfo::getCaseTitle, keyword)
+                    .or()
+                    .like(CaseInfo::getCaseNo, keyword)
+                    .or()
+                    .like(CaseInfo::getEntrustOrgName, keyword));
+        }
+        return caseInfoMapper.selectList(query);
+    }
+
+    private List<CaseInfo> loadReportCases(String keyword) {
+        LambdaQueryWrapper<CaseInfo> query = new LambdaQueryWrapper<CaseInfo>()
+                .eq(CaseInfo::getDeleted, 0)
+                .orderByDesc(CaseInfo::getUpdatedTime)
+                .orderByDesc(CaseInfo::getId);
         if (hasText(keyword)) {
             query.and(wrapper -> wrapper
                     .like(CaseInfo::getCaseTitle, keyword)
@@ -821,6 +902,182 @@ public class LedgerService {
                 )).limit(20).toList(),
                 List.of("导出 Excel", "PDF 导出", "导出统计汇总")
         );
+    }
+
+    private List<String> reportStatusOptions() {
+        return List.of("全部状态", "办理中", "已办结", "超期提醒", "紧急案件", "已终止");
+    }
+
+    private List<LedgerMetricDto> reportMetrics(List<CaseInfo> allCases,
+                                                List<CaseInfo> filteredCases,
+                                                Map<Long, Long> archiveCounts) {
+        long processingCount = allCases.stream().filter(item -> "PROCESSING".equals(item.getCaseStatus())).count();
+        long completedCount = allCases.stream().filter(item -> "COMPLETED".equals(item.getCaseStatus())).count();
+        long overdueCount = allCases.stream().filter(this::isOverdue).count();
+        long urgentCount = allCases.stream().filter(item -> Objects.equals(item.getUrgentFlag(), 1)).count();
+        long archivedCases = allCases.stream().filter(item -> archiveCounts.getOrDefault(item.getId(), 0L) > 0).count();
+        long archiveRecords = archiveCounts.values().stream().mapToLong(Long::longValue).sum();
+        long completedDays = allCases.stream()
+                .filter(item -> item.getCompletedTime() != null && item.getSubmittedTime() != null)
+                .mapToLong(item -> Math.max(0, java.time.Duration.between(item.getSubmittedTime(), item.getCompletedTime()).toDays()))
+                .sum();
+        long completedWithDuration = allCases.stream()
+                .filter(item -> item.getCompletedTime() != null && item.getSubmittedTime() != null)
+                .count();
+        String averageDays = completedWithDuration == 0 ? "-" : String.format(Locale.ROOT, "%.1f 天", (double) completedDays / completedWithDuration);
+
+        return List.of(
+                new LedgerMetricDto("案件总数", String.valueOf(allCases.size()), false),
+                new LedgerMetricDto("当前筛选", String.valueOf(filteredCases.size()), false),
+                new LedgerMetricDto("办理中", String.valueOf(processingCount), true),
+                new LedgerMetricDto("已办结", String.valueOf(completedCount), false),
+                new LedgerMetricDto("超期提醒", String.valueOf(overdueCount), true),
+                new LedgerMetricDto("紧急案件", String.valueOf(urgentCount), true),
+                new LedgerMetricDto("归档案件", String.valueOf(archivedCases), false),
+                new LedgerMetricDto("归档记录", String.valueOf(archiveRecords), false),
+                new LedgerMetricDto("平均办结周期", averageDays, false)
+        );
+    }
+
+    private List<ReportChartDto> reportCharts(List<CaseInfo> cases, Map<Long, Long> archiveCounts) {
+        return List.of(
+                new ReportChartDto("status", "业务状态分布", "bar", countBy(cases, this::reportStatusLabel)),
+                new ReportChartDto("caseType", "案件类别分布", "bar", countBy(cases, item -> fallback(item.getCaseType(), "未分类"))),
+                new ReportChartDto("monthly", "近 6 个月新增案件", "line", monthlyCreatedCases(cases)),
+                new ReportChartDto("archive", "归档覆盖情况", "donut", List.of(
+                        new ReportChartItemDto("已有归档", cases.stream().filter(item -> archiveCounts.getOrDefault(item.getId(), 0L) > 0).count()),
+                        new ReportChartItemDto("暂无归档", cases.stream().filter(item -> archiveCounts.getOrDefault(item.getId(), 0L) == 0).count())
+                )),
+                new ReportChartDto("priority", "优先级分布", "donut", List.of(
+                        new ReportChartItemDto("紧急", cases.stream().filter(item -> Objects.equals(item.getUrgentFlag(), 1)).count()),
+                        new ReportChartItemDto("普通", cases.stream().filter(item -> !Objects.equals(item.getUrgentFlag(), 1)).count()),
+                        new ReportChartItemDto("超期", cases.stream().filter(this::isOverdue).count())
+                ))
+        );
+    }
+
+    private List<ReportChartItemDto> monthlyCreatedCases(List<CaseInfo> cases) {
+        YearMonth current = YearMonth.now();
+        Map<String, Long> counts = new LinkedHashMap<>();
+        for (int i = 5; i >= 0; i--) {
+            YearMonth month = current.minusMonths(i);
+            counts.put(month.toString(), 0L);
+        }
+        cases.stream()
+                .map(item -> firstNonNull(item.getSubmittedTime(), item.getCreatedTime()))
+                .filter(Objects::nonNull)
+                .map(YearMonth::from)
+                .forEach(month -> {
+                    String key = month.toString();
+                    if (counts.containsKey(key)) {
+                        counts.put(key, counts.get(key) + 1);
+                    }
+                });
+        return counts.entrySet().stream()
+                .map(entry -> new ReportChartItemDto(entry.getKey(), entry.getValue()))
+                .toList();
+    }
+
+    private List<ReportChartItemDto> countBy(List<CaseInfo> cases, java.util.function.Function<CaseInfo, String> classifier) {
+        return cases.stream()
+                .collect(Collectors.groupingBy(classifier, LinkedHashMap::new, Collectors.counting()))
+                .entrySet()
+                .stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue(Comparator.reverseOrder()))
+                .limit(8)
+                .map(entry -> new ReportChartItemDto(entry.getKey(), entry.getValue()))
+                .toList();
+    }
+
+    private LedgerRowDto reportRow(CaseInfo item, long archiveCount) {
+        LocalDateTime updatedAt = caseUpdatedTime(item);
+        List<String> tags = new ArrayList<>();
+        tags.add(reportStatusLabel(item));
+        tags.add(fallback(item.getCaseType(), "司法鉴定"));
+        if (Objects.equals(item.getUrgentFlag(), 1)) {
+            tags.add("紧急");
+        }
+        if (isOverdue(item)) {
+            tags.add("超期");
+        }
+        if (archiveCount > 0) {
+            tags.add("已归档");
+        }
+        return new LedgerRowDto(
+                "case-" + item.getId(),
+                fallback(item.getCaseNo(), "待编案号"),
+                fallback(item.getCaseTitle(), "未命名案件"),
+                fallback(item.getCaseType(), "司法鉴定"),
+                fallback(item.getEntrustOrgName(), "未知委托方"),
+                reportStatusLabel(item),
+                "归档记录：" + archiveCount,
+                fallback(item.getCurrentNodeName(), "已结束"),
+                "更新时间：" + fallback(String.valueOf(updatedAt), "-"),
+                updatedAt,
+                item.getDeadlineTime(),
+                tags,
+                List.of(
+                        "委托方：" + fallback(item.getEntrustOrgName(), "待补"),
+                        "当前节点：" + fallback(item.getCurrentNodeName(), "已结束"),
+                        "归档记录：" + archiveCount,
+                        "紧急标记：" + (Objects.equals(item.getUrgentFlag(), 1) ? "是" : "否")
+                ),
+                "/case/" + item.getId()
+        );
+    }
+
+    private boolean reportStatusMatches(CaseInfo item, String status) {
+        if (!hasText(status) || "all".equalsIgnoreCase(status) || "全部状态".equals(status)) {
+            return true;
+        }
+        return switch (status) {
+            case "办理中", "processing" -> "PROCESSING".equals(item.getCaseStatus());
+            case "已办结", "completed" -> "COMPLETED".equals(item.getCaseStatus());
+            case "超期提醒", "overdue" -> isOverdue(item);
+            case "紧急案件", "urgent" -> Objects.equals(item.getUrgentFlag(), 1);
+            case "已终止", "terminated" -> "TERMINATED".equals(item.getCaseStatus());
+            default -> Objects.equals(statusName(item.getCaseStatus()), status) || Objects.equals(item.getCaseStatus(), status);
+        };
+    }
+
+    private String reportStatusLabel(CaseInfo item) {
+        if (isOverdue(item)) {
+            return "超期提醒";
+        }
+        return statusName(item.getCaseStatus());
+    }
+
+    private Map<Long, Long> reportArchiveCounts(List<CaseInfo> cases) {
+        if (caseArchiveRecordMapper == null || cases.isEmpty()) {
+            return Map.of();
+        }
+        Set<Long> caseIds = cases.stream().map(CaseInfo::getId).filter(Objects::nonNull).collect(Collectors.toSet());
+        if (caseIds.isEmpty()) {
+            return Map.of();
+        }
+        return caseArchiveRecordMapper.selectList(new LambdaQueryWrapper<CaseArchiveRecord>().in(CaseArchiveRecord::getCaseId, caseIds))
+                .stream()
+                .collect(Collectors.groupingBy(CaseArchiveRecord::getCaseId, Collectors.counting()));
+    }
+
+    private int normalizePage(Integer page) {
+        return page == null || page < 1 ? 1 : page;
+    }
+
+    private int normalizePageSize(Integer pageSize) {
+        if (pageSize == null || pageSize < 1) {
+            return 20;
+        }
+        return Math.min(pageSize, 200);
+    }
+
+    private String csvLine(List<String> values) {
+        return values.stream().map(this::csvCell).collect(Collectors.joining(","));
+    }
+
+    private String csvCell(String value) {
+        String safeValue = value == null ? "" : value;
+        return "\"" + safeValue.replace("\"", "\"\"") + "\"";
     }
 
     private LedgerBoardDto unifiedTodoBoard(List<CaseInfo> cases, int rowLimit) {
