@@ -14,7 +14,7 @@ public class PlatformCatalogService {
 
     private static final List<String> JUDICIAL_ROLES = List.of(
             "部门负责人", "项目负责人", "项目辅助人", "档案管理员", "中心档案管理员",
-            "技术负责人", "审阅所长", "综合业务部", "财务", "收案员"
+            "技术负责人", "业务人员", "财务人员", "收案员"
     );
 
     public List<OaMenuItemDto> menus() {
@@ -70,10 +70,10 @@ public class PlatformCatalogService {
 
     private boolean canSeeWorkflow(List<String> userRoleNames, JudicialWorkflowDefinitionDto workflow) {
         if ("expense-reimbursement".equals(workflow.code())) {
-            return hasRole(userRoleNames, "财务");
+            return hasRole(userRoleNames, "财务人员", "业务人员");
         }
         if ("seal-application".equals(workflow.code())) {
-            return hasRole(userRoleNames, "申请人", "档案管理员", "盖章经办人");
+            return hasRole(userRoleNames, "业务人员", "档案管理员", "项目负责人");
         }
         return workflow.roles().stream().anyMatch(role -> roleMatches(userRoleNames, role));
     }
@@ -91,10 +91,13 @@ public class PlatformCatalogService {
             if (userRole.equals(workflowRole) || userRole.contains(workflowRole) || workflowRole.contains(userRole)) {
                 return true;
             }
-            if ("收件人".equals(workflowRole) && "收案员".equals(userRole)) {
+            if ("收案员".equals(workflowRole) && ("收案员".equals(userRole) || "收件人".equals(userRole))) {
                 return true;
             }
-            return "申请人".equals(workflowRole) && "申请人".equals(userRole);
+            if ("业务人员".equals(workflowRole) && ("业务人员".equals(userRole) || "综合业务部".equals(userRole))) {
+                return true;
+            }
+            return "财务人员".equals(workflowRole) && ("财务人员".equals(userRole) || "财务".equals(userRole));
         });
     }
 
@@ -158,31 +161,31 @@ public class PlatformCatalogService {
                 workflow("issue-draft-opinion", "出具征求意见稿", "issue-draft-opinion", "subflow", List.of("项目辅助人", "项目负责人", "档案管理员"),
                         List.of("编制说明函、用章、寄出", "等待反馈并判断是否收到异议函"),
                         List.of("收到法院其他函件（含异议函）", "出具鉴定意见书", "归档")),
-                workflow("court-letter", "收到法院其他函件（含异议函）", "court-letter", "direct-or-linked", List.of("收件人", "项目负责人", "项目辅助人", "档案管理员"),
+                workflow("court-letter", "收到法院其他函件（含异议函）", "court-letter", "direct-or-linked", List.of("收案员", "项目负责人", "项目辅助人", "档案管理员"),
                         List.of("可手动新建并关联原流程", "识别异议函或其他函件", "回复、用章、寄出后归档"),
                         List.of("归档", "出具鉴定意见书")),
-                workflow("court-appearance", "收到出庭通知", "court-appearance", "direct-or-linked", List.of("收件人", "项目负责人", "档案管理员"),
+                workflow("court-appearance", "收到出庭通知", "court-appearance", "direct-or-linked", List.of("收案员", "项目负责人", "档案管理员"),
                         List.of("关联原流程", "调档、出庭准备、出庭材料整理"),
                         List.of("归档")),
                 workflow("reject-acceptance", "不予受理", "reject-acceptance", "subflow", List.of("项目辅助人", "项目负责人", "档案管理员"),
                         List.of("编制不予受理通知书", "审核、用章、扫描件上传"),
                         List.of("归档")),
-                workflow("withdraw-case-letter", "收到撤案函", "withdraw-case-letter", "direct-or-linked", List.of("收件人", "项目负责人"),
+                workflow("withdraw-case-letter", "收到撤案函", "withdraw-case-letter", "direct-or-linked", List.of("收案员", "项目负责人"),
                         List.of("登记撤案函", "项目负责人判断是否退费"),
                         List.of("退费", "终止鉴定")),
-                workflow("refund", "退费", "refund", "subflow", List.of("项目负责人", "档案管理员", "财务"),
+                workflow("refund", "退费", "refund", "subflow", List.of("项目负责人", "档案管理员", "财务人员"),
                         List.of("合同变更、收入确认、退费申请、打款", "打款成功后进入终止鉴定"),
                         List.of("终止鉴定")),
                 workflow("terminate-appraisal", "终止鉴定", "terminate-appraisal", "subflow", List.of("项目负责人", "项目辅助人", "档案管理员"),
                         List.of("编制终止函或终止确认函", "审核、用章、扫描件上传"),
                         List.of("归档")),
-                workflow("archive", "归档", "archive", "subflow", List.of("档案管理员", "中心档案管理员", "邮寄人员"),
+                workflow("archive", "归档", "archive", "subflow", List.of("档案管理员", "中心档案管理员", "业务人员"),
                         List.of("上传项目档案、纸质扫描、电子归档地址", "邮寄后中心档案管理员审核并入档案室"),
                         List.of("流程结束")),
-                workflow("seal-application", "用章流程/用章申请表", "seal-application", "subflow-or-direct", List.of("申请人", "档案管理员", "盖章经办人"),
+                workflow("seal-application", "用章流程/用章申请表", "seal-application", "subflow-or-direct", List.of("业务人员", "档案管理员"),
                         List.of("填写申请文件和附件", "线下或电子盖章后扫描件回传"),
                         List.of("返回父流程")),
-                workflow("expense-reimbursement", "财务报销", "expense-reimbursement", "direct", List.of("发起人", "财务"),
+                workflow("expense-reimbursement", "财务报销", "expense-reimbursement", "direct", List.of("业务人员", "财务人员"),
                         List.of("独立发起", "上传报销材料后财务处理并登记结果"),
                         List.of("流程结束"))
         );

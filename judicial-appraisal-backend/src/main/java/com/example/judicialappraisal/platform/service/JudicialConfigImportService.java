@@ -289,7 +289,7 @@ public class JudicialConfigImportService {
         List<Map<String, Object>> fields = List.of(
                 field("serialNo", "流水号", "text", "流程基础", false, true),
                 field("flowName", "流程名称", "text", "流程基础", false, true),
-                field("initiatorName", "发起人", "user", "流程基础", false, true),
+                field("initiatorName", "业务人员", "user", "流程基础", false, true),
                 field("initiatedDate", "发起日期", "date", "流程基础", false, true),
                 field("projectNo", "项目编号", "text", "流程基础", false, false),
                 field("expressNo", "快递单号", "text", "委托信息", false, false),
@@ -363,7 +363,7 @@ public class JudicialConfigImportService {
     private WorkflowDesignRequest receivedEntrustWorkflowRequest(JudicialWorkflowDefinitionDto workflow) {
         List<WorkflowNodeRequest> nodes = List.of(
                 node("START", "开始", "start", "single", null, 0, 0, false, null, 0),
-                node("INIT_FILL", "发起者填写委托信息", "task", "candidate", "收件人", 1, 24, true, workflow.formCode(), 10),
+                node("INIT_FILL", "发起者填写委托信息", "task", "candidate", "收案员", 1, 24, true, workflow.formCode(), 10),
                 node("CLERK_REGISTER", "收案员登记", "task", "candidate", "收案员", 1, 24, true, workflow.formCode(), 20),
                 node("DEPT_REVIEW", "部门负责人审阅", "task", "candidate", "部门负责人", 1, 48, true, workflow.formCode(), 30),
                 node("PROJECT_DECISION", "项目负责人决策", "task", "candidate", "项目负责人", 1, 48, true, workflow.formCode(), 40),
@@ -987,7 +987,7 @@ public class JudicialConfigImportService {
                         "groups", Map.of(
                                 "流程基础", Map.of("readOnly", true),
                                 "项目负责人审核", Map.of("roles", List.of("项目负责人")),
-                                "用章与回传", Map.of("roles", List.of("档案管理员", "综合业务部")),
+                                "用章与回传", Map.of("roles", List.of("档案管理员", "业务人员")),
                                 "送达与归档", Map.of("roles", List.of("档案管理员"))
                         )
                 )),
@@ -1452,7 +1452,7 @@ public class JudicialConfigImportService {
                 field("flowName", "流程名称", "text", "流程基础", false, true),
                 field("projectLeaderId", "项目负责人", "user", "流程基础", true, true),
                 field("archivistId", "档案管理员", "user", "流程基础", true, true),
-                field("financeId", "财务", "user", "流程基础", true, true),
+                field("financeId", "财务人员", "user", "流程基础", true, true),
                 field("opinionModified", "鉴定意见书已修改确认", "boolean", "意见书处理", false, false),
                 field("commitmentDrafted", "鉴定人承诺书已上传", "boolean", "材料补充", false, false),
                 field("reviewOpinionDrafted", "司法鉴定复核意见已上传", "boolean", "材料补充", false, false),
@@ -1497,7 +1497,7 @@ public class JudicialConfigImportService {
                                 "材料补充", Map.of("roles", List.of("项目辅助人")),
                                 "项目审核", Map.of("roles", List.of("项目负责人")),
                                 "盖章流程", Map.of("roles", List.of("项目负责人", "项目辅助人", "档案管理员")),
-                                "开票流程", Map.of("roles", List.of("财务")),
+                                "开票流程", Map.of("roles", List.of("财务人员")),
                                 "送达", Map.of("roles", List.of("档案管理员")),
                                 "归档", Map.of("roles", List.of("档案管理员"))
                         )
@@ -1530,7 +1530,7 @@ public class JudicialConfigImportService {
                 node("PARALLEL_GATEWAY_SPLIT", "盖章开票并行分支", "gateway", "parallel", null, 0, 0, false, null, 50),
                 node("SEAL_APPLICATION", "发起用章申请", "task", "candidate", "档案管理员", 1, 24, true, "seal-application", 60),
                 node("SEALED_UPLOAD", "项目辅助人上传盖章扫描件", "task", "candidate", "项目辅助人", 1, 24, true, workflow.formCode(), 70),
-                node("FINANCE_INVOICE", "财务开具发票", "task", "candidate", "财务", 1, 48, true, workflow.formCode(), 80),
+                node("FINANCE_INVOICE", "财务开具发票", "task", "candidate", "财务人员", 1, 48, true, workflow.formCode(), 80),
                 node("PARALLEL_GATEWAY_JOIN", "盖章开票并行汇聚", "gateway", "inclusive", null, 0, 0, false, null, 90),
                 node("DELIVERY_ARCHIVE", "档案管理员送达并确认归档", "task", "candidate", "档案管理员", 1, 72, true, workflow.formCode(), 100),
                 node("ARCHIVE_SUBFLOW", "进入归档子流程", "task", "candidate", "档案管理员", 1, 24, true, "archive", 110),
@@ -1881,7 +1881,7 @@ public class JudicialConfigImportService {
                 field("projectLeaderId", "项目负责人", "user", "流程基础", true, true),
                 field("projectAssistantId", "项目辅助人", "user", "流程基础", true, true),
                 field("archivistId", "档案管理员", "user", "流程基础", true, true),
-                field("financeId", "财务", "user", "流程基础", true, true),
+                field("financeId", "财务人员", "user", "流程基础", true, true),
                 field("courtNoticeUploaded", "出庭通知已上传", "boolean", "出庭通知", true, false),
                 field("courtName", "法院名称", "text", "出庭通知", true, false),
                 field("noticeReceivedDate", "收到出庭通知日期", "date", "出庭通知", true, false),
@@ -1934,7 +1934,7 @@ public class JudicialConfigImportService {
                         "groups", Map.of(
                                 "流程基础", Map.of("readOnly", true),
                                 "出庭通知", Map.of("roles", List.of("项目负责人", "项目辅助人")),
-                                "出庭费通知", Map.of("roles", List.of("财务")),
+                                "出庭费通知", Map.of("roles", List.of("财务人员")),
                                 "调档", Map.of("roles", List.of("档案管理员")),
                                 "出庭准备", Map.of("roles", List.of("项目负责人", "项目辅助人")),
                                 "出庭登记", Map.of("roles", List.of("项目负责人")),
@@ -2055,7 +2055,7 @@ public class JudicialConfigImportService {
                 toJson(Map.of(
                         "groups", Map.of(
                                 "流程基础", Map.of("readOnly", true),
-                                "撤案登记", Map.of("roles", List.of("收件人", "项目负责人")),
+                                "撤案登记", Map.of("roles", List.of("收案员", "项目负责人")),
                                 "项目负责人判断", Map.of("roles", List.of("项目负责人"))
                         )
                 )),
@@ -2079,7 +2079,7 @@ public class JudicialConfigImportService {
     private WorkflowDesignRequest withdrawCaseLetterWorkflowRequest(JudicialWorkflowDefinitionDto workflow) {
         List<WorkflowNodeRequest> nodes = List.of(
                 node("START", "开始", "start", "single", null, 0, 0, false, null, 0),
-                node("LETTER_REGISTER", "登记撤案函", "task", "candidate", "收件人", 1, 24, true, workflow.formCode(), 10),
+                node("LETTER_REGISTER", "登记撤案函", "task", "candidate", "收案员", 1, 24, true, workflow.formCode(), 10),
                 node("PROJECT_DECISION", "项目负责人判断是否退费", "task", "candidate", "项目负责人", 1, 24, true, workflow.formCode(), 20),
                 node("REFUND", "进入退费", "task", "candidate", "项目负责人", 1, 24, true, "refund", 30),
                 node("TERMINATE_APPRAISAL", "进入终止鉴定", "task", "candidate", "项目负责人", 1, 24, true, "terminate-appraisal", 40),
@@ -2111,7 +2111,7 @@ public class JudicialConfigImportService {
                 field("flowName", "流程名称", "text", "流程基础", false, true),
                 field("projectLeaderId", "项目负责人", "user", "流程基础", true, true),
                 field("archivistId", "档案管理员", "user", "流程基础", true, true),
-                field("financeId", "财务", "user", "流程基础", true, true),
+                field("financeId", "财务人员", "user", "流程基础", true, true),
                 field("contractChangeCompleted", "合同变更已完成", "boolean", "退费准备", false, false),
                 field("revenueConfirmed", "收入确认已完成", "boolean", "退费准备", false, false),
                 field("refundApplicationSubmitted", "退费申请已提交", "boolean", "退费申请", false, false),
@@ -2141,7 +2141,7 @@ public class JudicialConfigImportService {
                                 "流程基础", Map.of("readOnly", true),
                                 "退费准备", Map.of("roles", List.of("项目负责人")),
                                 "退费申请", Map.of("roles", List.of("档案管理员", "项目负责人")),
-                                "财务打款", Map.of("roles", List.of("财务"))
+                                "财务打款", Map.of("roles", List.of("财务人员"))
                         )
                 )),
                 toJson(Map.of("flowNameTemplate", "${caseNo}-退费", "branchFields", List.of("paymentCompleted"))),
@@ -2160,7 +2160,7 @@ public class JudicialConfigImportService {
                 node("START", "开始", "start", "single", null, 0, 0, false, null, 0),
                 node("PROJECT_PREPARE", "项目负责人完成合同变更与收入确认", "task", "candidate", "项目负责人", 1, 48, true, workflow.formCode(), 10),
                 node("ARCHIVIST_APPLY", "档案管理员登记退费申请", "task", "candidate", "档案管理员", 1, 24, true, workflow.formCode(), 20),
-                node("FINANCE_PAYMENT", "财务打款并回传结果", "task", "candidate", "财务", 1, 48, true, workflow.formCode(), 30),
+                node("FINANCE_PAYMENT", "财务打款并回传结果", "task", "candidate", "财务人员", 1, 48, true, workflow.formCode(), 30),
                 node("TERMINATE_APPRAISAL", "进入终止鉴定", "task", "candidate", "项目负责人", 1, 24, true, "terminate-appraisal", 40),
                 node("END", "流程结束", "end", "single", null, 0, 0, false, null, 50)
         );
@@ -2348,7 +2348,7 @@ public class JudicialConfigImportService {
         List<Map<String, Object>> fields = List.of(
                 field("caseNo", "案件号", "text", "流程基础", true, true),
                 field("flowName", "流程名称", "text", "流程基础", false, true),
-                field("applicantId", "申请人", "user", "流程基础", true, true),
+                field("applicantId", "业务人员", "user", "流程基础", true, true),
                 field("archivistId", "档案管理员", "user", "流程基础", true, true),
                 field("sealOperatorId", "盖章经办人", "user", "流程基础", true, true),
                 field("applicationReason", "用章原因", "textarea", "申请信息", false, false),
@@ -2377,7 +2377,7 @@ public class JudicialConfigImportService {
                 toJson(Map.of(
                         "groups", Map.of(
                                 "流程基础", Map.of("readOnly", true),
-                                "申请信息", Map.of("roles", List.of("申请人")),
+                                "申请信息", Map.of("roles", List.of("业务人员")),
                                 "档案审核", Map.of("roles", List.of("档案管理员")),
                                 "盖章处理", Map.of("roles", List.of("盖章经办人", "档案管理员"))
                         )
@@ -2396,7 +2396,7 @@ public class JudicialConfigImportService {
     private WorkflowDesignRequest sealApplicationWorkflowRequest(JudicialWorkflowDefinitionDto workflow) {
         List<WorkflowNodeRequest> nodes = List.of(
                 node("START", "开始", "start", "single", null, 0, 0, false, null, 0),
-                node("APPLICANT_SUBMIT", "申请人提交用章申请", "task", "candidate", "申请人", 1, 24, true, workflow.formCode(), 10),
+                node("APPLICANT_SUBMIT", "申请人提交用章申请", "task", "candidate", "业务人员", 1, 24, true, workflow.formCode(), 10),
                 node("ARCHIVIST_REVIEW", "档案管理员审核申请材料", "task", "candidate", "档案管理员", 1, 24, true, workflow.formCode(), 20),
                 node("SEAL_OPERATOR", "盖章经办人完成盖章", "task", "candidate", "盖章经办人", 1, 24, true, workflow.formCode(), 30),
                 node("ARCHIVIST_UPLOAD", "档案管理员回传盖章扫描件", "task", "candidate", "档案管理员", 1, 24, true, workflow.formCode(), 40),
@@ -2424,8 +2424,8 @@ public class JudicialConfigImportService {
         List<Map<String, Object>> fields = List.of(
                 field("caseNo", "案件号", "text", "流程基础", true, true),
                 field("flowName", "流程名称", "text", "流程基础", false, true),
-                field("initiatorId", "发起人", "user", "流程基础", true, true),
-                field("financeId", "财务", "user", "流程基础", true, true),
+                field("initiatorId", "业务人员", "user", "流程基础", true, true),
+                field("financeId", "财务人员", "user", "流程基础", true, true),
                 field("expenseSummary", "报销事项", "textarea", "报销申请", false, false),
                 field("expenseAmount", "报销金额", "number", "报销申请", false, false),
                 field("invoiceSummary", "发票汇总", "textarea", "报销申请", false, false),
@@ -2452,8 +2452,8 @@ public class JudicialConfigImportService {
                 toJson(Map.of(
                         "groups", Map.of(
                                 "流程基础", Map.of("readOnly", true),
-                                "报销申请", Map.of("roles", List.of("发起人")),
-                                "财务处理", Map.of("roles", List.of("财务"))
+                                "报销申请", Map.of("roles", List.of("业务人员")),
+                                "财务处理", Map.of("roles", List.of("财务人员"))
                         )
                 )),
                 toJson(Map.of("flowNameTemplate", "${caseNo}-财务报销", "branchFields", List.of("financeResult"))),
@@ -2470,8 +2470,8 @@ public class JudicialConfigImportService {
     private WorkflowDesignRequest expenseReimbursementWorkflowRequest(JudicialWorkflowDefinitionDto workflow) {
         List<WorkflowNodeRequest> nodes = List.of(
                 node("START", "开始", "start", "single", null, 0, 0, false, null, 0),
-                node("INITIATOR_SUBMIT", "发起人提交报销材料", "task", "candidate", "发起人", 1, 24, true, workflow.formCode(), 10),
-                node("FINANCE_PROCESS", "财务处理报销", "task", "candidate", "财务", 1, 48, true, workflow.formCode(), 20),
+                node("INITIATOR_SUBMIT", "发起人提交报销材料", "task", "candidate", "业务人员", 1, 24, true, workflow.formCode(), 10),
+                node("FINANCE_PROCESS", "财务处理报销", "task", "candidate", "财务人员", 1, 48, true, workflow.formCode(), 20),
                 node("END", "流程结束", "end", "single", null, 0, 0, false, null, 30)
         );
         List<WorkflowTransitionRequest> transitions = List.of(
