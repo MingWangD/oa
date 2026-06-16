@@ -2,6 +2,7 @@ package com.example.judicialappraisal.caseinfo.controller;
 
 import com.example.judicialappraisal.auth.dto.CurrentUserInfo;
 import com.example.judicialappraisal.caseinfo.dto.CaseCreateRequest;
+import com.example.judicialappraisal.caseinfo.dto.CaseFormDataSaveRequest;
 import com.example.judicialappraisal.caseinfo.dto.CaseListResponse;
 import com.example.judicialappraisal.caseinfo.dto.CaseQueryRequest;
 import com.example.judicialappraisal.caseinfo.dto.CaseSubmitRequest;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -52,6 +54,14 @@ public class CaseInfoController {
                                                     Authentication authentication) {
         CurrentUserInfo currentUser = currentUser(authentication);
         return ApiResponse.success(caseInfoService.submitCase(caseId, request, currentUser.id(), displayName(currentUser)));
+    }
+
+    @PutMapping("/{caseId}/form-data")
+    public ApiResponse<CaseInfo> saveFormData(@PathVariable Long caseId,
+                                              @RequestBody CaseFormDataSaveRequest request,
+                                              Authentication authentication) {
+        CurrentUserInfo currentUser = currentUser(authentication);
+        return ApiResponse.success(caseInfoService.saveFormData(caseId, request, currentUser));
     }
 
     @GetMapping("/{caseId}")

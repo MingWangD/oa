@@ -10,6 +10,7 @@ import {
   fetchRuntimeFormPreview,
   fetchTaskDetail,
   fetchTaskDetailByCaseNode,
+  saveCaseFormData,
   submitWorkflowAction,
   uploadWorkflowFile,
   type CaseDetail,
@@ -37,6 +38,7 @@ const router = useRouter();
 const authStore = useAuthStore();
 const loading = ref(false);
 const acting = ref(false);
+const saving = ref(false);
 const detail = ref<CaseDetail | null>(null);
 const subflows = ref<CaseSubflowSummary[]>([]);
 const forms = ref<JudicialFormDefinition[]>([]);
@@ -77,18 +79,23 @@ const currentForm = computed(() => {
 });
 const dynamicFields = computed<DynamicFormField[]>(() => {
   const fields = parseJson<Array<Record<string, unknown>>>(formPreview.value?.fieldSchemaJson, []);
-  return fields.map((field, index) => {
-    const isReadonly = Boolean(field.readOnly ?? field.readonly);
-    return {
-      key: String(field.field || field.code || `field_${index + 1}`),
-      label: String(field.label || field.name || field.field || `字段 ${index + 1}`),
-      type: String(field.type || 'text'),
-      group: String(field.group || '基础信息'),
-      required: Boolean(field.required),
-      readonly: isReadonly,
-      options: Array.isArray(field.options) ? field.options.map((item) => String(item)) : []
-    };
-  });
+  return fields
+    .filter((field) => {
+      const key = String(field.field || field.code || '');
+      return key !== 'handlerOpinion';
+    })
+    .map((field, index) => {
+      const isReadonly = Boolean(field.readOnly ?? field.readonly);
+      return {
+        key: String(field.field || field.code || `field_${index + 1}`),
+        label: String(field.label || field.name || field.field || `字段 ${index + 1}`),
+        type: String(field.type || 'text'),
+        group: String(field.group || '基础信息'),
+        required: Boolean(field.required),
+        readonly: isReadonly,
+        options: Array.isArray(field.options) ? field.options.map((item) => String(item)) : []
+      };
+    });
 });
 const fieldGroups = computed(() => {
   const groupMap = new Map<string, DynamicFormField[]>();
@@ -181,7 +188,7 @@ function parseJson<T>(value: string | null | undefined, fallback: T): T {
 }
 
 async function loadFormPreview(): Promise<void> {
-  const formCode = currentForm.value?.code;
+  const formCode = currentTask.value?.formCode || currentForm.value?.code;
   if (!formCode) {
     formPreview.value = null;
     formData.value = buildDefaultFormData([]);
@@ -267,6 +274,32 @@ async function submitAction(actionCode: WorkflowActionCode): Promise<void> {
     ElMessage.error(error instanceof Error ? error.message : '提交流程动作失败');
   } finally {
     acting.value = false;
+  }
+}
+
+async function saveCurrentForm(): Promise<void> {
+  if (!detail.value) {
+    return;
+  }
+  if (!canHandle.value) {
+    ElMessage.warning('当前用户没有保存该表单的权限');
+    return;
+  }
+  saving.value = true;
+  try {
+    detail.value = await saveCaseFormData(detail.value.id, {
+      formData: {
+        ...formData.value,
+        handlerOpinion: opinion.value || formData.value.handlerOpinion
+      },
+      opinion: opinion.value || undefined
+    });
+    formData.value = buildDefaultFormData(dynamicFields.value);
+    ElMessage.success('表单已保存，流程未流转');
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '保存表单失败');
+  } finally {
+    saving.value = false;
   }
 }
 
@@ -534,6 +567,9 @@ onMounted(() => {
               :value="option.value"
             />
           </el-select>
+          <el-button :disabled="!canHandle" :loading="saving" @click="saveCurrentForm">
+            保存表单
+          </el-button>
           <el-button
             type="primary"
             :disabled="!canHandle"

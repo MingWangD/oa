@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.judicialappraisal.caseinfo.dto.CaseCreateRequest;
+import com.example.judicialappraisal.caseinfo.dto.CaseFormDataSaveRequest;
 import com.example.judicialappraisal.caseinfo.dto.CaseListResponse;
 import com.example.judicialappraisal.caseinfo.dto.CaseQueryRequest;
 import com.example.judicialappraisal.caseinfo.dto.CaseSubmitRequest;
@@ -20,7 +21,9 @@ import com.example.judicialappraisal.workflow.mapper.CaseTaskCandidateMapper;
 import com.example.judicialappraisal.workflow.mapper.CaseTaskMapper;
 import com.example.judicialappraisal.workflow.service.WorkflowRuntimeService;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import org.springframework.stereotype.Service;
 
@@ -100,6 +103,25 @@ public class CaseInfoService extends ServiceImpl<CaseInfoMapper, CaseInfo> {
         return workflowRuntimeService.submitCase(caseId, toSubmitRequest(request), currentUserId, currentUserName);
     }
 
+    public CaseInfo saveFormData(Long caseId, CaseFormDataSaveRequest request, CurrentUserInfo currentUser) {
+        CaseInfo caseInfo = getDetail(caseId, currentUser);
+        if (!canEditCase(caseInfo, currentUser)) {
+            throw new BusinessException(403, "无权保存该案件表单");
+        }
+        Map<String, Object> incoming = request.formData();
+        if (incoming != null && !incoming.isEmpty()) {
+            Map<String, Object> merged = caseInfo.getFormData() == null
+                    ? new LinkedHashMap<>()
+                    : new LinkedHashMap<>(caseInfo.getFormData());
+            merged.putAll(incoming);
+            caseInfo.setFormData(merged);
+            syncCaseSummaryFields(caseInfo, merged);
+        }
+        caseInfo.setUpdatedBy(currentUser.id());
+        updateById(caseInfo);
+        return baseMapper.selectRawById(caseId);
+    }
+
     private com.example.judicialappraisal.workflow.dto.WorkflowActionRequest toSubmitRequest(CaseSubmitRequest request) {
         com.example.judicialappraisal.common.enums.ActionCode submitCode = com.example.judicialappraisal.common.enums.ActionCode.SUBMIT;
         return new com.example.judicialappraisal.workflow.dto.WorkflowActionRequest(
@@ -172,6 +194,66 @@ public class CaseInfoService extends ServiceImpl<CaseInfoMapper, CaseInfo> {
                         wrapper.or().in(CaseTaskCandidate::getCandidateRoleId, roleIds);
                     }
                 })) > 0;
+    }
+
+    private boolean canEditCase(CaseInfo caseInfo, CurrentUserInfo currentUser) {
+        if (isAdmin(currentUser)) {
+            return true;
+        }
+        Long userId = currentUser.id();
+        if (CaseStatus.DRAFT.name().equals(caseInfo.getCaseStatus())) {
+            return Objects.equals(caseInfo.getCreatedBy(), userId);
+        }
+        if (Objects.equals(caseInfo.getCurrentHandlerId(), userId)) {
+            return true;
+        }
+        List<Long> activeTaskIds = caseTaskMapper.selectList(new LambdaQueryWrapper<CaseTask>()
+                        .eq(CaseTask::getCaseId, caseInfo.getId())
+                        .in(CaseTask::getStatus, "pending", "claimed", "processing"))
+                .stream()
+                .map(CaseTask::getId)
+                .toList();
+        if (activeTaskIds.isEmpty()) {
+            return false;
+        }
+        List<Long> roleIds = currentUser.roles().stream().map(role -> role.id()).filter(Objects::nonNull).toList();
+        return caseTaskCandidateMapper.selectCount(new LambdaQueryWrapper<CaseTaskCandidate>()
+                .eq(CaseTaskCandidate::getCaseId, caseInfo.getId())
+                .in(CaseTaskCandidate::getTaskId, activeTaskIds)
+                .and(wrapper -> {
+                    wrapper.eq(CaseTaskCandidate::getCandidateUserId, userId);
+                    if (!roleIds.isEmpty()) {
+                        wrapper.or().in(CaseTaskCandidate::getCandidateRoleId, roleIds);
+                    }
+                })) > 0;
+    }
+
+    private void syncCaseSummaryFields(CaseInfo caseInfo, Map<String, Object> formData) {
+        String caseNo = firstText(formData, "caseNo", "projectNo");
+        if (hasText(caseNo)) {
+            caseInfo.setCaseNo(caseNo);
+        }
+        String title = firstText(formData, "flowName", "caseTitle", "projectName");
+        if (hasText(title)) {
+            caseInfo.setCaseTitle(title);
+        }
+        String entrustOrgName = firstText(formData, "entrustOrgName", "clientName");
+        if (hasText(entrustOrgName)) {
+            caseInfo.setEntrustOrgName(entrustOrgName);
+        }
+    }
+
+    private String firstText(Map<String, Object> formData, String... keys) {
+        if (formData == null || formData.isEmpty()) {
+            return null;
+        }
+        for (String key : keys) {
+            Object value = formData.get(key);
+            if (value != null && hasText(String.valueOf(value))) {
+                return String.valueOf(value).trim();
+            }
+        }
+        return null;
     }
 
     private CaseListResponse toListResponse(CaseInfo caseInfo) {

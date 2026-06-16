@@ -5,10 +5,14 @@ import com.example.judicialappraisal.caseinfo.entity.CaseInfo;
 import com.example.judicialappraisal.caseinfo.mapper.CaseInfoMapper;
 import com.example.judicialappraisal.common.exception.BusinessException;
 import com.example.judicialappraisal.task.dto.TaskDetailResponse;
+import com.example.judicialappraisal.workflow.entity.CaseSubflowInstance;
 import com.example.judicialappraisal.workflow.entity.CaseTask;
 import com.example.judicialappraisal.workflow.entity.CaseWfInstance;
+import com.example.judicialappraisal.workflow.entity.WfDefinition;
+import com.example.judicialappraisal.workflow.mapper.CaseSubflowInstanceMapper;
 import com.example.judicialappraisal.workflow.mapper.CaseTaskMapper;
 import com.example.judicialappraisal.workflow.mapper.CaseWfInstanceMapper;
+import com.example.judicialappraisal.workflow.mapper.WfDefinitionMapper;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,14 +21,20 @@ public class TaskQueryService {
     private final CaseTaskMapper caseTaskMapper;
     private final CaseWfInstanceMapper caseWfInstanceMapper;
     private final CaseInfoMapper caseInfoMapper;
+    private final CaseSubflowInstanceMapper caseSubflowInstanceMapper;
+    private final WfDefinitionMapper wfDefinitionMapper;
 
     public TaskQueryService(
             CaseTaskMapper caseTaskMapper,
             CaseWfInstanceMapper caseWfInstanceMapper,
-            CaseInfoMapper caseInfoMapper) {
+            CaseInfoMapper caseInfoMapper,
+            CaseSubflowInstanceMapper caseSubflowInstanceMapper,
+            WfDefinitionMapper wfDefinitionMapper) {
         this.caseTaskMapper = caseTaskMapper;
         this.caseWfInstanceMapper = caseWfInstanceMapper;
         this.caseInfoMapper = caseInfoMapper;
+        this.caseSubflowInstanceMapper = caseSubflowInstanceMapper;
+        this.wfDefinitionMapper = wfDefinitionMapper;
     }
 
     public TaskDetailResponse getTaskDetail(Long taskId) {
@@ -49,10 +59,34 @@ public class TaskQueryService {
 
     private TaskDetailResponse toDetail(CaseTask task) {
         CaseInfo caseInfo = caseInfoMapper.selectById(task.getCaseId());
-        CaseWfInstance wfInstance = caseWfInstanceMapper.selectById(task.getWfInstanceId());
         String caseTitle = caseInfo != null ? caseInfo.getCaseTitle() : "";
         String caseNo = caseInfo != null ? caseInfo.getCaseNo() : "";
-        String wfName = wfInstance != null ? wfInstance.getWfName() : "";
+
+        String wfName = "";
+        String formCode = null;
+
+        if (task.getSubflowInstanceId() != null) {
+            CaseSubflowInstance subflow = caseSubflowInstanceMapper.selectById(task.getSubflowInstanceId());
+            if (subflow != null) {
+                wfName = subflow.getWfName();
+                WfDefinition definition = wfDefinitionMapper.selectById(subflow.getWfId());
+                if (definition != null) {
+                    formCode = definition.getFormCode();
+                }
+            }
+        }
+
+        if (wfName == null || wfName.isEmpty()) {
+            CaseWfInstance wfInstance = caseWfInstanceMapper.selectById(task.getWfInstanceId());
+            if (wfInstance != null) {
+                wfName = wfInstance.getWfName();
+                WfDefinition definition = wfDefinitionMapper.selectById(wfInstance.getWfId());
+                if (definition != null) {
+                    formCode = definition.getFormCode();
+                }
+            }
+        }
+
         return new TaskDetailResponse(
                 task.getId(),
                 task.getCaseId(),
@@ -74,6 +108,7 @@ public class TaskQueryService {
                 task.getDeadlineTime(),
                 task.getOvertimeFlag(),
                 task.getResultAction(),
-                task.getResultOpinion());
+                task.getResultOpinion(),
+                formCode);
     }
 }

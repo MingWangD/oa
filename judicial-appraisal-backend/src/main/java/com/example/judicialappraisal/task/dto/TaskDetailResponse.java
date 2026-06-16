@@ -23,5 +23,6 @@ public record TaskDetailResponse(
         LocalDateTime deadlineTime,
         Integer overtimeFlag,
         String resultAction,
-        String resultOpinion
+        String resultOpinion,
+        String formCode
 ) {}

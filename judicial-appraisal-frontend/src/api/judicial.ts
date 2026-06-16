@@ -142,6 +142,7 @@ export interface TaskDetail {
   overtimeFlag: number | null;
   resultAction: string | null;
   resultOpinion: string | null;
+  formCode: string | null;
 }
 
 export interface CaseItem {
@@ -234,6 +235,11 @@ export interface WorkflowActionPayload {
   assigneeName?: string;
   formData?: Record<string, unknown>;
   fileIds?: number[];
+}
+
+export interface CaseFormDataSavePayload {
+  formData: Record<string, unknown>;
+  opinion?: string;
 }
 
 export interface WorkflowActionResult {
@@ -730,6 +736,10 @@ export function fetchCaseDetail(caseId: number): Promise<CaseDetail> {
 
 export function createCaseDraft(payload: CaseDraftPayload): Promise<CaseDetail> {
   return post<CaseDetail>('/cases', payload);
+}
+
+export function saveCaseFormData(caseId: number, payload: CaseFormDataSavePayload): Promise<CaseDetail> {
+  return put<CaseDetail>(`/cases/${caseId}/form-data`, payload);
 }
 
 export function deleteCaseDraft(caseId: number): Promise<void> {
