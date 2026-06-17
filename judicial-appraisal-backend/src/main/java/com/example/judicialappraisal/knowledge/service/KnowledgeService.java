@@ -165,7 +165,6 @@ public class KnowledgeService {
             throw new BusinessException("案件不存在");
         }
         KnowledgeDirectory directory = ensureCaseDirectory(caseInfo);
-        Integer nextVersion = nextDocumentVersion(request);
         Long fileId = request.fileIds() == null || request.fileIds().isEmpty() ? null : request.fileIds().get(request.fileIds().size() - 1);
         String formSnapshot = toJson(request.formData() == null ? Map.of() : request.formData());
         if (fileId == null && request.formData() != null && !request.formData().isEmpty()) {
@@ -183,28 +182,55 @@ public class KnowledgeService {
         archiveResultMap.put("summary", valueOrEmpty(request.archiveSummary()));
         String archiveResult = toJson(archiveResultMap);
 
-        KnowledgeDocument document = new KnowledgeDocument();
-        document.setDirectoryId(directory.getId());
-        document.setCaseId(request.caseId());
-        document.setTitle(request.title() == null || request.title().isBlank() ? defaultArchiveTitle(caseInfo, request) : request.title());
-        document.setArtifactCode(request.artifactCode());
-        document.setSourceType(SOURCE_ARCHIVE);
-        document.setWfInstanceId(request.wfInstanceId());
-        document.setNodeCode(request.nodeCode());
-        document.setNodeName(request.nodeName());
-        document.setTaskId(request.taskId());
-        document.setCurrentFileId(fileId);
-        document.setCurrentVersionNo(nextVersion);
-        document.setFormSnapshotJson(formSnapshot);
-        document.setArchiveResultJson(archiveResult);
-        document.setStatus("active");
+        KnowledgeDocument document = null;
+        if (request.artifactCode() != null && !request.artifactCode().isBlank()) {
+            document = documentMapper.selectOne(new LambdaQueryWrapper<KnowledgeDocument>()
+                    .eq(KnowledgeDocument::getCaseId, request.caseId())
+                    .eq(KnowledgeDocument::getArtifactCode, request.artifactCode())
+                    .eq(KnowledgeDocument::getDeleted, 0)
+                    .last("limit 1"));
+        } else if (request.nodeCode() != null && !request.nodeCode().isBlank()) {
+            document = documentMapper.selectOne(new LambdaQueryWrapper<KnowledgeDocument>()
+                    .eq(KnowledgeDocument::getCaseId, request.caseId())
+                    .eq(KnowledgeDocument::getNodeCode, request.nodeCode())
+                    .eq(KnowledgeDocument::getDeleted, 0)
+                    .last("limit 1"));
+        }
+
+        int nextVersion = 1;
         CurrentUserInfo user = currentUserOrNull();
-        document.setCreatedBy(user == null ? null : user.id());
-        document.setUpdatedBy(user == null ? null : user.id());
-        document.setCreatedTime(LocalDateTime.now());
-        document.setUpdatedTime(LocalDateTime.now());
-        document.setDeleted(0);
-        documentMapper.insert(document);
+        if (document != null) {
+            nextVersion = document.getCurrentVersionNo() + 1;
+            document.setCurrentFileId(fileId);
+            document.setCurrentVersionNo(nextVersion);
+            document.setFormSnapshotJson(formSnapshot);
+            document.setArchiveResultJson(archiveResult);
+            document.setUpdatedBy(user == null ? null : user.id());
+            document.setUpdatedTime(LocalDateTime.now());
+            documentMapper.updateById(document);
+        } else {
+            document = new KnowledgeDocument();
+            document.setDirectoryId(directory.getId());
+            document.setCaseId(request.caseId());
+            document.setTitle(request.title() == null || request.title().isBlank() ? defaultArchiveTitle(caseInfo, request) : request.title());
+            document.setArtifactCode(request.artifactCode());
+            document.setSourceType(SOURCE_ARCHIVE);
+            document.setWfInstanceId(request.wfInstanceId());
+            document.setNodeCode(request.nodeCode());
+            document.setNodeName(request.nodeName());
+            document.setTaskId(request.taskId());
+            document.setCurrentFileId(fileId);
+            document.setCurrentVersionNo(nextVersion);
+            document.setFormSnapshotJson(formSnapshot);
+            document.setArchiveResultJson(archiveResult);
+            document.setStatus("active");
+            document.setCreatedBy(user == null ? null : user.id());
+            document.setUpdatedBy(user == null ? null : user.id());
+            document.setCreatedTime(LocalDateTime.now());
+            document.setUpdatedTime(LocalDateTime.now());
+            document.setDeleted(0);
+            documentMapper.insert(document);
+        }
 
         KnowledgeDocumentVersion version = new KnowledgeDocumentVersion();
         version.setDocumentId(document.getId());
