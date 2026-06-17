@@ -24,5 +24,6 @@ public record TaskDetailResponse(
         Integer overtimeFlag,
         String resultAction,
         String resultOpinion,
-        String formCode
+        String formCode,
+        String formRuleJson
 ) {}

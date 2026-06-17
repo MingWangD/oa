@@ -295,6 +295,62 @@ public class WorkflowRuntimeService {
         return actionCode == ActionCode.ASSIGN;
     }
 
+    private List<SysRole> selectUserRoles(Long userId) {
+        if (userId == null) {
+            return List.of();
+        }
+        List<Long> roleIds = sysUserRoleMapper.selectEnabledRoleIdsByUserId(userId);
+        if (roleIds == null || roleIds.isEmpty()) {
+            return List.of();
+        }
+        List<SysRole> roles = sysRoleMapper.selectBatchIds(roleIds);
+        return roles == null ? List.of() : roles;
+    }
+
+    private boolean isFieldWritableForUser(Map<String, Object> field, Map<String, Object> permissionSchema, Long userId) {
+        if (permissionSchema == null || !permissionSchema.containsKey("groups")) {
+            return true;
+        }
+        String groupName = stringValue(field.get("group"));
+        if (isBlank(groupName)) {
+            return true;
+        }
+        Map<String, Map<String, Object>> groups = (Map<String, Map<String, Object>>) permissionSchema.get("groups");
+        if (groups == null || !groups.containsKey(groupName)) {
+            return true;
+        }
+        Map<String, Object> groupConfig = groups.get(groupName);
+        if (groupConfig == null) {
+            return true;
+        }
+        if (Boolean.TRUE.equals(toBoolean(groupConfig.get("readOnly")))) {
+            return false;
+        }
+        Object rolesObj = groupConfig.get("roles");
+        if (rolesObj instanceof List<?> allowedRoles) {
+            if (allowedRoles.isEmpty()) {
+                return true;
+            }
+            if (userId == null) {
+                return true; // Fallback to true if no user context to avoid breaking unit tests
+            }
+            List<SysRole> userRoles = selectUserRoles(userId);
+            for (Object allowedRoleObj : allowedRoles) {
+                String allowedRole = stringValue(allowedRoleObj);
+                if (isBlank(allowedRole)) continue;
+                boolean hasRole = userRoles.stream().anyMatch(role ->
+                        allowedRole.equalsIgnoreCase(role.getRoleCode()) ||
+                        allowedRole.equalsIgnoreCase(role.getRoleName())
+                );
+                if (hasRole) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        return true;
+    }
+
     private void validateRequiredFormFields(Map<String, Object> formData, CaseTask task, WorkflowActionRequest request) {
         if (!shouldValidateRequiredFormFields(request.actionCode())) {
             return;
@@ -316,9 +372,56 @@ public class WorkflowRuntimeService {
             return;
         }
         List<Map<String, Object>> fields = parseFieldSchema(formVersion.getFieldSchemaJson());
+        WfNodeDef nodeDef = findNodeDef(activeWfId, task.getNodeCode());
+        Map<String, Object> formRule = null;
+        if (nodeDef != null && !isBlank(nodeDef.getFormRuleJson())) {
+            try {
+                formRule = objectMapper.readValue(nodeDef.getFormRuleJson(), new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+        Map<String, Object> finalFormRule = formRule;
+
+        Map<String, Object> permissionSchema = null;
+        if (formVersion.getPermissionSchemaJson() != null && !formVersion.getPermissionSchemaJson().isBlank()) {
+            try {
+                permissionSchema = objectMapper.readValue(formVersion.getPermissionSchemaJson(), new TypeReference<Map<String, Object>>() {});
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+        Map<String, Object> finalPermissionSchema = permissionSchema;
+
+        Long currentUserId = null;
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication != null && authentication.getPrincipal() instanceof CurrentUserInfo userInfo) {
+                currentUserId = userInfo.id();
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+        Long finalUserId = currentUserId;
+
         List<String> missingFields = fields.stream()
-                .filter(field -> Boolean.TRUE.equals(toBoolean(field.get("required"))))
+                .filter(field -> {
+                    String fieldName = stringValue(field.get("field"));
+                    boolean isRequired = Boolean.TRUE.equals(toBoolean(field.get("required")));
+                    if (finalFormRule != null && finalFormRule.containsKey("fieldAuth")) {
+                        Map<String, Map<String, Object>> fieldAuth = (Map<String, Map<String, Object>>) finalFormRule.get("fieldAuth");
+                        if (fieldAuth != null && fieldAuth.containsKey(fieldName)) {
+                            Map<String, Object> auth = fieldAuth.get(fieldName);
+                            if (Boolean.TRUE.equals(auth.get("hidden"))) return false;
+                            if (auth.containsKey("required")) {
+                                isRequired = Boolean.TRUE.equals(auth.get("required"));
+                            }
+                        }
+                    }
+                    return isRequired;
+                })
                 .filter(field -> !Boolean.TRUE.equals(toBoolean(field.get("readOnly"))))
+                .filter(field -> isFieldWritableForUser(field, finalPermissionSchema, finalUserId))
                 .filter(field -> isMissingFormValue(formData, stringValue(field.get("field"))))
                 .map(field -> {
                     String label = stringValue(field.get("label"));

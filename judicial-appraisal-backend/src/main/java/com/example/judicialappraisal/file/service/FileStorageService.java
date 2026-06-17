@@ -134,6 +134,42 @@ public class FileStorageService {
         }
     }
 
+    @Transactional
+    public Long uploadInternal(String originalName, String contentType, byte[] bytes) {
+        try {
+            String ext = fileExt(originalName);
+            ensureBucket();
+            String objectName = LocalDateTime.now().toLocalDate() + "/" + UUID.randomUUID() + (ext.isBlank() ? "" : "." + ext);
+            String md5 = md5(bytes);
+
+            minioClient.putObject(PutObjectArgs.builder()
+                    .bucket(bucket)
+                    .object(objectName)
+                    .contentType(contentType)
+                    .stream(new ByteArrayInputStream(bytes), bytes.length, -1)
+                    .build());
+
+            CurrentUserInfo user = currentUserOrNull();
+            SysFile file = new SysFile();
+            file.setOriginalName(originalName);
+            file.setFileName(objectName.substring(objectName.lastIndexOf('/') + 1));
+            file.setFileExt(ext);
+            file.setContentType(contentType);
+            file.setFileSize((long) bytes.length);
+            file.setStorageBucket(bucket);
+            file.setStorageKey(objectName);
+            file.setMd5(md5);
+            file.setUploadUserId(user == null ? null : user.id());
+            file.setUploadUserName(user == null ? "system" : user.realName());
+            file.setCreatedTime(LocalDateTime.now());
+            file.setDeleted(0);
+            sysFileMapper.insert(file);
+            return file.getId();
+        } catch (Exception ex) {
+            throw new BusinessException("内部文件生成失败：" + ex.getMessage());
+        }
+    }
+
     public FileContent download(Long fileId) {
         SysFile file = requireFile(fileId);
         FileContent content = loadContent(file, false, false);

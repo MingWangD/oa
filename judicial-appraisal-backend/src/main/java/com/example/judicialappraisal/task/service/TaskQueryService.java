@@ -9,10 +9,12 @@ import com.example.judicialappraisal.workflow.entity.CaseSubflowInstance;
 import com.example.judicialappraisal.workflow.entity.CaseTask;
 import com.example.judicialappraisal.workflow.entity.CaseWfInstance;
 import com.example.judicialappraisal.workflow.entity.WfDefinition;
+import com.example.judicialappraisal.workflow.entity.WfNodeDef;
 import com.example.judicialappraisal.workflow.mapper.CaseSubflowInstanceMapper;
 import com.example.judicialappraisal.workflow.mapper.CaseTaskMapper;
 import com.example.judicialappraisal.workflow.mapper.CaseWfInstanceMapper;
 import com.example.judicialappraisal.workflow.mapper.WfDefinitionMapper;
+import com.example.judicialappraisal.workflow.mapper.WfNodeDefMapper;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -23,18 +25,21 @@ public class TaskQueryService {
     private final CaseInfoMapper caseInfoMapper;
     private final CaseSubflowInstanceMapper caseSubflowInstanceMapper;
     private final WfDefinitionMapper wfDefinitionMapper;
+    private final WfNodeDefMapper wfNodeDefMapper;
 
     public TaskQueryService(
             CaseTaskMapper caseTaskMapper,
             CaseWfInstanceMapper caseWfInstanceMapper,
             CaseInfoMapper caseInfoMapper,
             CaseSubflowInstanceMapper caseSubflowInstanceMapper,
-            WfDefinitionMapper wfDefinitionMapper) {
+            WfDefinitionMapper wfDefinitionMapper,
+            WfNodeDefMapper wfNodeDefMapper) {
         this.caseTaskMapper = caseTaskMapper;
         this.caseWfInstanceMapper = caseWfInstanceMapper;
         this.caseInfoMapper = caseInfoMapper;
         this.caseSubflowInstanceMapper = caseSubflowInstanceMapper;
         this.wfDefinitionMapper = wfDefinitionMapper;
+        this.wfNodeDefMapper = wfNodeDefMapper;
     }
 
     public TaskDetailResponse getTaskDetail(Long taskId) {
@@ -76,14 +81,28 @@ public class TaskQueryService {
             }
         }
 
+        String formRuleJson = null;
+        Long wfId = null;
+        
         if (wfName == null || wfName.isEmpty()) {
             CaseWfInstance wfInstance = caseWfInstanceMapper.selectById(task.getWfInstanceId());
             if (wfInstance != null) {
                 wfName = wfInstance.getWfName();
+                wfId = wfInstance.getWfId();
                 WfDefinition definition = wfDefinitionMapper.selectById(wfInstance.getWfId());
                 if (definition != null) {
                     formCode = definition.getFormCode();
                 }
+            }
+        }
+        
+        if (wfId != null && task.getNodeCode() != null) {
+            WfNodeDef nodeDef = wfNodeDefMapper.selectOne(new LambdaQueryWrapper<WfNodeDef>()
+                    .eq(WfNodeDef::getWfId, wfId)
+                    .eq(WfNodeDef::getNodeCode, task.getNodeCode())
+                    .last("limit 1"));
+            if (nodeDef != null) {
+                formRuleJson = nodeDef.getFormRuleJson();
             }
         }
 
@@ -109,6 +128,7 @@ public class TaskQueryService {
                 task.getOvertimeFlag(),
                 task.getResultAction(),
                 task.getResultOpinion(),
-                formCode);
+                formCode,
+                formRuleJson);
     }
 }

@@ -143,6 +143,7 @@ export interface TaskDetail {
   resultAction: string | null;
   resultOpinion: string | null;
   formCode: string | null;
+  formRuleJson: string | null;
 }
 
 export interface CaseItem {
@@ -684,6 +685,10 @@ export function changePassword(payload: ChangePasswordPayload): Promise<void> {
 
 export function fetchAdminUsers(keyword?: string): Promise<AdminUser[]> {
   return get<AdminUser[]>('/admin/users', { keyword });
+}
+
+export function fetchUserOptions(): Promise<AdminUser[]> {
+  return get<AdminUser[]>('/admin/users/options');
 }
 
 export function fetchAdminRoles(): Promise<AdminRole[]> {

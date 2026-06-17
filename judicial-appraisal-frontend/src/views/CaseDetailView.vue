@@ -13,13 +13,15 @@ import {
   saveCaseFormData,
   submitWorkflowAction,
   uploadWorkflowFile,
+  fetchUserOptions,
   type CaseDetail,
   type CaseSubflowSummary,
   type FileUploadResponse,
   type FormVersionDesign,
   type JudicialFormDefinition,
   type TaskDetail,
-  type WorkflowActionCode
+  type WorkflowActionCode,
+  type AdminUser
 } from '../api/judicial';
 import { useAuthStore } from '../stores/auth';
 
@@ -44,6 +46,7 @@ const subflows = ref<CaseSubflowSummary[]>([]);
 const forms = ref<JudicialFormDefinition[]>([]);
 const currentTask = ref<TaskDetail | null>(null);
 const formPreview = ref<FormVersionDesign | null>(null);
+const userOptions = ref<AdminUser[]>([]);
 const formData = ref<Record<string, unknown>>({});
 const uploadedFiles = ref<FileUploadResponse[]>([]);
 const opinion = ref('');
@@ -59,6 +62,20 @@ const readonlyMode = computed(() => pageMode.value === 'readonly' || route.query
 const hasEntrustOrg = computed(() => Boolean(detail.value?.entrustOrgName));
 const hasStatus = computed(() => Boolean(detail.value?.caseStatus));
 const isDraftCase = computed(() => detail.value?.caseStatus === 'DRAFT');
+
+const getCandidateUsers = (fieldKey: string) => {
+  let requiredRole = '';
+  if (fieldKey === 'departmentHeadId') requiredRole = 'DEPT_LEADER';
+  else if (fieldKey === 'projectLeaderId') requiredRole = 'PROJECT_LEADER';
+  else if (fieldKey === 'projectAssistantId') requiredRole = 'PROJECT_ASSISTANT';
+
+  if (!requiredRole) return userOptions.value;
+
+  return userOptions.value.filter(u => 
+    u.roles && u.roles.some((r: any) => r.roleCode === requiredRole)
+  );
+};
+
 const canHandle = computed(() => {
   if (!detail.value) {
     return false;
@@ -77,21 +94,76 @@ const currentForm = computed(() => {
     ?? forms.value.find((form) => current.caseType?.includes(form.name) || form.name.includes(current.caseType ?? ''))
     ?? null;
 });
+
+const formRule = computed(() => {
+  if (!currentTask.value?.formRuleJson) {
+    return {};
+  }
+  return parseJson<Record<string, any>>(currentTask.value.formRuleJson, {});
+});
+
 const dynamicFields = computed<DynamicFormField[]>(() => {
   const fields = parseJson<Array<Record<string, unknown>>>(formPreview.value?.fieldSchemaJson, []);
+  const fieldAuth = formRule.value?.fieldAuth || {};
+  const permissionSchema = parseJson<{ groups?: Record<string, { readOnly?: boolean; roles?: string[] }> }>(
+    formPreview.value?.permissionSchemaJson,
+    {}
+  );
+
   return fields
     .filter((field) => {
       const key = String(field.field || field.code || '');
+      const auth = fieldAuth[key] || {};
+      if (auth.hidden) {
+        return false;
+      }
+      if (isDraftCase.value && (field.group === '流程基础' || field.group === '受理决策')) {
+        return false;
+      }
       return key !== 'handlerOpinion';
     })
     .map((field, index) => {
-      const isReadonly = Boolean(field.readOnly ?? field.readonly);
+      const key = String(field.field || field.code || `field_${index + 1}`);
+      const auth = fieldAuth[key] || {};
+      let isReadonly = Boolean(field.readOnly ?? field.readonly);
+      if (auth.readonly !== undefined) {
+        isReadonly = Boolean(auth.readonly);
+      }
+
+      // Check group-level permissions (e.g., role restrictions)
+      const groupName = String(field.group || '');
+      const groupConfig = permissionSchema?.groups?.[groupName];
+      if (groupConfig) {
+        if (groupConfig.readOnly) {
+          isReadonly = true;
+        }
+        if (groupConfig.roles && groupConfig.roles.length > 0) {
+          const userRoles = authStore.user?.roles || [];
+          const hasRole = groupConfig.roles.some((roleName) =>
+            userRoles.some(
+              (r: any) =>
+                r.roleName === roleName ||
+                r.roleCode === roleName ||
+                r.name === roleName ||
+                r.code === roleName
+            )
+          );
+          if (!hasRole && !authStore.isAdmin) {
+            isReadonly = true;
+          }
+        }
+      }
+
+      let isRequired = Boolean(field.required);
+      if (auth.required !== undefined) {
+        isRequired = Boolean(auth.required);
+      }
       return {
-        key: String(field.field || field.code || `field_${index + 1}`),
+        key,
         label: String(field.label || field.name || field.field || `字段 ${index + 1}`),
         type: String(field.type || 'text'),
         group: String(field.group || '基础信息'),
-        required: Boolean(field.required),
+        required: isRequired,
         readonly: isReadonly,
         options: Array.isArray(field.options) ? field.options.map((item) => String(item)) : []
       };
@@ -157,14 +229,16 @@ async function loadDetail(): Promise<void> {
   }
   loading.value = true;
   try {
-    const [caseDetail, caseSubflows, catalog] = await Promise.all([
+    const [caseDetail, caseSubflows, catalog, users] = await Promise.all([
       fetchCaseDetail(caseId.value),
       fetchCaseSubflows(caseId.value).catch(() => []),
-      fetchJudicialCatalog()
+      fetchJudicialCatalog(),
+      fetchUserOptions().catch(() => [])
     ]);
     detail.value = caseDetail;
     subflows.value = caseSubflows;
     forms.value = catalog.forms;
+    userOptions.value = users;
     currentTask.value = await loadCurrentTask(caseDetail);
     selectedTransition.value = currentTask.value ? 'APPROVE' : 'SUBMIT';
     uploadedFiles.value = [];
@@ -340,6 +414,46 @@ function missingRequiredFields(actionCode: WorkflowActionCode): string[] {
     .map((field) => field.label);
 }
 
+const nodeNameMap: Record<string, string> = {
+  'QUALITY_CONTROL': '编制内部质量控制文件',
+  'PAYMENT_NOTICE': '发交费通知',
+  'PRELIMINARY_SURVEY': '初步勘验',
+  'FIELD_SURVEY': '现场勘验',
+  'MATERIAL_RECEIVE_RETURN': '材料接收与返还',
+  'DRAFT_OPINION_REVIEW': '征求意见稿送审稿编制',
+  'FINAL_OPINION_REVIEW': '送审稿编制',
+  'ISSUE_OPINION': '出具鉴定意见书',
+  'ISSUE_DRAFT_OPINION': '出具征求意见稿',
+  'REFUND': '退费',
+  'TERMINATE_APPRAISAL': '终止鉴定',
+  'SEAL_APPLICATION': '用章流程',
+  'REJECT_ACCEPTANCE': '不予受理',
+  'ARCHIVE': '归档',
+  'COURT_LETTER': '收到法院其他函件',
+  'COURT_APPEARANCE': '收到出庭通知',
+  'WITHDRAW_CASE_LETTER': '收到撤案函',
+  'EXPENSE_REIMBURSEMENT': '财务报销',
+  'CASE_SUSPENSION': '案件暂停'
+};
+
+function formatParentNode(code: string | null): string {
+  if (!code) return '-';
+  const cleanCode = code.toUpperCase();
+  return nodeNameMap[cleanCode] || code;
+}
+
+function formatCaseStatus(status?: string | null): string {
+  if (!status) return '-';
+  const map: Record<string, string> = {
+    'DRAFT': '草稿',
+    'PROCESSING': '办理中',
+    'COMPLETED': '已完成',
+    'ARCHIVED': '已归档',
+    'TERMINATED': '已终止'
+  };
+  return map[status] || status;
+}
+
 async function goBack(): Promise<void> {
   if (returnPath.value) {
     await router.push(returnPath.value);
@@ -416,7 +530,7 @@ onMounted(() => {
           <el-descriptions-item label="案件名称">{{ detail.caseTitle || '-' }}</el-descriptions-item>
           <el-descriptions-item label="案件编号">{{ detail.caseNo || '-' }}</el-descriptions-item>
           <el-descriptions-item label="案件类型">{{ detail.caseType || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="状态">{{ detail.caseStatus || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="状态">{{ formatCaseStatus(detail.caseStatus) }}</el-descriptions-item>
           <el-descriptions-item label="委托单位">{{ detail.entrustOrgName || '-' }}</el-descriptions-item>
           <el-descriptions-item label="受理部门">{{ detail.acceptDeptName || '-' }}</el-descriptions-item>
           <el-descriptions-item label="提交时间">{{ formatDateTime(detail.submittedTime) }}</el-descriptions-item>
@@ -443,7 +557,9 @@ onMounted(() => {
               <el-form-item
                 v-for="field in group.fields"
                 :key="field.key"
-                :label="field.required ? `${field.label} *` : field.label"
+                :label="field.label"
+                :required="field.required && !field.readonly"
+                :class="{'highlight-required': field.required && !field.readonly}"
               >
                 <el-input
                   v-if="field.type === 'textarea'"
@@ -488,11 +604,25 @@ onMounted(() => {
                   :controls="false"
                   class="number-field"
                 />
+                <el-select
+                  v-else-if="field.type === 'user'"
+                  v-model="formData[field.key]"
+                  :disabled="field.readonly || !canHandle"
+                  filterable
+                  clearable
+                  placeholder="请选择办理人"
+                >
+                  <el-option
+                    v-for="user in getCandidateUsers(field.key)"
+                    :key="user.id"
+                    :label="user.realName || user.username"
+                    :value="user.id"
+                  />
+                </el-select>
                 <el-input
                   v-else
                   v-model="formData[field.key]"
                   :readonly="field.readonly"
-                  :placeholder="field.type === 'user' ? '请选择或填写办理人' : undefined"
                 />
               </el-form-item>
             </div>
@@ -527,8 +657,16 @@ onMounted(() => {
         </div>
         <el-table :data="subflows" border empty-text="暂无已触发子流程">
           <el-table-column prop="wfName" label="流程名称" min-width="180" />
-          <el-table-column prop="status" label="状态" width="120" />
-          <el-table-column prop="parentNodeCode" label="父节点" width="140" />
+          <el-table-column prop="status" label="状态" width="120">
+            <template #default="{ row }">
+              {{ formatCaseStatus(row.caseStatus) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="父节点" width="180">
+            <template #default="{ row }">
+              {{ formatParentNode(row.parentNodeCode) }}
+            </template>
+          </el-table-column>
           <el-table-column label="发起时间" width="180">
             <template #default="scope">{{ formatDateTime(scope.row.startedTime) }}</template>
           </el-table-column>
@@ -576,7 +714,7 @@ onMounted(() => {
             :loading="acting"
             @click="submitAction(selectedTransition)"
           >
-            提交流转
+            {{ isDraftCase ? '草稿转正' : '提交流转' }}
           </el-button>
           <el-button :disabled="!canHandle" :loading="acting" @click="submitAction('RETURN')">退回</el-button>
           <el-button type="danger" plain :disabled="!canHandle" :loading="acting" @click="submitAction('TERMINATE')">
@@ -746,6 +884,21 @@ onMounted(() => {
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 10px;
+}
+
+.highlight-required :deep(.el-input__inner),
+.highlight-required :deep(.el-input__wrapper),
+.highlight-required :deep(.el-textarea__inner),
+.highlight-required :deep(.el-textarea__wrapper),
+.highlight-required :deep(.el-select__wrapper) {
+  background-color: #fff2f0 !important;
+  box-shadow: 0 0 0 1px #ffccc7 inset !important;
+}
+
+.highlight-required :deep(.el-form-item__label::before) {
+  color: var(--el-color-danger) !important;
+  font-size: 1.2em;
+  font-weight: bold;
 }
 
 .uploaded-file-list span {

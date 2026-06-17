@@ -144,7 +144,6 @@ public class JudicialConfigImportService {
                 toJson(form.versionedArtifacts()),
                 toJson(List.of(
                         Map.of("field", "caseNo", "label", "案件编号", "type", "text", "required", true),
-                        Map.of("field", "handlerOpinion", "label", "办理意见", "type", "textarea", "required", false),
                         Map.of("field", "result", "label", "办理结果", "type", "select", "options", List.of("通过", "退回", "终止", "归档"))
                 )),
                 toJson(Map.of("layout", "two-column", "sections", List.of("基础信息", "输入文件", "输出文件", "办理意见"))),
@@ -316,8 +315,7 @@ public class JudicialConfigImportService {
                 field("materialReceiveRequired", "是否同步收案员材料接收", "boolean", "受理决策", false, false),
                 field("departmentHeadId", "部门负责人", "user", "受理决策", false, false),
                 field("projectLeaderId", "指定项目负责人", "user", "受理决策", false, false),
-                field("projectAssistantId", "指定项目辅助人", "user", "受理决策", false, false),
-                field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
+                field("projectAssistantId", "指定项目辅助人", "user", "受理决策", false, false)
         );
         return new FormDesignRequest(
                 form.code(),
@@ -361,10 +359,24 @@ public class JudicialConfigImportService {
     }
 
     private WorkflowDesignRequest receivedEntrustWorkflowRequest(JudicialWorkflowDefinitionDto workflow) {
+        Map<String, Object> initFieldAuth = Map.ofEntries(
+            Map.entry("serialNo", Map.of("hidden", true)),
+            Map.entry("flowName", Map.of("hidden", true)),
+            Map.entry("initiatorName", Map.of("hidden", true)),
+            Map.entry("initiatedDate", Map.of("hidden", true)),
+            Map.entry("projectNo", Map.of("hidden", true)),
+            Map.entry("entrustAccepted", Map.of("required", false, "hidden", true)),
+            Map.entry("preliminarySurveyRequired", Map.of("required", false, "hidden", true)),
+            Map.entry("materialReceiveRequired", Map.of("required", false, "hidden", true)),
+            Map.entry("departmentHeadId", Map.of("required", false, "hidden", true)),
+            Map.entry("projectLeaderId", Map.of("required", false, "hidden", true)),
+            Map.entry("projectAssistantId", Map.of("required", false, "hidden", true))
+        );
+
         List<WorkflowNodeRequest> nodes = List.of(
                 node("START", "开始", "start", "single", null, 0, 0, false, null, 0),
-                node("INIT_FILL", "发起者填写委托信息", "task", "candidate", "收案员", 1, 24, true, workflow.formCode(), 10),
-                node("CLERK_REGISTER", "收案员登记", "task", "candidate", "收案员", 1, 24, true, workflow.formCode(), 20),
+                nodeWithFieldAuth("INIT_FILL", "发起者填写委托信息", "task", "candidate", "收案员", 1, 24, true, workflow.formCode(), 10, initFieldAuth),
+                nodeWithFieldAuth("CLERK_REGISTER", "收案员登记", "task", "candidate", "收案员", 1, 24, true, workflow.formCode(), 20, initFieldAuth),
                 node("DEPT_REVIEW", "部门负责人审阅", "task", "candidate", "部门负责人", 1, 48, true, workflow.formCode(), 30),
                 node("PROJECT_DECISION", "项目负责人决策", "task", "candidate", "项目负责人", 1, 48, true, workflow.formCode(), 40),
                 node("ASSISTANT_NOTICE", "告知项目辅助人", "task", "candidate", "项目辅助人", 0, 24, true, workflow.formCode(), 50),
@@ -433,8 +445,7 @@ public class JudicialConfigImportService {
                 field("surveySummary", "初步勘验情况", "textarea", "勘验结论", false, false),
                 field("appraisalConditionMet", "是否具备鉴定条件", "boolean", "勘验结论", false, false),
                 field("nextRecommendation", "下一步建议", "select", "勘验结论", false, false,
-                        List.of("发交费通知书及相关函件", "终止鉴定")),
-                field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
+                        List.of("发交费通知书及相关函件", "终止鉴定"))
         );
         return new FormDesignRequest(
                 form.code(),
@@ -539,8 +550,7 @@ public class JudicialConfigImportService {
                 field("paymentReceived", "是否已缴费", "boolean", "寄送与确认", true, false),
                 field("paymentConfirmedDate", "缴费确认日期", "date", "寄送与确认", false, false),
                 field("nextRecommendation", "下一步建议", "select", "寄送与确认", true, false,
-                        List.of("编制内部质量控制文件", "终止鉴定")),
-                field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
+                        List.of("编制内部质量控制文件", "终止鉴定"))
         );
         return new FormDesignRequest(
                 form.code(),
@@ -661,8 +671,7 @@ public class JudicialConfigImportService {
                 field("sealRequired", "是否需要用章", "boolean", "用章与回传", true, false),
                 field("sealedQualityFileUploaded", "内部质量控制文件盖章件已上传", "boolean", "用章与回传", true, false),
                 field("nextRecommendation", "下一步建议", "select", "后续流程", true, false,
-                        List.of("现场勘验", "材料接收与返还", "鉴定意见书征求意见稿送审稿编制", "鉴定意见书送审稿编制", "退费", "终止鉴定")),
-                field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
+                        List.of("现场勘验", "材料接收与返还", "鉴定意见书征求意见稿送审稿编制", "鉴定意见书送审稿编制", "退费", "终止鉴定"))
         );
         return new FormDesignRequest(
                 form.code(),
@@ -814,8 +823,7 @@ public class JudicialConfigImportService {
                 field("projectMaterialReviewPassed", "项目负责人材料审核通过", "boolean", "项目负责人审核材料", true, false),
                 field("materialReviewOpinion", "材料审核意见", "textarea", "项目负责人审核材料", false, false),
                 field("nextRecommendation", "下一步建议", "select", "后续流程", true, false,
-                        List.of("材料接收与返还", "鉴定意见书征求意见稿送审稿编制", "鉴定意见书送审稿编制", "退费", "终止鉴定")),
-                field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
+                        List.of("材料接收与返还", "鉴定意见书征求意见稿送审稿编制", "鉴定意见书送审稿编制", "退费", "终止鉴定"))
         );
         return new FormDesignRequest(
                 form.code(),
@@ -958,8 +966,7 @@ public class JudicialConfigImportService {
                 field("deliveryMethod", "送达方式", "select", "送达与归档", false, false,
                         List.of("邮寄", "现场领取", "电子送达", "其他")),
                 field("deliveryDate", "送达日期", "date", "送达与归档", false, false),
-                field("archiveConfirmed", "归档材料已确认", "boolean", "送达与归档", false, false),
-                field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
+                field("archiveConfirmed", "归档材料已确认", "boolean", "送达与归档", false, false)
         );
         return new FormDesignRequest(
                 form.code(),
@@ -1084,8 +1091,7 @@ public class JudicialConfigImportService {
                 field("returnReceiver", "返还接收人", "text", "材料返还", false, false),
                 field("returnDate", "返还时间", "date", "材料返还", false, false),
                 field("nextRecommendation", "下一步建议", "select", "后续流程", true, false,
-                        List.of("鉴定意见书征求意见稿送审稿编制", "鉴定意见书送审稿编制", "退费", "终止鉴定")),
-                field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
+                        List.of("鉴定意见书征求意见稿送审稿编制", "鉴定意见书送审稿编制", "退费", "终止鉴定"))
         );
         return new FormDesignRequest(
                 form.code(),
@@ -1230,8 +1236,7 @@ public class JudicialConfigImportService {
                 field("departmentReviewPassed", "部门负责人审核通过", "boolean", "部门负责人审核", false, false),
                 field("finalDraftUploaded", "征求意见稿送审稿定稿已上传", "boolean", "定稿上传", false, false),
                 field("nextRecommendation", "下一步建议", "select", "后续流程", false, false,
-                        List.of("出具征求意见稿")),
-                field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
+                        List.of("出具征求意见稿"))
         );
         return new FormDesignRequest(
                 form.code(),
@@ -1344,8 +1349,7 @@ public class JudicialConfigImportService {
                 field("versionABCUploaded", "版本A-B-C已上传", "boolean", "部门负责人审核", false, false),
                 field("finalDraftUploaded", "最终送审稿已上传", "boolean", "定稿上传", false, false),
                 field("nextRecommendation", "下一步建议", "select", "后续流程", false, false,
-                        List.of("出具鉴定意见书")),
-                field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
+                        List.of("出具鉴定意见书"))
         );
         return new FormDesignRequest(
                 form.code(),
@@ -1465,8 +1469,7 @@ public class JudicialConfigImportService {
                 field("deliveryMethod", "送达方式", "select", "送达", true, false,
                         List.of("邮寄", "现场领取", "电子送达", "其他")),
                 field("deliveryDate", "送达日期", "date", "送达", false, false),
-                field("archiveConfirmed", "归档材料已确认", "boolean", "归档", false, false),
-                field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
+                field("archiveConfirmed", "归档材料已确认", "boolean", "归档", false, false)
         );
         return new FormDesignRequest(
                 form.code(),
@@ -1600,8 +1603,7 @@ public class JudicialConfigImportService {
                 field("feedbackHasObjection", "是否提出异议", "boolean", "反馈与异议", false, false),
                 field("feedbackDecision", "反馈处理结论", "select", "反馈与异议", false, false,
                         List.of("收到异议", "无异议或未反馈")),
-                field("objectionReason", "异议内容简述", "textarea", "反馈与异议", false, false),
-                field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
+                field("objectionReason", "异议内容简述", "textarea", "反馈与异议", false, false)
         );
         return new FormDesignRequest(
                 form.code(),
@@ -1744,8 +1746,7 @@ public class JudicialConfigImportService {
                 field("deliveryDate", "寄送日期", "date", "用章与寄送", false, false),
                 field("nextRecommendation", "后续处理", "select", "后续流程", false, false,
                         List.of("返回鉴定意见书送审稿编制", "进入出具鉴定意见书", "归档")),
-                field("archiveConfirmed", "归档材料已确认", "boolean", "后续流程", false, false),
-                field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
+                field("archiveConfirmed", "归档材料已确认", "boolean", "后续流程", false, false)
         );
         return new FormDesignRequest(
                 form.code(),
@@ -1903,8 +1904,7 @@ public class JudicialConfigImportService {
                 field("postAppearanceMaterialsUploaded", "出庭后材料已整理上传", "boolean", "出庭后整理", false, false),
                 field("nextRecommendation", "后续处理", "select", "后续流程", false, false,
                         List.of("返回鉴定意见书送审稿编制", "进入出具鉴定意见书", "归档")),
-                field("archiveConfirmed", "归档材料已确认", "boolean", "后续流程", false, false),
-                field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
+                field("archiveConfirmed", "归档材料已确认", "boolean", "后续流程", false, false)
         );
         return new FormDesignRequest(
                 form.code(),
@@ -2035,8 +2035,7 @@ public class JudicialConfigImportService {
                 field("withdrawLetterReceivedDate", "撤案函收函日期", "date", "撤案登记", false, false),
                 field("withdrawReason", "撤案原因", "textarea", "撤案登记", false, false),
                 field("refundRequired", "是否需要退费", "boolean", "项目负责人判断", false, false),
-                field("decisionSummary", "处理结论说明", "textarea", "项目负责人判断", false, false),
-                field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
+                field("decisionSummary", "处理结论说明", "textarea", "项目负责人判断", false, false)
         );
         return new FormDesignRequest(
                 form.code(),
@@ -2117,8 +2116,7 @@ public class JudicialConfigImportService {
                 field("refundApplicationSubmitted", "退费申请已提交", "boolean", "退费申请", false, false),
                 field("paymentCompleted", "财务打款已完成", "boolean", "财务打款", false, false),
                 field("paymentDate", "打款日期", "date", "财务打款", false, false),
-                field("paymentVoucherUploaded", "打款结果已回传", "boolean", "财务打款", false, false),
-                field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
+                field("paymentVoucherUploaded", "打款结果已回传", "boolean", "财务打款", false, false)
         );
         return new FormDesignRequest(
                 form.code(), form.name(), "司法鉴定",
@@ -2196,8 +2194,7 @@ public class JudicialConfigImportService {
                 field("projectReviewPassed", "项目负责人审核通过", "boolean", "项目负责人审核", false, false),
                 field("sealRequired", "是否需要用章", "boolean", "用章与回传", false, false),
                 field("sealedTerminationUploaded", "终止文书盖章件已上传", "boolean", "用章与回传", false, false),
-                field("archiveConfirmed", "归档材料已确认", "boolean", "归档", false, false),
-                field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
+                field("archiveConfirmed", "归档材料已确认", "boolean", "归档", false, false)
         );
         return new FormDesignRequest(
                 form.code(), form.name(), "司法鉴定",
@@ -2280,8 +2277,7 @@ public class JudicialConfigImportService {
                 field("deliveryRoute", "入库方式", "select", "移交与入库", false, false, List.of("邮寄入库", "直接中心审核")),
                 field("mailTrackingNo", "邮寄单号", "text", "移交与入库", false, false),
                 field("centralArchiveApproved", "中心档案管理员审核通过", "boolean", "中心审核", false, false),
-                field("archiveRoomLocation", "档案室入库位置", "text", "中心审核", false, false),
-                field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
+                field("archiveRoomLocation", "档案室入库位置", "text", "中心审核", false, false)
         );
         return new FormDesignRequest(
                 form.code(), form.name(), "司法鉴定",
@@ -2356,8 +2352,7 @@ public class JudicialConfigImportService {
                 field("applicationFilesPrepared", "申请文件已备齐", "boolean", "申请信息", false, false),
                 field("archivistReviewed", "档案管理员已审核", "boolean", "档案审核", false, false),
                 field("sealCompleted", "已完成盖章", "boolean", "盖章处理", false, false),
-                field("sealedScanUploaded", "盖章扫描件已上传", "boolean", "盖章处理", false, false),
-                field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
+                field("sealedScanUploaded", "盖章扫描件已上传", "boolean", "盖章处理", false, false)
         );
         return new FormDesignRequest(
                 form.code(), form.name(), "司法鉴定",
@@ -2431,8 +2426,7 @@ public class JudicialConfigImportService {
                 field("invoiceSummary", "发票汇总", "textarea", "报销申请", false, false),
                 field("financeProcessed", "财务已处理", "boolean", "财务处理", false, false),
                 field("financeResult", "财务处理结果", "select", "财务处理", false, false, List.of("已报销", "退回补充")),
-                field("paymentDate", "实际支付时间", "date", "财务处理", false, false),
-                field("handlerOpinion", "办理意见", "textarea", "办理意见", false, false)
+                field("paymentDate", "实际支付时间", "date", "财务处理", false, false)
         );
         return new FormDesignRequest(
                 form.code(), form.name(), "司法鉴定",
@@ -2514,6 +2508,18 @@ public class JudicialConfigImportService {
                 toJson(Map.of("archiveRequired", archiveRequired)),
                 role == null ? "{}" : toJson(Map.of("type", "role", "roleName", role)),
                 formCode == null ? "{}" : toJson(Map.of("formCode", formCode, "required", true)),
+                toJson(Map.of("editable", !"end".equals(type), "download", true, "preview", true)),
+                sortNo, 1);
+    }
+
+    private WorkflowNodeRequest nodeWithFieldAuth(String code, String name, String type, String taskType, String role,
+                                     Integer manualAssign, Integer timeoutHours, boolean archiveRequired,
+                                     String formCode, int sortNo, Map<String, Object> fieldAuth) {
+        return new WorkflowNodeRequest(code, name, type, taskType, "PROCESSING",
+                null, null, role, manualAssign, timeoutHours,
+                toJson(Map.of("archiveRequired", archiveRequired)),
+                role == null ? "{}" : toJson(Map.of("type", "role", "roleName", role)),
+                formCode == null ? "{}" : toJson(Map.of("formCode", formCode, "required", true, "fieldAuth", fieldAuth)),
                 toJson(Map.of("editable", !"end".equals(type), "download", true, "preview", true)),
                 sortNo, 1);
     }

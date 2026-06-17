@@ -168,6 +168,13 @@ public class KnowledgeService {
         Integer nextVersion = nextDocumentVersion(request);
         Long fileId = request.fileIds() == null || request.fileIds().isEmpty() ? null : request.fileIds().get(request.fileIds().size() - 1);
         String formSnapshot = toJson(request.formData() == null ? Map.of() : request.formData());
+        if (fileId == null && request.formData() != null && !request.formData().isEmpty()) {
+            String html = "<html><head><meta charset=\"utf-8\"></head><body style=\"font-family:sans-serif;padding:20px;\"><h2>" 
+                    + request.nodeName() + " 办理记录</h2><pre style=\"background:#f5f5f5;padding:15px;border-radius:8px;\">" 
+                    + formSnapshot + "</pre></body></html>";
+            fileId = fileStorageService.uploadInternal("办理记录.html", "text/html; charset=utf-8", html.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
+
         Map<String, Object> archiveResultMap = new java.util.LinkedHashMap<>();
         archiveResultMap.put("nodeCode", valueOrEmpty(request.nodeCode()));
         archiveResultMap.put("nodeName", valueOrEmpty(request.nodeName()));

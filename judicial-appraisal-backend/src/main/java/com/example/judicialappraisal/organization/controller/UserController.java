@@ -47,6 +47,11 @@ public class UserController {
         return ApiResponse.success(organizationService.listUsers(keyword));
     }
 
+    @GetMapping("/users/options")
+    public ApiResponse<List<AdminUserDto>> listUserOptions() {
+        return ApiResponse.success(organizationService.listUsers(null));
+    }
+
     @PostMapping("/users")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<AdminUserDto> createUser(@Valid @RequestBody AdminUserCreateRequest request,

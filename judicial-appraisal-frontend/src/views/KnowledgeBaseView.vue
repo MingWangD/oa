@@ -88,8 +88,8 @@ async function refresh(): Promise<void> {
   }
 }
 
-function handleTreeSelect(_: unknown, node: TreeNode): void {
-  activeDirectoryId.value = node.key === 'all' ? undefined : node.directoryId;
+function handleTreeSelect(data: TreeNode): void {
+  activeDirectoryId.value = data.key === 'all' ? undefined : data.directoryId;
   void loadDocuments();
 }
 
