@@ -178,6 +178,10 @@ function scopeLabel(scope: string | null | undefined): string {
   return labels[value] || value;
 }
 
+function statusLabel(status: string | null | undefined): string {
+  return status === 'enabled' ? '启用' : '禁用';
+}
+
 function openDataScope(role: AdminRole): void {
   editingRole.value = role;
   dataScopeForm.dataScope = role.dataScope || 'self';
@@ -240,7 +244,13 @@ onMounted(() => {
             {{ (scope.row.roles || []).map((role: any) => role.roleName).join('、') || '-' }}
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" width="110" />
+        <el-table-column label="状态" width="110">
+          <template #default="scope">
+            <el-tag :type="scope.row.status === 'enabled' ? 'success' : 'danger'" effect="plain">
+              {{ statusLabel(scope.row.status) }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="180">
           <template #default="scope">
             <el-button link type="primary" @click="openEdit(scope.row)">编辑</el-button>
@@ -255,7 +265,7 @@ onMounted(() => {
     <div class="panel-heading">
       <div>
         <h3 class="panel-title">角色数据权限</h3>
-        <p class="panel-subtitle">维护 all、dept_sub、custom、dept、self 五类数据范围；custom 可绑定指定组织。</p>
+        <p class="panel-subtitle">维护 全部数据、本部门及下级、自定义组织、本部门、本人 五类数据范围；自定义组织 可绑定指定组织。</p>
       </div>
     </div>
     <div class="table-frame">
@@ -265,7 +275,13 @@ onMounted(() => {
         <el-table-column label="数据范围" min-width="140">
           <template #default="scope">{{ scopeLabel(scope.row.dataScope) }}</template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" width="110" />
+        <el-table-column label="状态" width="110">
+          <template #default="scope">
+            <el-tag :type="scope.row.status === 'enabled' ? 'success' : 'danger'" effect="plain">
+              {{ statusLabel(scope.row.status) }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="120">
           <template #default="scope">
             <el-button link type="primary" @click="openDataScope(scope.row)">设置范围</el-button>
