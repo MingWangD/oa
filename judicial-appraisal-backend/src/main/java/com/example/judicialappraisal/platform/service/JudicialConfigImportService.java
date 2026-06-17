@@ -1287,11 +1287,45 @@ public class JudicialConfigImportService {
         List<WorkflowNodeRequest> nodes = List.of(
                 node("START", "开始", "start", "single", null, 0, 0, false, null, 0),
                 node("PROJECT_ASSIGN", "项目负责人转交项目辅助人编制初稿", "task", "candidate", "项目负责人", 1, 24, true, null, 10),
-                node("ASSISTANT_DRAFT", "项目辅助人编制初稿", "task", "candidate", "项目辅助人", 1, 48, true, workflow.formCode(), 20),
-                node("PROJECT_REVIEW", "项目负责人审核", "task", "candidate", "项目负责人", 1, 48, true, workflow.formCode(), 30),
-                node("TECHNICAL_REVIEW", "技术负责人审核", "task", "candidate", "技术负责人", 1, 48, true, workflow.formCode(), 40),
-                node("DEPARTMENT_REVIEW", "部门负责人审核", "task", "candidate", "部门负责人", 1, 48, true, workflow.formCode(), 50),
-                node("PROJECT_FINAL_UPLOAD", "项目负责人上传定稿", "task", "candidate", "项目负责人", 1, 24, true, workflow.formCode(), 60),
+                nodeWithFieldAuth("ASSISTANT_DRAFT", "项目辅助人编制初稿", "task", "candidate", "项目辅助人", 1, 48, true, workflow.formCode(), 20,
+                        Map.of(
+                                "projectReviewPassed", Map.of("readonly", true),
+                                "technicalReviewPassed", Map.of("readonly", true),
+                                "departmentReviewPassed", Map.of("readonly", true),
+                                "finalDraftUploaded", Map.of("readonly", true),
+                                "nextRecommendation", Map.of("readonly", true)
+                        )),
+                nodeWithFieldAuth("PROJECT_REVIEW", "项目负责人审核", "task", "candidate", "项目负责人", 1, 48, true, workflow.formCode(), 30,
+                        Map.of(
+                                "draftOpinionUploaded", Map.of("readonly", true),
+                                "technicalReviewPassed", Map.of("readonly", true),
+                                "departmentReviewPassed", Map.of("readonly", true),
+                                "finalDraftUploaded", Map.of("readonly", true),
+                                "nextRecommendation", Map.of("readonly", true)
+                        )),
+                nodeWithFieldAuth("TECHNICAL_REVIEW", "技术负责人审核", "task", "candidate", "技术负责人", 1, 48, true, workflow.formCode(), 40,
+                        Map.of(
+                                "draftOpinionUploaded", Map.of("readonly", true),
+                                "projectReviewPassed", Map.of("readonly", true),
+                                "departmentReviewPassed", Map.of("readonly", true),
+                                "finalDraftUploaded", Map.of("readonly", true),
+                                "nextRecommendation", Map.of("readonly", true)
+                        )),
+                nodeWithFieldAuth("DEPARTMENT_REVIEW", "部门负责人审核", "task", "candidate", "部门负责人", 1, 48, true, workflow.formCode(), 50,
+                        Map.of(
+                                "draftOpinionUploaded", Map.of("readonly", true),
+                                "projectReviewPassed", Map.of("readonly", true),
+                                "technicalReviewPassed", Map.of("readonly", true),
+                                "finalDraftUploaded", Map.of("readonly", true),
+                                "nextRecommendation", Map.of("readonly", true)
+                        )),
+                nodeWithFieldAuth("PROJECT_FINAL_UPLOAD", "项目负责人上传定稿", "task", "candidate", "项目负责人", 1, 24, true, workflow.formCode(), 60,
+                        Map.of(
+                                "draftOpinionUploaded", Map.of("readonly", true),
+                                "projectReviewPassed", Map.of("readonly", true),
+                                "technicalReviewPassed", Map.of("readonly", true),
+                                "departmentReviewPassed", Map.of("readonly", true)
+                        )),
                 node("ISSUE_DRAFT_OPINION", "进入出具征求意见稿", "task", "candidate", "项目负责人", 1, 24, true, "issue-draft-opinion", 70),
                 node("END", "流程结束", "end", "single", null, 0, 0, false, null, 80)
         );
