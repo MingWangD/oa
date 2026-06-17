@@ -1277,6 +1277,46 @@ public class WorkflowRuntimeService {
         subflowInstance.setStartedBy(parentTask.getAssigneeId());
         subflowInstance.setStartedTime(now);
         subflowInstance.setReason(resolveSubflowReason(config, transition, request));
+        // Clean up case form data for non-read-only fields defined in the subflow form schema.
+        // This ensures old values from other subflows/tasks do not bleed into this subflow.
+        if (subflowDefinition.getFormCode() != null && !subflowDefinition.getFormCode().trim().isEmpty()) {
+            FormVersion formVersion = formVersionMapper.selectOne(new LambdaQueryWrapper<FormVersion>()
+                    .eq(FormVersion::getFormCode, subflowDefinition.getFormCode())
+                    .eq(FormVersion::getStatus, PUBLISHED_STATUS)
+                    .eq(FormVersion::getDeleted, 0)
+                    .orderByDesc(FormVersion::getVersionNo)
+                    .orderByDesc(FormVersion::getId)
+                    .last("limit 1"));
+            if (formVersion != null && formVersion.getFieldSchemaJson() != null && !formVersion.getFieldSchemaJson().trim().isEmpty()) {
+                List<Map<String, Object>> fields = parseFieldSchema(formVersion.getFieldSchemaJson());
+                Map<String, Object> caseFormData = caseInfo.getFormData();
+                if (caseFormData == null) {
+                    caseFormData = new LinkedHashMap<>();
+                } else {
+                    caseFormData = new LinkedHashMap<>(caseFormData);
+                }
+                boolean modified = false;
+                for (Map<String, Object> field : fields) {
+                    String fieldName = stringValue(field.get("field"));
+                    boolean isReadOnly = Boolean.TRUE.equals(toBoolean(field.get("readOnly")))
+                            || Boolean.TRUE.equals(toBoolean(field.get("readonly")));
+                    if (!isReadOnly && fieldName != null && !fieldName.trim().isEmpty()) {
+                        String type = stringValue(field.get("type"));
+                        if ("boolean".equalsIgnoreCase(type)) {
+                            caseFormData.put(fieldName, false);
+                        } else {
+                            caseFormData.remove(fieldName);
+                        }
+                        modified = true;
+                    }
+                }
+                if (modified) {
+                    caseInfo.setFormData(caseFormData);
+                    caseInfoMapper.updateById(caseInfo);
+                }
+            }
+        }
+
         caseSubflowInstanceMapper.insert(subflowInstance);
         return subflowInstance;
     }
