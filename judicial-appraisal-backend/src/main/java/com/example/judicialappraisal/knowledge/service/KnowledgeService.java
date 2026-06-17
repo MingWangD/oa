@@ -168,9 +168,7 @@ public class KnowledgeService {
         Long fileId = request.fileIds() == null || request.fileIds().isEmpty() ? null : request.fileIds().get(request.fileIds().size() - 1);
         String formSnapshot = toJson(request.formData() == null ? Map.of() : request.formData());
         if (fileId == null && request.formData() != null && !request.formData().isEmpty()) {
-            String html = "<html><head><meta charset=\"utf-8\"></head><body style=\"font-family:sans-serif;padding:20px;\"><h2>" 
-                    + request.nodeName() + " 办理记录</h2><pre style=\"background:#f5f5f5;padding:15px;border-radius:8px;\">" 
-                    + formSnapshot + "</pre></body></html>";
+            String html = generateHtmlForm(request.nodeName(), request.formData());
             fileId = fileStorageService.uploadInternal("办理记录.html", "text/html; charset=utf-8", html.getBytes(java.nio.charset.StandardCharsets.UTF_8));
         }
 
@@ -660,5 +658,238 @@ public class KnowledgeService {
 
     private String escape(String value) {
         return value == null ? "" : value.replace("\\", "\\\\").replace("\"", "\\\"");
+    }
+
+    private String generateHtmlForm(String nodeName, Map<String, Object> formData) {
+        if (formData == null) {
+            formData = Map.of();
+        }
+        
+        Map<String, String> labelMap = new java.util.HashMap<>();
+        labelMap.put("serialNo", "流水号");
+        labelMap.put("flowName", "流程名称");
+        labelMap.put("initiatorName", "发起人");
+        labelMap.put("initiatedDate", "发起日期");
+        labelMap.put("projectNo", "项目编号");
+        labelMap.put("expressNo", "快递单号");
+        labelMap.put("receivedDate", "收件日期");
+        labelMap.put("filingDate", "立案日期");
+        labelMap.put("clientName", "委托人");
+        labelMap.put("caseNo", "案件号");
+        labelMap.put("undertakingLegalPerson", "承办法人");
+        labelMap.put("institutionSelectionMethod", "确定机构方式");
+        labelMap.put("institutionSelectionTime", "确定机构时间");
+        labelMap.put("appraisalCategory", "鉴定类别");
+        labelMap.put("applicantName", "原告/申请人");
+        labelMap.put("respondentName", "被告/被申请人");
+        labelMap.put("urgencyLevel", "项目紧急程度");
+        labelMap.put("caseChannel", "线上/线下");
+        labelMap.put("projectAmount", "项目金额");
+        labelMap.put("appraisalMatter", "鉴定事项");
+        labelMap.put("entrustAccepted", "委托审查是否受理");
+        labelMap.put("preliminarySurveyRequired", "是否进行初步勘验");
+        labelMap.put("materialReceiveRequired", "是否同步收案员材料接收");
+        labelMap.put("departmentHeadId", "部门负责人");
+        labelMap.put("projectLeaderId", "项目负责人");
+        labelMap.put("projectAssistantId", "项目辅助人");
+        labelMap.put("handlerOpinion", "办理意见");
+        labelMap.put("qualityFileDraftCompleted", "内部质量控制文件草稿已编制");
+        labelMap.put("qualityFileSummary", "内部质量控制文件摘要");
+        labelMap.put("formatType", "格式类型");
+        labelMap.put("contractAmount", "合同金额");
+        labelMap.put("fClassProject", "是否F类项目");
+        labelMap.put("projectReviewPassed", "项目负责人审核通过");
+        labelMap.put("projectReviewRoute", "项目负责人审核后流向");
+        labelMap.put("projectReviewOpinion", "项目负责人审核意见");
+        labelMap.put("departmentReviewPassed", "部门负责人审核通过");
+        labelMap.put("departmentReviewOpinion", "部门负责人审核意见");
+        labelMap.put("sealRequired", "是否需要用章");
+        labelMap.put("sealedQualityFileUploaded", "内部质量控制文件盖章件已上传");
+        labelMap.put("nextRecommendation", "下一步建议");
+        labelMap.put("applicantId", "申请人");
+        labelMap.put("archivistId", "档案管理员");
+        labelMap.put("sealOperatorId", "盖章经办人");
+        labelMap.put("applicationReason", "用章申请原因");
+        labelMap.put("sealMode", "用章模式");
+        labelMap.put("applicationFilesPrepared", "用章申请材料已准备");
+        labelMap.put("archivistReviewed", "档案管理员已审核");
+        labelMap.put("sealCompleted", "盖章是否完成");
+        labelMap.put("sealedScanUploaded", "盖章扫描件已上传");
+        labelMap.put("surveyDate", "勘验日期");
+        labelMap.put("surveyLocation", "勘验地点");
+        labelMap.put("surveyPlanUploaded", "勘验方案已上传");
+        labelMap.put("equipmentOutboundRecorded", "出库设备已记录");
+        labelMap.put("equipmentUsageRecorded", "现场设备使用已记录");
+        labelMap.put("surveySummary", "勘验总结");
+        labelMap.put("appraisalConditionMet", "鉴定条件是否具备");
+        labelMap.put("technicalLeaderId", "技术负责人");
+        labelMap.put("fieldRecordUploaded", "现场勘验记录已上传");
+        labelMap.put("equipmentReturnRecorded", "设备入库已记录");
+        labelMap.put("majorAmountProject", "是否重大金额项目");
+        labelMap.put("technicalReviewPassed", "技术负责人审核通过");
+        labelMap.put("letterType", "函件类型");
+        labelMap.put("letterSummary", "函件摘要");
+        labelMap.put("letterDraftCompleted", "函件草稿已编制");
+        labelMap.put("sealedDocumentUploaded", "盖章文件已回传");
+        labelMap.put("sendDate", "发出日期");
+        labelMap.put("paymentReceived", "是否缴费");
+        labelMap.put("paymentConfirmedDate", "缴费确认时间");
+        
+        // 移交与归档相关字段
+        labelMap.put("centralArchivistId", "中心档案管理员");
+        labelMap.put("mailerId", "邮寄人员");
+        labelMap.put("projectArchiveUploaded", "项目档案已上传");
+        labelMap.put("paperScansUploaded", "纸质扫描件已上传");
+        labelMap.put("electronicArchiveLocation", "电子归档地址");
+        labelMap.put("deliveryRoute", "入库方式");
+        labelMap.put("mailTrackingNo", "邮寄单号");
+        labelMap.put("centralArchiveApproved", "中心档案管理员审核通过");
+        labelMap.put("archiveRoomLocation", "档案室入库位置");
+        
+        // 出庭通知相关字段
+        labelMap.put("courtName", "法院名称");
+        labelMap.put("noticeReceivedDate", "收到出庭通知日期");
+        labelMap.put("appearanceDate", "出庭日期");
+        labelMap.put("appearanceLocation", "出庭地点");
+        labelMap.put("appearanceFeeRequired", "是否需要出庭费通知");
+        labelMap.put("feeNoticeIssued", "出庭费通知已发出");
+        labelMap.put("archiveRetrievalRequired", "是否需要调档");
+        labelMap.put("archiveRetrieved", "档案已调取");
+        labelMap.put("appearancePlanPrepared", "出庭方案已准备");
+        labelMap.put("appearanceMaterialsPrepared", "出庭材料已准备");
+        labelMap.put("appearanceCompleted", "已完成出庭");
+        labelMap.put("appearanceSummary", "出庭情况摘要");
+        labelMap.put("postAppearanceMaterialsUploaded", "出庭后材料已整理上传");
+        
+        // 法院函件及其他通用字段
+        labelMap.put("linkedWorkflowCode", "关联原流程");
+        labelMap.put("departmentDecision", "部门负责人处理结论");
+        labelMap.put("deliveryMethod", "寄送/送达方式");
+        labelMap.put("deliveryDate", "寄送/送达日期");
+        labelMap.put("draftOpinionUploaded", "征求意见稿初稿已上传");
+        labelMap.put("finalDraftUploaded", "定稿文件已上传");
+        labelMap.put("initiatorId", "发起人");
+        labelMap.put("financeId", "财务人员");
+        labelMap.put("expenseSummary", "报销事项");
+        labelMap.put("expenseAmount", "报销金额");
+        labelMap.put("invoiceSummary", "发票汇总");
+        labelMap.put("financeProcessed", "财务已处理");
+        labelMap.put("financeResult", "财务处理结果");
+        labelMap.put("paymentDate", "支付/打款日期");
+        labelMap.put("opinionDraftUploaded", "初稿已上传");
+        labelMap.put("versionAUploaded", "版本A已上传");
+        labelMap.put("versionABUploaded", "版本A-B已上传");
+        labelMap.put("versionABCUploaded", "版本A-B-C已上传");
+        labelMap.put("explainLetterDrafted", "鉴定说明函已编制");
+        labelMap.put("sealedDraftOpinionUploaded", "征求意见稿盖章件已上传");
+        labelMap.put("feedbackReceived", "是否收到反馈");
+        labelMap.put("feedbackHasObjection", "是否提出异议");
+        labelMap.put("feedbackDecision", "反馈处理结论");
+        labelMap.put("objectionReason", "异议内容简述");
+        labelMap.put("commitmentDrafted", "鉴定人承诺书已编制");
+        labelMap.put("reviewOpinionDrafted", "复核意见已编制");
+        labelMap.put("sealedOpinionUploaded", "鉴定意见书盖章件已上传");
+        labelMap.put("invoiceRequired", "是否开具发票");
+        labelMap.put("invoiceIssued", "发票已开具并回传");
+        labelMap.put("archiveConfirmed", "归档材料已确认");
+        labelMap.put("materialSource", "材料来源");
+        labelMap.put("requireSupplementaryMaterial", "是否补充材料");
+        labelMap.put("supplementaryNotice", "补材通知");
+        labelMap.put("materialDetails", "材料名称/数量/介质");
+        labelMap.put("storageLocation", "存放地址");
+        labelMap.put("requireReturn", "是否返还");
+        labelMap.put("storageStatus", "保管状态");
+        labelMap.put("returnReceiver", "返还接收人");
+        labelMap.put("returnDate", "返还时间");
+        labelMap.put("letterReceivedDate", "收函日期");
+        labelMap.put("objectionAccepted", "是否按异议处理");
+        labelMap.put("contractChangeCompleted", "合同变更已完成");
+        labelMap.put("revenueConfirmed", "收入确认已完成");
+        labelMap.put("refundApplicationSubmitted", "退费申请已提交");
+        labelMap.put("paymentCompleted", "打款已完成");
+        labelMap.put("paymentVoucherUploaded", "打款结果已回传");
+        labelMap.put("rejectionReason", "不予受理原因");
+        labelMap.put("noticeDraftCompleted", "不予受理通知书已编制");
+        labelMap.put("noticeSummary", "通知书内容摘要");
+        labelMap.put("reviewOpinion", "审核意见");
+        labelMap.put("sealedNoticeUploaded", "盖章通知书扫描件已上传");
+        labelMap.put("terminationType", "终止文书类型");
+        labelMap.put("terminationReason", "终止原因");
+        labelMap.put("draftCompleted", "终止文书草稿已完成");
+        labelMap.put("sealedTerminationUploaded", "终止文书盖章件已上传");
+        labelMap.put("withdrawLetterReceivedDate", "撤案函收函日期");
+        labelMap.put("withdrawReason", "撤案原因");
+        labelMap.put("refundRequired", "是否需要退费");
+        labelMap.put("decisionSummary", "处理结论说明");
+
+        StringBuilder html = new StringBuilder();
+        html.append("<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"utf-8\">\n");
+        html.append("<style>\n");
+        html.append("  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; padding: 30px; margin: 0; }\n");
+        html.append("  .form-container { max-width: 800px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05); overflow: hidden; }\n");
+        html.append("  .form-header { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); padding: 24px 30px; color: #ffffff; }\n");
+        html.append("  .form-header h2 { margin: 0; font-size: 20px; font-weight: 600; }\n");
+        html.append("  .form-header p { margin: 6px 0 0 0; font-size: 13px; opacity: 0.85; }\n");
+        html.append("  .form-table { width: 100%; border-collapse: collapse; margin: 0; }\n");
+        html.append("  .form-table th, .form-table td { padding: 14px 24px; text-align: left; font-size: 14px; border-bottom: 1px solid #f1f5f9; }\n");
+        html.append("  .form-table th { background-color: #f8fafc; color: #475569; font-weight: 600; width: 30%; border-right: 1px solid #f1f5f9; }\n");
+        html.append("  .form-table td { color: #334155; }\n");
+        html.append("  .form-table tr:hover th { background-color: #f1f5f9; }\n");
+        html.append("  .form-table tr:hover td { background-color: #fafafa; }\n");
+        html.append("  .tag-boolean { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }\n");
+        html.append("  .tag-true { background-color: #dcfce7; color: #15803d; }\n");
+        html.append("  .tag-false { background-color: #fee2e2; color: #b91c1c; }\n");
+        html.append("</style>\n</head>\n<body>\n");
+        html.append("<div class=\"form-container\">\n");
+        html.append("  <div class=\"form-header\">\n");
+        html.append("    <h2>").append(nodeName).append(" 办理记录</h2>\n");
+        html.append("    <p>电子司法鉴定所流程引擎自动生成 • 固化留痕</p>\n");
+        html.append("  </div>\n");
+        html.append("  <table class=\"form-table\">\n");
+
+        for (Map.Entry<String, Object> entry : formData.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            if (value == null) {
+                continue;
+            }
+
+            String label = labelMap.getOrDefault(key, key);
+            html.append("    <tr>\n");
+            html.append("      <th>").append(label).append("</th>\n");
+            html.append("      <td>");
+
+            if (value instanceof Boolean) {
+                boolean boolVal = (Boolean) value;
+                if (boolVal) {
+                    html.append("<span class=\"tag-boolean tag-true\">是</span>");
+                } else {
+                    html.append("<span class=\"tag-boolean tag-false\">否</span>");
+                }
+            } else if (value instanceof List) {
+                List<?> list = (List<?>) value;
+                if (list.isEmpty()) {
+                    html.append("-");
+                } else {
+                    html.append(String.join(", ", list.stream().map(Object::toString).toList()));
+                }
+            } else {
+                String strVal = value.toString();
+                if (strVal.trim().isEmpty()) {
+                    html.append("-");
+                } else {
+                    html.append(strVal.replace("\n", "<br>"));
+                }
+            }
+
+            html.append("</td>\n");
+            html.append("    </tr>\n");
+        }
+
+        html.append("  </table>\n");
+        html.append("</div>\n");
+        html.append("</body>\n</html>");
+
+        return html.toString();
     }
 }
