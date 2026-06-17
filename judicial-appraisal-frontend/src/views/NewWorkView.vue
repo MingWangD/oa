@@ -222,21 +222,39 @@ async function quickCreate(workflow: JudicialWorkflowDefinition): Promise<void> 
   }
 }
 
-async function openGuide(workflow: JudicialWorkflowDefinition): Promise<void> {
-  await ElMessageBox.alert(
-    [
-      `可发起角色：${workflow.roles.join('、') || '不限'}`,
-      `入口规则：${entryModeLabel(workflow)}`,
-      `关联表单：${workflow.formCode}`,
-      `关键规则：${workflow.keyRules.join('；') || '暂无'}`,
-      `后续流程：${workflow.nextFlows.join('、') || '流程结束'}`
-    ].join('\n\n'),
-    workflow.name,
-    {
-      confirmButtonText: '知道了',
-      customClass: 'workflow-guide-dialog'
-    }
-  );
+const flowchartVisible = ref(false);
+const explanationVisible = ref(false);
+const currentWorkflow = ref<JudicialWorkflowDefinition | null>(null);
+const flowchartTab = ref<'current' | 'overview' | 'detailed'>('current');
+
+const flowchartMap: Record<string, string> = {
+  'received-entrust': '收到委托书流程.png',
+  'preliminary-survey': '初步勘验.jpg',
+  'payment-notice': '发交费通知书及相关函件.jpg',
+  'quality-control': '编制内部质量控制文件.jpg',
+  'field-survey': '现场勘验.jpg',
+  'material-receive-return': '材料接收与返还.jpg',
+  'draft-opinion-review': '鉴定意见书征求意见稿送审稿编.jpg',
+  'final-opinion-review': '鉴定意见书征求意见稿送审稿编.jpg',
+  'reject-acceptance': '不予受理.jpg',
+  'refund': '退费.jpg',
+  'terminate-appraisal': '终止鉴定.jpg',
+  'archive': '归档.jpg',
+};
+
+function hasSpecificFlowchart(workflow: JudicialWorkflowDefinition): boolean {
+  return !!flowchartMap[workflow.code];
+}
+
+function openFlowchart(workflow: JudicialWorkflowDefinition) {
+  currentWorkflow.value = workflow;
+  flowchartTab.value = hasSpecificFlowchart(workflow) ? 'current' : 'overview';
+  flowchartVisible.value = true;
+}
+
+function openExplanation(workflow: JudicialWorkflowDefinition) {
+  currentWorkflow.value = workflow;
+  explanationVisible.value = true;
 }
 </script>
 
@@ -315,14 +333,14 @@ async function openGuide(workflow: JudicialWorkflowDefinition): Promise<void> {
               <div class="work-summary">{{ workflowSummary(workflow) }}</div>
             </div>
 
-            <button class="work-meta" type="button" @click="openGuide(workflow)">
+            <button class="work-meta" type="button" @click="openFlowchart(workflow)">
               <span class="workflow-icon">
                 <el-icon><Share /></el-icon>
               </span>
               <span>流程设计图</span>
             </button>
 
-            <button class="work-info" type="button" @click="openGuide(workflow)">
+            <button class="work-info" type="button" @click="openExplanation(workflow)">
               <el-icon><InfoFilled /></el-icon>
               <span>流程说明</span>
             </button>
@@ -330,6 +348,193 @@ async function openGuide(workflow: JudicialWorkflowDefinition): Promise<void> {
         </div>
       </main>
     </div>
+
+    <!-- 流程设计图弹窗 -->
+    <el-dialog
+      v-model="flowchartVisible"
+      title="流程设计图"
+      width="80%"
+      top="5vh"
+      destroy-on-close
+      custom-class="flowchart-dialog"
+    >
+      <!-- 提示横幅移到最上方 -->
+      <div class="flowchart-tip" style="background: #fff7e6; border: 1px solid #ffd591; border-radius: 4px; padding: 8px 16px; color: #d46b08; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px; text-align: left; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(212, 107, 8, 0.05);">
+        <span style="font-size: 16px;">💡</span>
+        <span>提示：<strong>单击图片</strong>可开启全屏大图预览，支持鼠标滚轮缩放与按住拖拽查看。</span>
+      </div>
+
+      <div style="text-align: center; margin-bottom: 20px;">
+        <el-radio-group v-model="flowchartTab" size="large">
+          <el-radio-button 
+            v-if="currentWorkflow && hasSpecificFlowchart(currentWorkflow)" 
+            label="current"
+          >
+            当前步骤流程图
+          </el-radio-button>
+          <el-radio-group v-model="flowchartTab" size="large" style="display: none;"></el-radio-group>
+          <el-radio-button label="overview">全景工作流程图</el-radio-button>
+          <el-radio-button label="detailed">细化工作流程图</el-radio-button>
+        </el-radio-group>
+      </div>
+      
+      <div class="flowchart-viewer" style="display: flex; justify-content: center; align-items: center; min-height: 400px; max-height: 70vh; overflow: auto; background: #fafafa; border: 1px solid #ebeef5; border-radius: 4px; padding: 10px;">
+        <template v-if="flowchartTab === 'current' && currentWorkflow">
+          <el-image
+            :src="'/flowcharts/' + flowchartMap[currentWorkflow.code]"
+            :preview-src-list="['/flowcharts/' + flowchartMap[currentWorkflow.code]]"
+            fit="contain"
+            style="max-width: 100%; max-height: 65vh;"
+            hide-on-click-modal
+          >
+            <template #placeholder>
+              <div class="image-slot" style="color: #909399; font-size: 14px;">加载中...</div>
+            </template>
+          </el-image>
+        </template>
+        <template v-else-if="flowchartTab === 'overview'">
+          <el-image
+            src="/flowcharts/b6130e9b27eacb5fd5b365f3272d4eba.png"
+            :preview-src-list="['/flowcharts/b6130e9b27eacb5fd5b365f3272d4eba.png']"
+            fit="contain"
+            style="max-width: 100%; max-height: 65vh;"
+            hide-on-click-modal
+          >
+            <template #placeholder>
+              <div class="image-slot" style="color: #909399; font-size: 14px;">加载中...</div>
+            </template>
+          </el-image>
+        </template>
+        <template v-else-if="flowchartTab === 'detailed'">
+          <el-image
+            src="/flowcharts/ff4fe8d56d1e2775159a261ad55e2f74.png"
+            :preview-src-list="['/flowcharts/ff4fe8d56d1e2775159a261ad55e2f74.png']"
+            fit="contain"
+            style="max-width: 100%; max-height: 65vh;"
+            hide-on-click-modal
+          >
+            <template #placeholder>
+              <div class="image-slot" style="color: #909399; font-size: 14px;">加载中...</div>
+            </template>
+          </el-image>
+        </template>
+      </div>
+      
+      <template #footer>
+        <div style="text-align: right;">
+          <el-button type="primary" @click="flowchartVisible = false">关闭</el-button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- 流程说明弹窗 -->
+    <el-dialog
+      v-model="explanationVisible"
+      :title="currentWorkflow ? currentWorkflow.name + ' - 流程说明' : '流程说明'"
+      width="680px"
+      destroy-on-close
+      custom-class="explanation-dialog"
+    >
+      <div v-if="currentWorkflow" class="explanation-container" style="padding: 10px 5px;">
+        
+        <!-- 基础信息排版 -->
+        <div class="guide-cards" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+          <div class="guide-card" style="background: #f4f7fc; border-radius: 8px; padding: 14px 18px; border-left: 4px solid #1677ff;">
+            <h4 style="margin: 0 0 8px 0; color: #1f2d3d; font-size: 15px; display: flex; align-items: center; gap: 6px;">
+              <el-icon style="color: #1677ff;"><InfoFilled /></el-icon>
+              入口触发规则
+            </h4>
+            <p style="margin: 0; color: #5e6d82; font-size: 13px; line-height: 1.5;">
+              {{ entryModeLabel(currentWorkflow) }}
+            </p>
+          </div>
+          
+          <div class="guide-card" style="background: #f4f7fc; border-radius: 8px; padding: 14px 18px; border-left: 4px solid #52c41a;">
+            <h4 style="margin: 0 0 8px 0; color: #1f2d3d; font-size: 15px; display: flex; align-items: center; gap: 6px;">
+              <el-icon style="color: #52c41a;"><Document /></el-icon>
+              关联业务表单
+            </h4>
+            <p style="margin: 0; color: #5e6d82; font-size: 13px; line-height: 1.5; font-family: monospace;">
+              {{ currentWorkflow.formCode }}
+            </p>
+          </div>
+        </div>
+        
+        <!-- 办理角色 -->
+        <div style="margin-bottom: 24px; background: #fafafa; border-radius: 8px; padding: 14px 18px;">
+          <h4 style="margin: 0 0 10px 0; color: #1f2d3d; font-size: 15px; display: flex; align-items: center; gap: 6px;">
+            <span style="display: inline-block; width: 4px; height: 14px; background: #3b8cff; border-radius: 2px;"></span>
+            有权发起/办理角色
+          </h4>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <el-tag 
+              v-for="role in currentWorkflow.roles" 
+              :key="role" 
+              type="primary" 
+              effect="light"
+              style="font-size: 13px; padding: 6px 12px; height: auto;"
+            >
+              {{ role }}
+            </el-tag>
+            <span v-if="!currentWorkflow.roles || currentWorkflow.roles.length === 0" style="color: #909399; font-size: 13px;">
+              不限角色
+            </span>
+          </div>
+        </div>
+
+        <!-- 核心步骤与审核规则 -->
+        <div style="margin-bottom: 24px;">
+          <h4 style="margin: 0 0 16px 0; color: #1f2d3d; font-size: 15px; display: flex; align-items: center; gap: 6px;">
+            <span style="display: inline-block; width: 4px; height: 14px; background: #3b8cff; border-radius: 2px;"></span>
+            核心节点与办理规则
+          </h4>
+          <el-timeline style="padding-left: 5px;">
+            <el-timeline-item
+              v-for="(rule, index) in currentWorkflow.keyRules"
+              :key="index"
+              type="primary"
+              size="large"
+              :color="index === 0 ? '#1677ff' : '#909399'"
+            >
+              <div style="background: #f8fafc; border: 1px solid #eef2f6; border-radius: 6px; padding: 12px 16px; margin-top: -4px;">
+                <span style="font-weight: 600; color: #3f4d5c; font-size: 13px; display: block; margin-bottom: 4px;">步骤 {{ index + 1 }}</span>
+                <span style="color: #5e6d82; font-size: 13.5px; line-height: 1.6;">{{ rule }}</span>
+              </div>
+            </el-timeline-item>
+            <el-timeline-item v-if="!currentWorkflow.keyRules || currentWorkflow.keyRules.length === 0">
+              <span style="color: #909399; font-size: 13px;">暂无特定流转规则。</span>
+            </el-timeline-item>
+          </el-timeline>
+        </div>
+
+        <!-- 后续流转流程 -->
+        <div style="background: #fafafa; border-radius: 8px; padding: 14px 18px;">
+          <h4 style="margin: 0 0 10px 0; color: #1f2d3d; font-size: 15px; display: flex; align-items: center; gap: 6px;">
+            <span style="display: inline-block; width: 4px; height: 14px; background: #3b8cff; border-radius: 2px;"></span>
+            后续关联流程
+          </h4>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+            <template v-if="currentWorkflow.nextFlows && currentWorkflow.nextFlows.length > 0">
+              <template v-for="(next, i) in currentWorkflow.nextFlows" :key="next">
+                <el-tag type="info" effect="plain" style="font-size: 13px; padding: 6px 12px; height: auto;">
+                  {{ next }}
+                </el-tag>
+                <span v-if="i < currentWorkflow.nextFlows.length - 1" style="color: #c0c4cc; font-size: 14px;">➔</span>
+              </template>
+            </template>
+            <span v-else style="color: #67c23a; font-size: 13.5px; font-weight: 500; display: flex; align-items: center; gap: 4px;">
+              🏁 流程结束
+            </span>
+          </div>
+        </div>
+
+      </div>
+      <template #footer>
+        <div style="text-align: right;">
+          <el-button type="primary" @click="explanationVisible = false">知道了</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </section>
 </template>
 
