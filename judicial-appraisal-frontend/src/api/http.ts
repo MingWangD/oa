@@ -175,6 +175,41 @@ export function postForm<T>(path: string, body: FormData): Promise<T> {
   });
 }
 
+function decodeMimeWord(str: string): string {
+  const mimeRegex = /=\?([^?]+)\?([QBqb])\?([^?]*)\?=/g;
+  return str.replace(mimeRegex, (match: string, charset: string, encoding: string, text: string) => {
+    if (/[^\x00-\x7F]/.test(text)) {
+      return text.replace(/_/g, ' ');
+    }
+    if (encoding.toUpperCase() === 'B') {
+      try {
+        const binString = atob(text);
+        const bytes = new Uint8Array(binString.length);
+        for (let i = 0; i < binString.length; i++) {
+          bytes[i] = binString.charCodeAt(i);
+        }
+        return new TextDecoder(charset).decode(bytes);
+      } catch {
+        return match;
+      }
+    } else if (encoding.toUpperCase() === 'Q') {
+      try {
+        const qDecoded = text.replace(/_/g, ' ').replace(/=([0-9A-Fa-f]{2})/g, (m: string, hex: string) => {
+          return String.fromCharCode(parseInt(hex, 16));
+        });
+        const bytes = new Uint8Array(qDecoded.length);
+        for (let i = 0; i < qDecoded.length; i++) {
+          bytes[i] = qDecoded.charCodeAt(i);
+        }
+        return new TextDecoder(charset).decode(bytes);
+      } catch {
+        return match;
+      }
+    }
+    return match;
+  });
+}
+
 export async function getBlob(path: string, params?: QueryParams): Promise<{ blob: Blob; filename: string }> {
   const token = getAccessToken();
   const headers = new Headers();
@@ -192,6 +227,7 @@ export async function getBlob(path: string, params?: QueryParams): Promise<{ blo
   }
   const disposition = response.headers.get('content-disposition') || '';
   const filenameMatch = disposition.match(/filename\*=UTF-8''([^;]+)|filename="([^"]+)"/i);
-  const filename = decodeURIComponent(filenameMatch?.[1] || filenameMatch?.[2] || 'download');
+  let filename = decodeURIComponent(filenameMatch?.[1] || filenameMatch?.[2] || 'download');
+  filename = decodeMimeWord(filename);
   return { blob: await response.blob(), filename };
 }

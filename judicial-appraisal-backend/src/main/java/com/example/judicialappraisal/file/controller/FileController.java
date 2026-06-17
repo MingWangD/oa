@@ -51,10 +51,9 @@ public class FileController {
     @GetMapping("/{fileId}/download")
     public ResponseEntity<byte[]> download(@PathVariable Long fileId) {
         FileContent content = fileStorageService.download(fileId);
-        String encodedName = URLEncoder.encode(content.originalName(), StandardCharsets.UTF_8).replace("+", "%20");
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
-                        .filename(encodedName, StandardCharsets.UTF_8)
+                        .filename(content.originalName(), StandardCharsets.UTF_8)
                         .build()
                         .toString())
                 .contentType(MediaType.parseMediaType(content.contentType() == null ? MediaType.APPLICATION_OCTET_STREAM_VALUE : content.contentType()))
@@ -64,8 +63,14 @@ public class FileController {
     @GetMapping("/{fileId}/preview")
     public ResponseEntity<byte[]> preview(@PathVariable Long fileId) {
         FileContent content = fileStorageService.preview(fileId);
+        String contentType = content.contentType();
+        if (contentType == null) {
+            contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        } else if (contentType.startsWith("text/") && !contentType.toLowerCase().contains("charset")) {
+            contentType = contentType + ";charset=UTF-8";
+        }
         return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(content.contentType() == null ? MediaType.APPLICATION_OCTET_STREAM_VALUE : content.contentType()))
+                .contentType(MediaType.parseMediaType(contentType))
                 .body(content.bytes());
     }
 
