@@ -7,9 +7,11 @@ import {
   fetchKnowledgeDirectories,
   fetchKnowledgeDocuments,
   previewKnowledgeDocument,
+  uploadManualDocument,
   type KnowledgeDirectory,
   type KnowledgeDocument
 } from '../api/judicial';
+import { getAccessToken } from '../api/http';
 
 interface TreeNode {
   label: string;
@@ -147,6 +149,42 @@ function handleSelectionChange(rows: KnowledgeDocument[]): void {
   selectedDocuments.value = rows;
 }
 
+const uploadHeaders = computed(() => {
+  const token = getAccessToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+});
+
+async function onUploadSuccess(response: any): Promise<void> {
+  if (response && response.data) {
+    const fileId = response.data.id;
+    const originalName = response.data.originalName;
+    try {
+      await uploadManualDocument({
+        directoryId: activeDirectoryId.value!,
+        title: originalName,
+        fileId
+      });
+      ElMessage.success('手动上传并归档成功');
+      void loadDocuments();
+    } catch (error) {
+      ElMessage.error(error instanceof Error ? error.message : '手动归档失败');
+    }
+  } else {
+    ElMessage.error(response?.message || '文件上传失败');
+  }
+}
+
+function onUploadError(error: any): void {
+  ElMessage.error(error instanceof Error ? error.message : '文件上传失败');
+}
+
+function handleRowClick(row: KnowledgeDocument, column: any, event: Event): void {
+  if (column.type === 'selection' || (event.target as HTMLElement).closest('.el-checkbox')) {
+    return;
+  }
+  void openPreview(row);
+}
+
 onMounted(() => {
   void refresh();
 });
@@ -199,10 +237,29 @@ onMounted(() => {
           >
             批量下载
           </el-button>
+          <el-upload
+            style="display: inline-block; margin-left: 12px"
+            action="/api/files/upload"
+            name="file"
+            :headers="uploadHeaders"
+            :show-file-list="false"
+            :on-success="onUploadSuccess"
+            :on-error="onUploadError"
+            :disabled="!activeDirectoryId"
+          >
+            <el-button type="success" :disabled="!activeDirectoryId">手动上传</el-button>
+          </el-upload>
         </div>
 
         <div class="table-frame">
-          <el-table v-loading="loading" :data="documents" border stripe @selection-change="handleSelectionChange">
+          <el-table
+            v-loading="loading"
+            :data="documents"
+            border
+            stripe
+            @selection-change="handleSelectionChange"
+            @row-click="handleRowClick"
+          >
             <el-table-column type="selection" width="48" />
             <el-table-column prop="title" label="标题" min-width="280">
               <template #default="scope">
@@ -231,3 +288,9 @@ onMounted(() => {
     </div>
   </section>
 </template>
+
+<style scoped>
+:deep(.el-table__row) {
+  cursor: pointer;
+}
+</style>

@@ -303,6 +303,43 @@ public class KnowledgeService {
         return toDocumentDto(document);
     }
 
+    @Transactional
+    public KnowledgeDocumentDto uploadDocument(Long directoryId, String title, Long fileId) {
+        if (directoryId == null) {
+            throw new BusinessException("目录ID不能为空");
+        }
+        if (fileId == null) {
+            throw new BusinessException("文件不能为空");
+        }
+        ensureBaseDirectories();
+        CurrentUserInfo user = currentUserOrNull();
+
+        KnowledgeDocument document = new KnowledgeDocument();
+        document.setDirectoryId(directoryId);
+        document.setTitle(title);
+        document.setSourceType("knowledge");
+        document.setCurrentFileId(fileId);
+        document.setCurrentVersionNo(1);
+        document.setStatus("active");
+        document.setCreatedBy(user == null ? null : user.id());
+        document.setUpdatedBy(user == null ? null : user.id());
+        document.setCreatedTime(LocalDateTime.now());
+        document.setUpdatedTime(LocalDateTime.now());
+        document.setDeleted(0);
+        documentMapper.insert(document);
+
+        KnowledgeDocumentVersion version = new KnowledgeDocumentVersion();
+        version.setDocumentId(document.getId());
+        version.setVersionNo(1);
+        version.setFileId(fileId);
+        version.setChangeNote("初始手动上传");
+        version.setCreatedBy(user == null ? null : user.id());
+        version.setCreatedTime(LocalDateTime.now());
+        versionMapper.insert(version);
+
+        return toDocumentDto(document);
+    }
+
     public void ensureBaseDirectories() {
         ensureDirectory(null, "public", "公共知识库", "public", null, null, null, "/公共知识库", 10);
         ensureDirectory(null, "department", "部门知识库", "dept", null, null, null, "/部门知识库", 20);

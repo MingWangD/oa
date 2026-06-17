@@ -3,6 +3,7 @@ package com.example.judicialappraisal.knowledge.controller;
 import com.example.judicialappraisal.common.ApiResponse;
 import com.example.judicialappraisal.file.dto.FileContent;
 import com.example.judicialappraisal.knowledge.dto.ArchiveNodeRequest;
+import com.example.judicialappraisal.knowledge.dto.DocumentUploadRequest;
 import com.example.judicialappraisal.knowledge.dto.KnowledgeDirectoryDto;
 import com.example.judicialappraisal.knowledge.dto.KnowledgeDocumentDto;
 import com.example.judicialappraisal.knowledge.dto.KnowledgePermissionRequest;
@@ -53,6 +54,11 @@ public class KnowledgeController {
     @PostMapping("/archive-node")
     public ApiResponse<KnowledgeDocumentDto> archiveNode(@RequestBody ArchiveNodeRequest request) {
         return ApiResponse.success(knowledgeService.archiveNode(request));
+    }
+
+    @PostMapping("/documents/upload")
+    public ApiResponse<KnowledgeDocumentDto> uploadDocument(@RequestBody DocumentUploadRequest request) {
+        return ApiResponse.success(knowledgeService.uploadDocument(request.directoryId(), request.title(), request.fileId()));
     }
 
     @GetMapping("/documents/{documentId}/download")

@@ -873,6 +873,14 @@ export function previewKnowledgeDocument(documentId: number): Promise<{ blob: Bl
   return getBlob(`/knowledge/documents/${documentId}/preview`);
 }
 
+export function uploadManualDocument(payload: {
+  directoryId: number;
+  title: string;
+  fileId: number;
+}): Promise<KnowledgeDocument> {
+  return post<KnowledgeDocument>('/knowledge/documents/upload', payload);
+}
+
 export function fetchContracts(query: ContractQuery): Promise<PageResult<ContractItem>> {
   return get<PageResult<ContractItem>>('/contracts', { ...query });
 }

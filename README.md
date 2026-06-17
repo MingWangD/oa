@@ -151,10 +151,10 @@ npm run dev
 为了方便进行多角色业务流程的协同流转测试，系统中预设了以下角色账号，默认密码均为 `123456`：
 
 - `admin` (系统管理员 - 拥有全量权限)
-- `case_acceptor` (收案员 - 处理委托接收、收件等)
-- `project_leader` (项目负责人 - 案件流程的主理人，负责核心节点审批)
-- `project_assistant` (项目辅助人 - 协助编制初稿、文书及现场记录)
-- `dept_leader` (部门负责人 - F类项目及重大流转的审核节点)
+- `case_acceptor1` (收案员1 - 处理委托接收、收件等，另外还有 case_acceptor2, case_acceptor3)
+- `project_leader1` (项目负责人1 - 案件流程的主理人，负责核心节点审批，另外还有 project_leader2, project_leader3)
+- `project_assistant1` (项目辅助人1 - 协助编制初稿、文书及现场记录，另外还有 project_assistant2, project_assistant3)
+- `dept_leader1` (部门负责人1 - F类项目及重大流转的审核节点，另外还有 dept_leader2, dept_leader3)
 - `tech_leader` (技术负责人 - 处理复杂技术把关审核)
 - `director_review` (审阅所长/授权审批人 - 处理授权审批类节点)
 - `archivist` (档案管理员 - 处理用章、发函、归档、邮寄等)
