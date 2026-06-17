@@ -11,11 +11,13 @@ import com.example.judicialappraisal.organization.dto.RoleDataScopeUpdateRequest
 import com.example.judicialappraisal.organization.dto.OrganizationDeptDto;
 import com.example.judicialappraisal.organization.dto.OrganizationPostDto;
 import com.example.judicialappraisal.organization.entity.SysRole;
+import com.example.judicialappraisal.organization.entity.SysRoleMenu;
 import com.example.judicialappraisal.organization.entity.SysUser;
 import com.example.judicialappraisal.organization.entity.SysUserRole;
 import com.example.judicialappraisal.organization.mapper.AdminQueryMapper;
 import com.example.judicialappraisal.organization.mapper.SysRoleMapper;
 import com.example.judicialappraisal.organization.mapper.SysRoleDataScopeDeptMapper;
+import com.example.judicialappraisal.organization.mapper.SysRoleMenuMapper;
 import com.example.judicialappraisal.organization.mapper.SysUserMapper;
 import com.example.judicialappraisal.organization.mapper.SysUserRoleMapper;
 import java.util.HashMap;
@@ -35,17 +37,20 @@ public class OrganizationService extends ServiceImpl<SysUserMapper, SysUser> {
     private final SysRoleMapper sysRoleMapper;
     private final SysRoleDataScopeDeptMapper sysRoleDataScopeDeptMapper;
     private final SysUserRoleMapper sysUserRoleMapper;
+    private final SysRoleMenuMapper sysRoleMenuMapper;
     private final PasswordEncoder passwordEncoder;
 
     public OrganizationService(AdminQueryMapper adminQueryMapper,
                                SysRoleMapper sysRoleMapper,
                                SysRoleDataScopeDeptMapper sysRoleDataScopeDeptMapper,
                                SysUserRoleMapper sysUserRoleMapper,
+                               SysRoleMenuMapper sysRoleMenuMapper,
                                PasswordEncoder passwordEncoder) {
         this.adminQueryMapper = adminQueryMapper;
         this.sysRoleMapper = sysRoleMapper;
         this.sysRoleDataScopeDeptMapper = sysRoleDataScopeDeptMapper;
         this.sysUserRoleMapper = sysUserRoleMapper;
+        this.sysRoleMenuMapper = sysRoleMenuMapper;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -265,5 +270,32 @@ public class OrganizationService extends ServiceImpl<SysUserMapper, SysUser> {
             return null;
         }
         return value.trim();
+    }
+
+    public List<Long> getRoleMenuIds(Long roleId) {
+        return sysRoleMenuMapper.selectList(Wrappers.<SysRoleMenu>lambdaQuery()
+                .eq(SysRoleMenu::getRoleId, roleId))
+                .stream()
+                .map(SysRoleMenu::getMenuId)
+                .toList();
+    }
+
+    @Transactional
+    public void assignRoleMenus(Long roleId, List<Long> menuIds) {
+        SysRole role = sysRoleMapper.selectById(roleId);
+        if (role == null || role.getDeleted() != null && role.getDeleted() != 0) {
+            throw new BusinessException(404, "Role not found");
+        }
+        sysRoleMenuMapper.delete(Wrappers.<SysRoleMenu>lambdaQuery()
+                .eq(SysRoleMenu::getRoleId, roleId));
+        if (menuIds != null && !menuIds.isEmpty()) {
+            for (Long menuId : menuIds) {
+                SysRoleMenu roleMenu = new SysRoleMenu();
+                roleMenu.setRoleId(roleId);
+                roleMenu.setMenuId(menuId);
+                roleMenu.setCreatedTime(java.time.LocalDateTime.now());
+                sysRoleMenuMapper.insert(roleMenu);
+            }
+        }
     }
 }

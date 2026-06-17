@@ -968,3 +968,12 @@ export function publishWorkflow(wfCode: string): Promise<WorkflowDefinitionDesig
 export function restoreWorkflowVersion(wfCode: string, versionNo: number): Promise<WorkflowDefinitionDesign> {
   return post<WorkflowDefinitionDesign>(`/designer/workflows/${wfCode}/versions/${versionNo}/restore`);
 }
+
+export function fetchRoleMenuIds(roleId: number): Promise<number[]> {
+  return get<number[]>(`/admin/roles/${roleId}/menus`);
+}
+
+export function assignRoleMenus(roleId: number, menuIds: number[]): Promise<void> {
+  return put<void>(`/admin/roles/${roleId}/menus`, { menuIds });
+}
+

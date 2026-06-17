@@ -11,6 +11,7 @@ import com.example.judicialappraisal.organization.dto.AdminUserUpdateRequest;
 import com.example.judicialappraisal.organization.dto.OrganizationDeptDto;
 import com.example.judicialappraisal.organization.dto.OrganizationPostDto;
 import com.example.judicialappraisal.organization.dto.RoleDataScopeUpdateRequest;
+import com.example.judicialappraisal.organization.dto.RoleMenuAssignRequest;
 import com.example.judicialappraisal.organization.dto.UserRoleAssignRequest;
 import com.example.judicialappraisal.organization.service.OrganizationService;
 import jakarta.validation.Valid;
@@ -102,5 +103,22 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<List<OrganizationPostDto>> listPosts(Authentication authentication) {
         return ApiResponse.success(organizationService.listPosts());
+    }
+
+    @GetMapping("/roles/{roleId}/menus")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<List<Long>> getRoleMenuIds(@PathVariable Long roleId,
+                                                   Authentication authentication) {
+        return ApiResponse.success(organizationService.getRoleMenuIds(roleId));
+    }
+
+    @PutMapping("/roles/{roleId}/menus")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Void> assignRoleMenus(@PathVariable Long roleId,
+                                             @RequestBody RoleMenuAssignRequest request,
+                                             Authentication authentication) {
+        List<Long> menuIds = request == null ? List.of() : request.menuIds();
+        organizationService.assignRoleMenus(roleId, menuIds);
+        return ApiResponse.success();
     }
 }

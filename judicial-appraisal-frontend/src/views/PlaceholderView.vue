@@ -411,6 +411,9 @@ function entryStateLabel(path: string, current: boolean): string {
   if (current) {
     return '当前';
   }
+  if (path === '/admin/users' || path === '/placeholder/system/permission') {
+    return '已开工';
+  }
   if (BOARD_CODE_BY_PREFIX.some((item) => path.startsWith(item.prefix))) {
     return '已开工';
   }

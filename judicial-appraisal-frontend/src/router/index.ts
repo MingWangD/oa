@@ -16,6 +16,7 @@ const UserManagementView = () => import('../views/UserManagementView.vue');
 const ProfileView = () => import('../views/ProfileView.vue');
 const PlaceholderView = () => import('../views/PlaceholderView.vue');
 const ReportCenterView = () => import('../views/ReportCenterView.vue');
+const PermissionManagementView = () => import('../views/PermissionManagementView.vue');
 
 export const routes: RouteRecordRaw[] = [
   {
@@ -137,6 +138,18 @@ export const routes: RouteRecordRaw[] = [
     meta: {
       title: '用户管理',
       tabKey: 'admin-users',
+      menuGroup: 'system',
+      requiresAuth: true,
+      requiresAdmin: true
+    }
+  },
+  {
+    path: '/placeholder/system/permission',
+    name: 'admin-permissions',
+    component: PermissionManagementView,
+    meta: {
+      title: '权限管理',
+      tabKey: 'admin-permissions',
       menuGroup: 'system',
       requiresAuth: true,
       requiresAdmin: true
