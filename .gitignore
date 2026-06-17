@@ -28,8 +28,3 @@ exports/
 !.env.example
 docs/
 
-# Agent documentation (local only)
-AGENT.md
-GEMINI.md
-checklist.md
-ROADMAP.md
