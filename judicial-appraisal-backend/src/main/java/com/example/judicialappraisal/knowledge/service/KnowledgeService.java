@@ -115,6 +115,18 @@ public class KnowledgeService {
         if (document.getCurrentFileId() == null) {
             throw new BusinessException("该归档文档暂无可下载文件");
         }
+        if ("archive".equals(document.getSourceType()) && document.getFormSnapshotJson() != null && !document.getFormSnapshotJson().trim().isEmpty()) {
+            try {
+                Map<String, Object> formData = objectMapper.readValue(document.getFormSnapshotJson(), new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
+                String html = generateHtmlForm(document.getNodeName(), formData);
+                byte[] bytes = html.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+                auditLogService.record("KNOWLEDGE_DOWNLOAD", "知识文件下载", "knowledge_document", documentId, document.getCaseId(),
+                        "{\"title\":\"" + escape(document.getTitle()) + "\"}");
+                return new FileContent("办理记录.html", "text/html; charset=utf-8", bytes);
+            } catch (Exception e) {
+                // fallback
+            }
+        }
         auditLogService.record("KNOWLEDGE_DOWNLOAD", "知识文件下载", "knowledge_document", documentId, document.getCaseId(),
                 "{\"title\":\"" + escape(document.getTitle()) + "\"}");
         return fileStorageService.download(document.getCurrentFileId());
@@ -125,6 +137,18 @@ public class KnowledgeService {
         requireDocumentPermission(document, PERMISSION_READ);
         if (document.getCurrentFileId() == null) {
             throw new BusinessException("该归档文档暂无可预览文件");
+        }
+        if ("archive".equals(document.getSourceType()) && document.getFormSnapshotJson() != null && !document.getFormSnapshotJson().trim().isEmpty()) {
+            try {
+                Map<String, Object> formData = objectMapper.readValue(document.getFormSnapshotJson(), new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
+                String html = generateHtmlForm(document.getNodeName(), formData);
+                byte[] bytes = html.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+                auditLogService.record("KNOWLEDGE_PREVIEW", "知识文件预览", "knowledge_document", documentId, document.getCaseId(),
+                        "{\"title\":\"" + escape(document.getTitle()) + "\"}");
+                return new FileContent("办理记录.html", "text/html; charset=utf-8", bytes);
+            } catch (Exception e) {
+                // fallback
+            }
         }
         auditLogService.record("KNOWLEDGE_PREVIEW", "知识文件预览", "knowledge_document", documentId, document.getCaseId(),
                 "{\"title\":\"" + escape(document.getTitle()) + "\"}");
@@ -676,6 +700,7 @@ public class KnowledgeService {
         labelMap.put("filingDate", "立案日期");
         labelMap.put("clientName", "委托人");
         labelMap.put("caseNo", "案件号");
+        labelMap.put("caseTitle", "案件名称");
         labelMap.put("undertakingLegalPerson", "承办法人");
         labelMap.put("institutionSelectionMethod", "确定机构方式");
         labelMap.put("institutionSelectionTime", "确定机构时间");

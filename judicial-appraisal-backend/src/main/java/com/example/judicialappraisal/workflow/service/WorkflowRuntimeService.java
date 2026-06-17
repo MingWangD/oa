@@ -1308,6 +1308,13 @@ public class WorkflowRuntimeService {
                     boolean isReadOnly = Boolean.TRUE.equals(toBoolean(field.get("readOnly")))
                             || Boolean.TRUE.equals(toBoolean(field.get("readonly")));
                     if (!isReadOnly && fieldName != null && !fieldName.trim().isEmpty()) {
+                        if ("nextRecommendation".equals(fieldName)
+                                || "projectReviewPassed".equals(fieldName)
+                                || "technicalReviewPassed".equals(fieldName)
+                                || "departmentReviewPassed".equals(fieldName)
+                                || "projectMaterialReviewPassed".equals(fieldName)) {
+                            continue;
+                        }
                         String type = stringValue(field.get("type"));
                         if ("boolean".equalsIgnoreCase(type)) {
                             caseFormData.put(fieldName, false);
