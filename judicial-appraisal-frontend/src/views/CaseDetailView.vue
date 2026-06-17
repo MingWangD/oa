@@ -158,6 +158,14 @@ const dynamicFields = computed<DynamicFormField[]>(() => {
       if (auth.required !== undefined) {
         isRequired = Boolean(auth.required);
       }
+
+      // Dynamic validation linkage:
+      if (key === 'supplementaryNotice' && formData.value?.requireSupplementaryMaterial === true) {
+        isRequired = true;
+      }
+      if ((key === 'returnReceiver' || key === 'returnDate') && formData.value?.requireReturn === true) {
+        isRequired = true;
+      }
       return {
         key,
         label: String(field.label || field.name || field.field || `字段 ${index + 1}`),
