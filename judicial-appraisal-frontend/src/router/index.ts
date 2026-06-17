@@ -76,7 +76,7 @@ export const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/work-report',
+    path: '/placeholder/workflow/report',
     name: 'report-center',
     component: ReportCenterView,
     meta: {

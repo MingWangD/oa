@@ -3,6 +3,9 @@ import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { DocumentAdd, Files, FolderOpened, House, List, Setting, User } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
+import zhCn from 'element-plus/es/locale/lang/zh-cn';
+
+const locale = ref(zhCn);
 
 import { useAuthStore } from './stores/auth';
 
@@ -188,58 +191,60 @@ watch(
 </script>
 
 <template>
-  <RouterView v-if="isLoginPage" />
+  <el-config-provider :locale="locale">
+    <RouterView v-if="isLoginPage" />
 
-  <el-container v-else class="td-layout">
-    <el-header class="td-header">
-      <div class="td-logo">电子司法鉴定所司法鉴定管理系统</div>
+    <el-container v-else class="td-layout">
+      <el-header class="td-header">
+        <div class="td-logo">电子司法鉴定所司法鉴定管理系统</div>
 
-      <div class="td-userbox">
-        <button type="button" class="td-profile-trigger" @click="openProfile">
-          <el-avatar class="td-avatar">{{ avatarText }}</el-avatar>
-          <span class="td-useridentity">
-            <span class="td-username">{{ currentUserName }}</span>
-            <span class="td-userhint">{{ currentUserMeta }}</span>
-          </span>
-        </button>
-        <button type="button" class="td-logout" :disabled="loggingOut" @click="handleLogout">
-          {{ loggingOut ? '退出中...' : '退出登录' }}
-        </button>
+        <div class="td-userbox">
+          <button type="button" class="td-profile-trigger" @click="openProfile">
+            <el-avatar class="td-avatar">{{ avatarText }}</el-avatar>
+            <span class="td-useridentity">
+              <span class="td-username">{{ currentUserName }}</span>
+              <span class="td-userhint">{{ currentUserMeta }}</span>
+            </span>
+          </button>
+          <button type="button" class="td-logout" :disabled="loggingOut" @click="handleLogout">
+            {{ loggingOut ? '退出中...' : '退出登录' }}
+          </button>
+        </div>
+      </el-header>
+
+      <div class="td-tabbar">
+        <el-tabs :model-value="activePath" type="card" @tab-change="activateTab" @tab-remove="closeTab">
+          <el-tab-pane
+            v-for="item in openTabs"
+            :key="item.path"
+            :name="item.path"
+            :label="item.title"
+            :closable="item.closable"
+          />
+        </el-tabs>
       </div>
-    </el-header>
 
-    <div class="td-tabbar">
-      <el-tabs :model-value="activePath" type="card" @tab-change="activateTab" @tab-remove="closeTab">
-        <el-tab-pane
-          v-for="item in openTabs"
-          :key="item.path"
-          :name="item.path"
-          :label="item.title"
-          :closable="item.closable"
-        />
-      </el-tabs>
-    </div>
+      <el-container class="td-main">
+        <el-aside class="td-sidebar" width="220px">
+          <section v-for="group in menuGroups" :key="group.title" class="menu-section">
+            <h3 class="menu-section-title">{{ group.title }}</h3>
+            <el-menu class="td-menu" :default-active="activePath" :router="false">
+              <el-menu-item v-for="item in group.items" :key="item.path" :index="item.path" @click="openMenu(item.path)">
+                <el-icon><component :is="item.icon" /></el-icon>
+                <span>{{ item.title }}</span>
+              </el-menu-item>
+            </el-menu>
+          </section>
+        </el-aside>
 
-    <el-container class="td-main">
-      <el-aside class="td-sidebar" width="220px">
-        <section v-for="group in menuGroups" :key="group.title" class="menu-section">
-          <h3 class="menu-section-title">{{ group.title }}</h3>
-          <el-menu class="td-menu" :default-active="activePath" :router="false">
-            <el-menu-item v-for="item in group.items" :key="item.path" :index="item.path" @click="openMenu(item.path)">
-              <el-icon><component :is="item.icon" /></el-icon>
-              <span>{{ item.title }}</span>
-            </el-menu-item>
-          </el-menu>
-        </section>
-      </el-aside>
-
-      <el-main class="td-content">
-        <el-breadcrumb class="td-breadcrumb" separator=">">
-          <el-breadcrumb-item>当前位置</el-breadcrumb-item>
-          <el-breadcrumb-item>{{ currentPageTitle }}</el-breadcrumb-item>
-        </el-breadcrumb>
-        <RouterView />
-      </el-main>
+        <el-main class="td-content">
+          <el-breadcrumb class="td-breadcrumb" separator=">">
+            <el-breadcrumb-item>当前位置</el-breadcrumb-item>
+            <el-breadcrumb-item>{{ currentPageTitle }}</el-breadcrumb-item>
+          </el-breadcrumb>
+          <RouterView />
+        </el-main>
+      </el-container>
     </el-container>
-  </el-container>
+  </el-config-provider>
 </template>

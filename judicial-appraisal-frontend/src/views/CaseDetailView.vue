@@ -83,6 +83,12 @@ const canHandle = computed(() => {
   if (readonlyMode.value || currentTask.value?.status === 'completed') {
     return false;
   }
+  if (detail.value.caseStatus === 'COMPLETED' || detail.value.caseStatus === 'TERMINATED') {
+    return false;
+  }
+  if (detail.value.caseStatus !== 'DRAFT' && !currentTask.value) {
+    return false;
+  }
   return authStore.isAdmin || !detail.value.currentHandlerId || detail.value.currentHandlerId === authStore.user?.id;
 });
 const currentForm = computed(() => {

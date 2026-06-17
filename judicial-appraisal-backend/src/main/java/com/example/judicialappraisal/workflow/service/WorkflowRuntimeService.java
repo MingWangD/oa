@@ -789,6 +789,7 @@ public class WorkflowRuntimeService {
             caseInfo.setCompletedTime(now);
             caseInfoMapper.updateById(caseInfo);
             finishWorkflowInstance(caseInfo.getId(), now);
+            cancelOtherActiveTasksForCase(caseInfo.getId(), task.getId(), now);
             return new WorkflowActionResult(caseInfo.getId(), task.getId(), request.actionCode().name(), true, "案件已办结");
         }
         return new WorkflowActionResult(caseInfo.getId(), task.getId(), request.actionCode().name(), true, "办理成功");
@@ -820,6 +821,7 @@ public class WorkflowRuntimeService {
         caseInfo.setCurrentHandlerName(null);
         caseInfoMapper.updateById(caseInfo);
         terminateWorkflowInstance(caseInfo.getId(), now);
+        cancelOtherActiveTasksForCase(caseInfo.getId(), task.getId(), now);
         return new WorkflowActionResult(caseInfo.getId(), task.getId(), request.actionCode().name(), true, "案件已终止");
     }
 
@@ -1172,6 +1174,11 @@ public class WorkflowRuntimeService {
         if (completedTask.getSubflowInstanceId() != null) {
             finishSubflowInstance(completedTask.getSubflowInstanceId(), now);
             CaseSubflowInstance subflowInstance = caseSubflowInstanceMapper.selectById(completedTask.getSubflowInstanceId());
+            if (subflowInstance != null && "archive".equalsIgnoreCase(subflowInstance.getWfCode())) {
+                cancelOtherActiveTasksForCase(caseInfo.getId(), completedTask.getId(), now);
+                caseInfo.setCaseStatus(CaseStatus.COMPLETED.name());
+                caseInfoMapper.updateById(caseInfo);
+            }
             if (subflowInstance != null && subflowInstance.getParentTaskId() != null) {
                 CaseTask parentTask = caseTaskMapper.selectById(subflowInstance.getParentTaskId());
                 if (parentTask != null && TASK_SUBFLOW_RUNNING.equals(parentTask.getStatus())) {
@@ -1856,5 +1863,50 @@ public class WorkflowRuntimeService {
 
     private boolean isBlank(String value) {
         return value == null || value.isBlank();
+    }
+
+    private void cancelOtherActiveTasksForCase(Long caseId, Long currentTaskId, LocalDateTime now) {
+        java.util.Set<Long> parentTaskIds = new java.util.HashSet<>();
+        CaseTask completedTask = caseTaskMapper.selectById(currentTaskId);
+        if (completedTask != null) {
+            Long subId = completedTask.getSubflowInstanceId();
+            while (subId != null) {
+                CaseSubflowInstance sub = caseSubflowInstanceMapper.selectById(subId);
+                if (sub == null) {
+                    break;
+                }
+                if (sub.getParentTaskId() != null) {
+                    parentTaskIds.add(sub.getParentTaskId());
+                }
+                CaseTask parentTask = caseTaskMapper.selectById(sub.getParentTaskId());
+                subId = parentTask != null ? parentTask.getSubflowInstanceId() : null;
+            }
+        }
+
+        List<CaseTask> activeTasks = caseTaskMapper.selectList(new LambdaQueryWrapper<CaseTask>()
+                .eq(CaseTask::getCaseId, caseId)
+                .in(CaseTask::getStatus, TASK_PENDING, TASK_CLAIMED, "processing", TASK_SUBFLOW_RUNNING));
+        
+        for (CaseTask task : activeTasks) {
+            if (Objects.equals(task.getId(), currentTaskId) || parentTaskIds.contains(task.getId())) {
+                continue;
+            }
+            boolean isSubflowRunner = TASK_SUBFLOW_RUNNING.equals(task.getStatus());
+            task.setStatus(TASK_CANCELLED);
+            task.setCompletedTime(now);
+            task.setResultAction("CANCEL");
+            task.setResultOpinion("案件已归档，自动取消");
+            caseTaskMapper.updateById(task);
+
+            if (isSubflowRunner) {
+                CaseSubflowInstance subflow = caseSubflowInstanceMapper.selectOne(new LambdaQueryWrapper<CaseSubflowInstance>()
+                        .eq(CaseSubflowInstance::getParentTaskId, task.getId()));
+                if (subflow != null && WORKFLOW_RUNNING.equals(subflow.getStatus())) {
+                    subflow.setStatus(WORKFLOW_TERMINATED);
+                    subflow.setCompletedTime(now);
+                    caseSubflowInstanceMapper.updateById(subflow);
+                }
+            }
+        }
     }
 }

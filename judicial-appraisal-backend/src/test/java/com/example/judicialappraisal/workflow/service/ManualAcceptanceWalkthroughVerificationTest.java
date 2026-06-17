@@ -53,9 +53,9 @@ class ManualAcceptanceWalkthroughVerificationTest {
     @Transactional
     void fullWalkthrough_NewWork_Draft_Delete_Submit_Chain() throws Exception {
         // --- 1. case_acceptor 登录 ---
-        String acceptorToken = getToken("case_acceptor", "123456");
-        Long acceptorId = getUserId("case_acceptor");
-        Long acceptorDeptId = getDeptId("case_acceptor");
+        String acceptorToken = getToken("case_acceptor1", "123456");
+        Long acceptorId = getUserId("case_acceptor1");
+        Long acceptorDeptId = getDeptId("case_acceptor1");
 
         // --- 2. 验证“新建工作”权限过滤 ---
         MvcResult availableResult = mockMvc.perform(get("/api/platform/judicial-catalog/available")
@@ -121,10 +121,10 @@ class ManualAcceptanceWalkthroughVerificationTest {
 
         // --- 7. 换 dept_leader 登录验证待办 ---
         // 关键：确保 dept_leader 也在该部门，以符合 DEPT 数据权限
-        jdbcTemplate.update("UPDATE sys_user SET dept_id = ? WHERE username = 'dept_leader'", acceptorDeptId);
+        jdbcTemplate.update("UPDATE sys_user SET dept_id = ? WHERE username = 'dept_leader1'", acceptorDeptId);
 
-        String leaderToken = getToken("dept_leader", "123456");
-        Long leaderId = getUserId("dept_leader");
+        String leaderToken = getToken("dept_leader1", "123456");
+        Long leaderId = getUserId("dept_leader1");
 
         MvcResult todoResult = mockMvc.perform(get("/api/workbench/todo?assigneeId=" + leaderId)
                 .header("Authorization", "Bearer " + leaderToken))

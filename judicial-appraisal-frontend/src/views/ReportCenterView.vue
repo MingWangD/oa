@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { Download, Refresh, Search } from '@element-plus/icons-vue';
+import { ArrowDown, Download, Refresh, Search } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 
 import {
@@ -106,6 +106,12 @@ async function handleExport(): Promise<void> {
   }
 }
 
+async function handleExportCommand(command: string): Promise<void> {
+  if (command === 'csv' || command === 'excel') {
+    await handleExport();
+  }
+}
+
 function submitSearch(): void {
   currentPage.value = 1;
   void loadData();
@@ -147,7 +153,17 @@ onMounted(() => {
       </div>
       <div class="report-actions">
         <el-button :icon="Refresh" @click="loadData">刷新数据</el-button>
-        <el-button type="primary" :icon="Download" :loading="exporting" @click="handleExport">导出 CSV</el-button>
+        <el-dropdown trigger="click" @command="handleExportCommand">
+          <el-button type="primary" :icon="Download" :loading="exporting">
+            导出报表<el-icon class="el-icon--right"><ArrowDown /></el-icon>
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="csv">导出 CSV 格式</el-dropdown-item>
+              <el-dropdown-item command="excel">导出 Excel 格式</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
       </div>
     </section>
 
