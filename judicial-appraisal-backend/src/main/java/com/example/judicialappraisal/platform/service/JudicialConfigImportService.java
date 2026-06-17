@@ -2459,9 +2459,28 @@ public class JudicialConfigImportService {
     private WorkflowDesignRequest archiveWorkflowRequest(JudicialWorkflowDefinitionDto workflow) {
         List<WorkflowNodeRequest> nodes = List.of(
                 node("START", "开始", "start", "single", null, 0, 0, false, null, 0),
-                node("ARCHIVIST_PREPARE", "档案管理员整理项目档案", "task", "candidate", "档案管理员", 1, 48, true, workflow.formCode(), 10),
-                node("MAIL_TRANSFER", "邮寄人员移交档案", "task", "candidate", "邮寄人员", 1, 24, true, workflow.formCode(), 20),
-                node("CENTRAL_REVIEW", "中心档案管理员审核并入库", "task", "candidate", "中心档案管理员", 1, 48, true, workflow.formCode(), 30),
+                nodeWithFieldAuth("ARCHIVIST_PREPARE", "档案管理员整理项目档案", "task", "candidate", "档案管理员", 1, 48, true, workflow.formCode(), 10,
+                        Map.of(
+                                "centralArchiveApproved", Map.of("readonly", true),
+                                "archiveRoomLocation", Map.of("readonly", true)
+                        )),
+                nodeWithFieldAuth("MAIL_TRANSFER", "邮寄人员移交档案", "task", "candidate", "邮寄人员", 1, 24, true, workflow.formCode(), 20,
+                        Map.of(
+                                "projectArchiveUploaded", Map.of("readonly", true),
+                                "paperScansUploaded", Map.of("readonly", true),
+                                "electronicArchiveLocation", Map.of("readonly", true),
+                                "deliveryRoute", Map.of("readonly", true),
+                                "centralArchiveApproved", Map.of("readonly", true),
+                                "archiveRoomLocation", Map.of("readonly", true)
+                        )),
+                nodeWithFieldAuth("CENTRAL_REVIEW", "中心档案管理员审核并入库", "task", "candidate", "中心档案管理员", 1, 48, true, workflow.formCode(), 30,
+                        Map.of(
+                                "projectArchiveUploaded", Map.of("readonly", true),
+                                "paperScansUploaded", Map.of("readonly", true),
+                                "electronicArchiveLocation", Map.of("readonly", true),
+                                "deliveryRoute", Map.of("readonly", true),
+                                "mailTrackingNo", Map.of("readonly", true)
+                        )),
                 node("END", "流程结束", "end", "single", null, 0, 0, false, null, 40)
         );
         List<WorkflowTransitionRequest> transitions = List.of(
