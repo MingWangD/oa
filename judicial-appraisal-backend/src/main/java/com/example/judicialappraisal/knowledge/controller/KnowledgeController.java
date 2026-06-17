@@ -71,13 +71,34 @@ public class KnowledgeController {
     public ResponseEntity<byte[]> preview(@PathVariable Long documentId) {
         FileContent content = knowledgeService.previewDocument(documentId);
         String contentType = content.contentType();
-        if (contentType == null) {
+        byte[] bodyBytes = content.bytes();
+        
+        String originalName = content.originalName();
+        String ext = "";
+        if (originalName != null && originalName.lastIndexOf('.') >= 0) {
+            ext = originalName.substring(originalName.lastIndexOf('.') + 1).toLowerCase();
+        }
+        boolean isText = (contentType != null && contentType.startsWith("text/")) 
+                || java.util.List.of("txt", "md", "csv", "json", "xml", "log").contains(ext);
+        boolean isHtml = (contentType != null && contentType.toLowerCase().contains("text/html"))
+                || "html".equals(ext);
+
+        if (isText && !isHtml) {
+            String text = new String(bodyBytes, java.nio.charset.StandardCharsets.UTF_8);
+            String escapedText = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+            String html = "<html><head><meta charset=\"utf-8\"><title>" + (originalName == null ? "Preview" : originalName) + "</title></head>"
+                    + "<body style=\"font-family: monospace; white-space: pre-wrap; padding: 20px; background: #fafafa;\">"
+                    + "<pre style=\"margin: 0; word-break: break-all;\">" + escapedText + "</pre></body></html>";
+            bodyBytes = html.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            contentType = "text/html;charset=UTF-8";
+        } else if (contentType == null) {
             contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
         } else if (contentType.startsWith("text/") && !contentType.toLowerCase().contains("charset")) {
             contentType = contentType + ";charset=UTF-8";
         }
+
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
-                .body(content.bytes());
+                .body(bodyBytes);
     }
 }
