@@ -559,7 +559,10 @@ onMounted(() => {
                 :key="field.key"
                 :label="field.label"
                 :required="field.required && !field.readonly"
-                :class="{'highlight-required': field.required && !field.readonly}"
+                :class="{
+                  'highlight-required': field.required && !field.readonly,
+                  'field-is-readonly': field.readonly
+                }"
               >
                 <el-input
                   v-if="field.type === 'textarea'"
@@ -899,6 +902,50 @@ onMounted(() => {
   color: var(--el-color-danger) !important;
   font-size: 1.2em;
   font-weight: bold;
+}
+
+/* Read-only and disabled field styling (forbidden cursor & visual indicator) */
+.field-is-readonly :deep(.el-input__wrapper),
+.field-is-readonly :deep(.el-textarea__wrapper),
+.field-is-readonly :deep(.el-textarea__inner),
+.field-is-readonly :deep(.el-select__wrapper),
+.field-is-readonly :deep(.el-input-number),
+.field-is-readonly :deep(.el-date-editor) {
+  background-color: #f5f7fa !important;
+  box-shadow: 0 0 0 1px #e4e7ed inset !important;
+  cursor: not-allowed !important;
+}
+
+.field-is-readonly :deep(.el-input__inner),
+.field-is-readonly :deep(.el-textarea__inner),
+.field-is-readonly :deep(.el-select__wrapper *),
+.field-is-readonly :deep(.el-input-number *),
+.field-is-readonly :deep(.el-date-editor *) {
+  cursor: not-allowed !important;
+  color: #a8abb2 !important;
+}
+
+.field-is-readonly :deep(.el-switch) {
+  cursor: not-allowed !important;
+}
+
+.field-is-readonly :deep(.el-switch__core),
+.field-is-readonly :deep(.el-switch__label) {
+  cursor: not-allowed !important;
+  opacity: 0.6;
+}
+
+/* General disabled styling for dynamic form fields */
+.dynamic-form :deep(.el-input.is-disabled .el-input__wrapper),
+.dynamic-form :deep(.el-textarea.is-disabled .el-textarea__inner),
+.dynamic-form :deep(.el-select.is-disabled .el-select__wrapper),
+.dynamic-form :deep(.el-switch.is-disabled),
+.dynamic-form :deep(.el-switch.is-disabled *),
+.dynamic-form :deep(.el-input-number.is-disabled),
+.dynamic-form :deep(.el-input-number.is-disabled *),
+.dynamic-form :deep(.el-date-editor.is-disabled),
+.dynamic-form :deep(.el-date-editor.is-disabled *) {
+  cursor: not-allowed !important;
 }
 
 .uploaded-file-list span {
