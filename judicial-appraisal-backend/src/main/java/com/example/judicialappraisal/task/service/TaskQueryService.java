@@ -70,20 +70,19 @@ public class TaskQueryService {
         String wfName = "";
         String formCode = null;
 
+        Long wfId = null;
         if (task.getSubflowInstanceId() != null) {
             CaseSubflowInstance subflow = caseSubflowInstanceMapper.selectById(task.getSubflowInstanceId());
             if (subflow != null) {
                 wfName = subflow.getWfName();
+                wfId = subflow.getWfId();
                 WfDefinition definition = wfDefinitionMapper.selectById(subflow.getWfId());
                 if (definition != null) {
                     formCode = definition.getFormCode();
                 }
             }
         }
-
         String formRuleJson = null;
-        Long wfId = null;
-        
         if (wfName == null || wfName.isEmpty()) {
             CaseWfInstance wfInstance = caseWfInstanceMapper.selectById(task.getWfInstanceId());
             if (wfInstance != null) {

@@ -420,7 +420,24 @@ public class WorkflowRuntimeService {
                     }
                     return isRequired;
                 })
-                .filter(field -> !Boolean.TRUE.equals(toBoolean(field.get("readOnly"))))
+                .filter(field -> {
+                    String fieldName = stringValue(field.get("field"));
+                    boolean isReadOnly = Boolean.TRUE.equals(toBoolean(field.get("readOnly")))
+                            || Boolean.TRUE.equals(toBoolean(field.get("readonly")));
+                    if (finalFormRule != null && finalFormRule.containsKey("fieldAuth")) {
+                        Map<String, Map<String, Object>> fieldAuth = (Map<String, Map<String, Object>>) finalFormRule.get("fieldAuth");
+                        if (fieldAuth != null && fieldAuth.containsKey(fieldName)) {
+                            Map<String, Object> auth = fieldAuth.get(fieldName);
+                            if (auth.containsKey("readonly")) {
+                                isReadOnly = isReadOnly || Boolean.TRUE.equals(toBoolean(auth.get("readonly")));
+                            }
+                            if (auth.containsKey("readOnly")) {
+                                isReadOnly = isReadOnly || Boolean.TRUE.equals(toBoolean(auth.get("readOnly")));
+                            }
+                        }
+                    }
+                    return !isReadOnly;
+                })
                 .filter(field -> isFieldWritableForUser(field, finalPermissionSchema, finalUserId))
                 .filter(field -> isMissingFormValue(formData, stringValue(field.get("field"))))
                 .map(field -> {
