@@ -166,6 +166,11 @@ const dynamicFields = computed<DynamicFormField[]>(() => {
       if ((key === 'returnReceiver' || key === 'returnDate') && formData.value?.requireReturn === true) {
         isRequired = true;
       }
+
+      // Dynamic read-only linkage:
+      if (key === 'mailTrackingNo' && formData.value?.deliveryRoute !== '邮寄入库') {
+        isReadonly = true;
+      }
       return {
         key,
         label: String(field.label || field.name || field.field || `字段 ${index + 1}`),
