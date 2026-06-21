@@ -8,6 +8,7 @@ import com.example.judicialappraisal.organization.dto.AdminRoleDto;
 import com.example.judicialappraisal.organization.dto.AdminUserCreateRequest;
 import com.example.judicialappraisal.organization.dto.AdminUserDto;
 import com.example.judicialappraisal.organization.dto.AdminUserUpdateRequest;
+import com.example.judicialappraisal.organization.dto.MenuDto;
 import com.example.judicialappraisal.organization.dto.OrganizationDeptDto;
 import com.example.judicialappraisal.organization.dto.OrganizationPostDto;
 import com.example.judicialappraisal.organization.dto.RoleDataScopeUpdateRequest;
@@ -103,6 +104,12 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<List<OrganizationPostDto>> listPosts(Authentication authentication) {
         return ApiResponse.success(organizationService.listPosts());
+    }
+
+    @GetMapping("/menus")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<List<MenuDto>> listMenus(Authentication authentication) {
+        return ApiResponse.success(organizationService.listAllMenus());
     }
 
     @GetMapping("/roles/{roleId}/menus")

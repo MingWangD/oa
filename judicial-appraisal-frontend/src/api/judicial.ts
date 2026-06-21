@@ -806,6 +806,10 @@ export function fetchPlatformMenus(): Promise<MenuDto[]> {
   return get<MenuDto[]>('/platform/menus');
 }
 
+export function fetchAdminMenus(): Promise<MenuDto[]> {
+  return get<MenuDto[]>('/admin/menus');
+}
+
 export function fetchPlatformModules(): Promise<OaModule[]> {
   return get<OaModule[]>('/platform/modules');
 }
@@ -976,4 +980,3 @@ export function fetchRoleMenuIds(roleId: number): Promise<number[]> {
 export function assignRoleMenus(roleId: number, menuIds: number[]): Promise<void> {
   return put<void>(`/admin/roles/${roleId}/menus`, { menuIds });
 }
-

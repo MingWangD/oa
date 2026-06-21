@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import { ElMessage } from 'element-plus';
 import { Document, InfoFilled, Search, Share } from '@element-plus/icons-vue';
 
 import {
@@ -366,18 +366,17 @@ function openExplanation(workflow: JudicialWorkflowDefinition) {
 
       <div style="text-align: center; margin-bottom: 20px;">
         <el-radio-group v-model="flowchartTab" size="large">
-          <el-radio-button 
-            v-if="currentWorkflow && hasSpecificFlowchart(currentWorkflow)" 
+          <el-radio-button
+            v-if="currentWorkflow && hasSpecificFlowchart(currentWorkflow)"
             label="current"
           >
             当前步骤流程图
           </el-radio-button>
-          <el-radio-group v-model="flowchartTab" size="large" style="display: none;"></el-radio-group>
           <el-radio-button label="overview">全景工作流程图</el-radio-button>
           <el-radio-button label="detailed">细化工作流程图</el-radio-button>
         </el-radio-group>
       </div>
-      
+
       <div class="flowchart-viewer" style="display: flex; justify-content: center; align-items: center; min-height: 400px; max-height: 70vh; overflow: auto; background: #fafafa; border: 1px solid #ebeef5; border-radius: 4px; padding: 10px;">
         <template v-if="flowchartTab === 'current' && currentWorkflow">
           <el-image
@@ -419,7 +418,7 @@ function openExplanation(workflow: JudicialWorkflowDefinition) {
           </el-image>
         </template>
       </div>
-      
+
       <template #footer>
         <div style="text-align: right;">
           <el-button type="primary" @click="flowchartVisible = false">关闭</el-button>
@@ -436,7 +435,7 @@ function openExplanation(workflow: JudicialWorkflowDefinition) {
       custom-class="explanation-dialog"
     >
       <div v-if="currentWorkflow" class="explanation-container" style="padding: 10px 5px;">
-        
+
         <!-- 基础信息排版 -->
         <div class="guide-cards" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
           <div class="guide-card" style="background: #f4f7fc; border-radius: 8px; padding: 14px 18px; border-left: 4px solid #1677ff;">
@@ -448,7 +447,7 @@ function openExplanation(workflow: JudicialWorkflowDefinition) {
               {{ entryModeLabel(currentWorkflow) }}
             </p>
           </div>
-          
+
           <div class="guide-card" style="background: #f4f7fc; border-radius: 8px; padding: 14px 18px; border-left: 4px solid #52c41a;">
             <h4 style="margin: 0 0 8px 0; color: #1f2d3d; font-size: 15px; display: flex; align-items: center; gap: 6px;">
               <el-icon style="color: #52c41a;"><Document /></el-icon>
@@ -459,7 +458,7 @@ function openExplanation(workflow: JudicialWorkflowDefinition) {
             </p>
           </div>
         </div>
-        
+
         <!-- 办理角色 -->
         <div style="margin-bottom: 24px; background: #fafafa; border-radius: 8px; padding: 14px 18px;">
           <h4 style="margin: 0 0 10px 0; color: #1f2d3d; font-size: 15px; display: flex; align-items: center; gap: 6px;">
@@ -467,10 +466,10 @@ function openExplanation(workflow: JudicialWorkflowDefinition) {
             有权发起/办理角色
           </h4>
           <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-            <el-tag 
-              v-for="role in currentWorkflow.roles" 
-              :key="role" 
-              type="primary" 
+            <el-tag
+              v-for="role in currentWorkflow.roles"
+              :key="role"
+              type="primary"
               effect="light"
               style="font-size: 13px; padding: 6px 12px; height: auto;"
             >

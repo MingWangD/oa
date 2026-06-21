@@ -3,7 +3,7 @@ import { computed, onMounted, ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import {
   fetchAdminRoles,
-  fetchPlatformMenus,
+  fetchAdminMenus,
   fetchRoleMenuIds,
   assignRoleMenus,
   type AdminRole,
@@ -43,7 +43,7 @@ async function initData(): Promise<void> {
   try {
     const [roleData, menuData] = await Promise.all([
       fetchAdminRoles(),
-      fetchPlatformMenus()
+      fetchAdminMenus()
     ]);
     roles.value = roleData;
     allMenus.value = menuData;
@@ -77,7 +77,7 @@ async function selectRole(roleId: number): Promise<void> {
 function getLeafNodeIds(menus: MenuDto[], checkedIds: number[]): number[] {
   const leafIds: number[] = [];
   const checkedSet = new Set(checkedIds);
-  
+
   function traverse(nodes: MenuDto[]) {
     for (const node of nodes) {
       if (checkedSet.has(node.id)) {
@@ -89,7 +89,7 @@ function getLeafNodeIds(menus: MenuDto[], checkedIds: number[]): number[] {
       }
     }
   }
-  
+
   traverse(menus);
   return leafIds;
 }
@@ -99,17 +99,17 @@ async function savePermissions(): Promise<void> {
     ElMessage.warning('请先选择一个角色');
     return;
   }
-  
+
   if (!treeRef.value) {
     return;
   }
-  
+
   saving.value = true;
   try {
     const checkedKeys = treeRef.value.getCheckedKeys();
     const halfCheckedKeys = treeRef.value.getHalfCheckedKeys();
     const allKeys = [...checkedKeys, ...halfCheckedKeys];
-    
+
     await assignRoleMenus(selectedRoleId.value, allKeys);
     ElMessage.success('权限保存成功');
     selectedMenuIds.value = allKeys;
@@ -189,7 +189,7 @@ onMounted(() => {
         <div class="panel-heading" style="justify-content: space-between; align-items: center; display: flex;">
           <div>
             <h3 class="panel-title">
-              功能权限配置 
+              功能权限配置
               <span v-if="selectedRole" class="active-role-tag">
                 （当前配置角色：{{ selectedRole.roleName }}）
               </span>

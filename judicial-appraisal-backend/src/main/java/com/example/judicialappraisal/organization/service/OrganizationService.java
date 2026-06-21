@@ -7,14 +7,17 @@ import com.example.judicialappraisal.organization.dto.AdminRoleDto;
 import com.example.judicialappraisal.organization.dto.AdminUserCreateRequest;
 import com.example.judicialappraisal.organization.dto.AdminUserDto;
 import com.example.judicialappraisal.organization.dto.AdminUserUpdateRequest;
+import com.example.judicialappraisal.organization.dto.MenuDto;
 import com.example.judicialappraisal.organization.dto.RoleDataScopeUpdateRequest;
 import com.example.judicialappraisal.organization.dto.OrganizationDeptDto;
 import com.example.judicialappraisal.organization.dto.OrganizationPostDto;
+import com.example.judicialappraisal.organization.entity.SysMenu;
 import com.example.judicialappraisal.organization.entity.SysRole;
 import com.example.judicialappraisal.organization.entity.SysRoleMenu;
 import com.example.judicialappraisal.organization.entity.SysUser;
 import com.example.judicialappraisal.organization.entity.SysUserRole;
 import com.example.judicialappraisal.organization.mapper.AdminQueryMapper;
+import com.example.judicialappraisal.organization.mapper.SysMenuMapper;
 import com.example.judicialappraisal.organization.mapper.SysRoleMapper;
 import com.example.judicialappraisal.organization.mapper.SysRoleDataScopeDeptMapper;
 import com.example.judicialappraisal.organization.mapper.SysRoleMenuMapper;
@@ -35,6 +38,7 @@ public class OrganizationService extends ServiceImpl<SysUserMapper, SysUser> {
 
     private final AdminQueryMapper adminQueryMapper;
     private final SysRoleMapper sysRoleMapper;
+    private final SysMenuMapper sysMenuMapper;
     private final SysRoleDataScopeDeptMapper sysRoleDataScopeDeptMapper;
     private final SysUserRoleMapper sysUserRoleMapper;
     private final SysRoleMenuMapper sysRoleMenuMapper;
@@ -42,12 +46,14 @@ public class OrganizationService extends ServiceImpl<SysUserMapper, SysUser> {
 
     public OrganizationService(AdminQueryMapper adminQueryMapper,
                                SysRoleMapper sysRoleMapper,
+                               SysMenuMapper sysMenuMapper,
                                SysRoleDataScopeDeptMapper sysRoleDataScopeDeptMapper,
                                SysUserRoleMapper sysUserRoleMapper,
                                SysRoleMenuMapper sysRoleMenuMapper,
                                PasswordEncoder passwordEncoder) {
         this.adminQueryMapper = adminQueryMapper;
         this.sysRoleMapper = sysRoleMapper;
+        this.sysMenuMapper = sysMenuMapper;
         this.sysRoleDataScopeDeptMapper = sysRoleDataScopeDeptMapper;
         this.sysUserRoleMapper = sysUserRoleMapper;
         this.sysRoleMenuMapper = sysRoleMenuMapper;
@@ -164,6 +170,15 @@ public class OrganizationService extends ServiceImpl<SysUserMapper, SysUser> {
         return adminQueryMapper.selectPosts();
     }
 
+    public List<MenuDto> listAllMenus() {
+        List<SysMenu> menus = sysMenuMapper.selectList(Wrappers.<SysMenu>lambdaQuery()
+                .eq(SysMenu::getStatus, "enabled")
+                .eq(SysMenu::getDeleted, 0)
+                .orderByAsc(SysMenu::getSortNo)
+                .orderByAsc(SysMenu::getId));
+        return buildMenuTree(menus, 0L);
+    }
+
     private void assignRoles(Long userId, List<Long> roleIds) {
         List<Long> normalizedRoleIds = normalizeRoleIds(roleIds);
         if (!normalizedRoleIds.isEmpty()) {
@@ -246,6 +261,16 @@ public class OrganizationService extends ServiceImpl<SysUserMapper, SysUser> {
                 .toList();
     }
 
+    private List<Long> normalizeMenuIds(List<Long> menuIds) {
+        if (menuIds == null || menuIds.isEmpty()) {
+            return List.of();
+        }
+        return menuIds.stream()
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+    }
+
     private String normalizeStatus(String status) {
         String value = trimToNull(status);
         if (value == null) {
@@ -286,16 +311,42 @@ public class OrganizationService extends ServiceImpl<SysUserMapper, SysUser> {
         if (role == null || role.getDeleted() != null && role.getDeleted() != 0) {
             throw new BusinessException(404, "Role not found");
         }
-        sysRoleMenuMapper.delete(Wrappers.<SysRoleMenu>lambdaQuery()
-                .eq(SysRoleMenu::getRoleId, roleId));
-        if (menuIds != null && !menuIds.isEmpty()) {
-            for (Long menuId : menuIds) {
-                SysRoleMenu roleMenu = new SysRoleMenu();
-                roleMenu.setRoleId(roleId);
-                roleMenu.setMenuId(menuId);
-                roleMenu.setCreatedTime(java.time.LocalDateTime.now());
-                sysRoleMenuMapper.insert(roleMenu);
+        List<Long> normalizedMenuIds = normalizeMenuIds(menuIds);
+        if (!normalizedMenuIds.isEmpty()) {
+            Long matchedCount = sysMenuMapper.selectCount(Wrappers.<SysMenu>lambdaQuery()
+                    .in(SysMenu::getId, normalizedMenuIds)
+                    .eq(SysMenu::getStatus, "enabled")
+                    .eq(SysMenu::getDeleted, 0));
+            if (matchedCount != normalizedMenuIds.size()) {
+                throw new BusinessException("One or more menus do not exist");
             }
         }
+        sysRoleMenuMapper.delete(Wrappers.<SysRoleMenu>lambdaQuery()
+                .eq(SysRoleMenu::getRoleId, roleId));
+        for (Long menuId : normalizedMenuIds) {
+            SysRoleMenu roleMenu = new SysRoleMenu();
+            roleMenu.setRoleId(roleId);
+            roleMenu.setMenuId(menuId);
+            roleMenu.setCreatedTime(java.time.LocalDateTime.now());
+            sysRoleMenuMapper.insert(roleMenu);
+        }
+    }
+
+    private List<MenuDto> buildMenuTree(List<SysMenu> menus, Long parentId) {
+        return menus.stream()
+                .filter(menu -> Objects.equals(menu.getParentId(), parentId))
+                .map(menu -> new MenuDto(
+                        menu.getId(),
+                        menu.getParentId(),
+                        menu.getMenuName(),
+                        menu.getMenuCode(),
+                        menu.getPath(),
+                        menu.getComponent(),
+                        menu.getMenuType(),
+                        menu.getIcon(),
+                        menu.getSortNo(),
+                        buildMenuTree(menus, menu.getId())
+                ))
+                .toList();
     }
 }
