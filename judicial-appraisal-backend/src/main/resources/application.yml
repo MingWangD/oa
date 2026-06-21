@@ -5,9 +5,9 @@ spring:
   application:
     name: judicial-appraisal-backend
   datasource:
-    url: jdbc:mysql://localhost:${DB_PORT:3306}/judicial_appraisal?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
-    username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:123456}
+    url: jdbc:mysql://localhost:3307/judicial_appraisal?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
   data:
     redis:
@@ -32,7 +32,7 @@ mybatis-plus:
 
 app:
   jwt:
-    secret: ${JWT_SECRET:judicial-appraisal-secret-key-please-change-in-production-min-32chars}
+    secret: change-me-change-me-change-me-change-me
     issuer: judicial-appraisal-backend
     expiration-minutes: 720
   minio:
