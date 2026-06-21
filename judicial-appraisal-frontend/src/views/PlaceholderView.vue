@@ -6,12 +6,14 @@ import {
   fetchLedgerBoard,
   fetchPlatformModules,
   fetchReconstructionPlan,
-  type LedgerBoard,
+  type LedgerBoard as LedgerBoardData,
   type LedgerRow,
   type OaModule,
   type ReconstructionPhase
 } from '../api/judicial';
 import { useAuthStore } from '../stores/auth';
+import LedgerBoard from '../components/placeholder/LedgerBoard.vue';
+import LedgerDrawer from '../components/placeholder/LedgerDrawer.vue';
 
 interface SectionDefinition {
   code: string;
@@ -118,7 +120,7 @@ const loading = ref(false);
 const errorMessage = ref('');
 const modules = ref<OaModule[]>([]);
 const phases = ref<ReconstructionPhase[]>([]);
-const ledgerBoard = ref<LedgerBoard | null>(null);
+const ledgerBoard = ref<LedgerBoardData | null>(null);
 const keyword = ref('');
 const statusFilter = ref('all');
 const detailVisible = ref(false);
@@ -374,38 +376,7 @@ const listMetricLabel = computed(() => {
   return labels[currentBoardCode.value] ?? '概览';
 });
 
-function formatDateTime(value: string | null): string {
-  if (!value) {
-    return '-';
-  }
 
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  }).format(date);
-}
-
-function getStatusClass(status: string | undefined): string {
-  const value = String(status ?? '').toUpperCase();
-  if (value.includes('预警') || value.includes('终止') || value.includes('超期')) {
-    return 'is-danger';
-  }
-  if (value.includes('跟进') || value.includes('履约') || value.includes('审批') || value.includes('办理')) {
-    return 'is-warning';
-  }
-  if (value.includes('完成') || value.includes('沉淀')) {
-    return 'is-success';
-  }
-  return 'is-primary';
-}
 
 function entryStateLabel(path: string, current: boolean): string {
   if (current) {
@@ -418,6 +389,17 @@ function entryStateLabel(path: string, current: boolean): string {
     return '已开工';
   }
   return '待建设';
+}
+
+/** 格式化日期时间（供 exportBoard 等函数内部使用） */
+function formatDateTime(value: string | null): string {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat('zh-CN', {
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit'
+  }).format(date);
 }
 
 function persistFilters(): void {
@@ -490,25 +472,7 @@ async function openRelatedPath(row: LedgerRow): Promise<void> {
   });
 }
 
-function relatedActionLabel(row: LedgerRow): string {
-  if (!row.relatedPath) {
-    return '继续办理';
-  }
-  if (row.relatedPath.startsWith('/case/')) {
-    return '查看案件';
-  }
-  if (row.relatedPath.startsWith('/knowledge')) {
-    return '查看知识库';
-  }
-  if (row.relatedPath.startsWith('/admin/users')) {
-    return '查看用户';
-  }
-  return '继续办理';
-}
-
-function supportsWorkQueryDrilldown(): boolean {
-  return ['crm', 'contract', 'project'].includes(currentBoardCode.value);
-}
+const supportsWorkQueryDrilldown = computed(() => ['crm', 'contract', 'project'].includes(currentBoardCode.value));
 
 function buildWorkQueryForRow(row: LedgerRow): { keyword?: string; caseStatus?: string } {
   if (currentBoardCode.value === 'crm') {
@@ -537,14 +501,14 @@ async function openWorkQueryDrilldown(row: LedgerRow): Promise<void> {
   });
 }
 
-function workQueryActionLabel(): string {
+const workQueryActionLabel = computed<string>(() => {
   const map: Record<string, string> = {
     crm: '查看客户案件',
     contract: '查看合同清单',
     project: '查看项目清单'
   };
   return map[currentBoardCode.value] ?? '查看相关清单';
-}
+});
 
 function exportBoard(): void {
   if (!ledgerBoard.value || typeof window === 'undefined') {
@@ -677,211 +641,48 @@ watch([keyword, statusFilter], () => {
       </div>
     </section>
 
-    <section v-if="showsLedgerBoard && ledgerBoard" class="content-card page-block">
-      <div class="panel-heading">
-        <div>
-          <h3 class="panel-title">{{ ledgerBoard.moduleName }}</h3>
-          <p class="panel-subtitle">{{ ledgerBoard.description }}</p>
-        </div>
-        <div class="inline-actions">
-          <el-tag :type="sourceTag.type" effect="plain">{{ sourceTag.label }}</el-tag>
-          <el-button :loading="exporting" @click="exportBoard">导出 CSV</el-button>
-        </div>
-      </div>
+    <LedgerBoard
+      v-if="showsLedgerBoard && ledgerBoard"
+      :ledger-board="ledgerBoard"
+      :loading="loading"
+      :exporting="exporting"
+      v-model:keyword="keyword"
+      v-model:status-filter="statusFilter"
+      :source-tag="sourceTag"
+      :filter-summary="filterSummary"
+      :board-actions="boardActions"
+      :list-metric-label="listMetricLabel"
+      :status-labels="statusLabels"
+      :status-buttons="statusButtons"
+      :supports-work-query-drilldown="supportsWorkQueryDrilldown"
+      :work-query-action-label="workQueryActionLabel"
+      @apply-filters="applyFilters"
+      @reset-filters="resetFilters"
+      @export-board="exportBoard"
+      @run-quick-action="runQuickAction"
+      @open-row-detail="openRowDetail"
+      @open-related-path="openRelatedPath"
+      @open-work-query-drilldown="openWorkQueryDrilldown"
+    />
 
-      <el-form class="query-bar" :inline="true" @submit.prevent="applyFilters">
-        <el-form-item label="关键词">
-          <el-input v-model="keyword" placeholder="名称、编号、委托单位" clearable style="width: 260px" />
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-radio-group v-model="statusFilter" class="ledger-filter-group">
-            <el-radio-button v-for="option in statusButtons" :key="option" :label="option">
-              {{ statusLabels[option] ?? option }}
-            </el-radio-button>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item>
-          <div class="query-actions">
-            <el-button type="primary" :loading="loading" @click="applyFilters">查询</el-button>
-            <el-button @click="resetFilters">重置</el-button>
-          </div>
-        </el-form-item>
-      </el-form>
-
-      <div class="query-summary">
-        <p class="query-summary-text">
-          当前条件：<strong>{{ filterSummary }}</strong>
-        </p>
-        <p class="query-summary-text">
-          当前记录：<strong>{{ ledgerBoard.rows.length }}</strong> 条
-        </p>
-      </div>
-
-      <div class="board-action-bar">
-        <el-button
-          v-for="action in boardActions"
-          :key="action.label"
-          :type="action.type === 'route' ? 'primary' : 'default'"
-          plain
-          @click="runQuickAction(action)"
-        >
-          {{ action.label }}
-        </el-button>
-      </div>
-
-      <div class="ledger-metric-grid">
-        <article v-for="metric in ledgerBoard.metrics" :key="metric.label" class="ledger-metric-card" :class="{ 'is-accent': metric.accent }">
-          <p class="overview-label">{{ metric.label }}</p>
-          <p class="overview-value ledger-metric-value">{{ metric.value }}</p>
-        </article>
-      </div>
-
-      <div class="table-frame">
-        <el-table :data="ledgerBoard.rows" border stripe>
-          <el-table-column label="名称" min-width="220">
-            <template #default="scope">
-              <div class="name-cell">
-                <span class="primary-text">{{ scope.row.primaryText || '-' }}</span>
-                <span class="secondary-text">{{ scope.row.secondaryText || '-' }}</span>
-                <span class="secondary-text">{{ scope.row.tertiaryText || '-' }}</span>
-              </div>
-            </template>
-          </el-table-column>
-          <el-table-column prop="ownerName" label="负责人" min-width="120">
-            <template #default="scope">{{ scope.row.ownerName || '-' }}</template>
-          </el-table-column>
-          <el-table-column label="状态" width="120">
-            <template #default="scope">
-              <el-tag class="status-tag" :class="getStatusClass(scope.row.statusLabel)" effect="plain">
-                {{ scope.row.statusLabel || '-' }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column :label="listMetricLabel" min-width="220">
-            <template #default="scope">{{ scope.row.metricText || '-' }}</template>
-          </el-table-column>
-          <el-table-column label="推进说明" min-width="220">
-            <template #default="scope">{{ scope.row.progressLabel || '-' }}</template>
-          </el-table-column>
-          <el-table-column label="标签" min-width="180">
-            <template #default="scope">
-              <div class="tag-row">
-                <el-tag v-for="tag in scope.row.tags" :key="tag" size="small" effect="plain">{{ tag }}</el-tag>
-              </div>
-            </template>
-          </el-table-column>
-          <el-table-column label="最近更新" min-width="170">
-            <template #default="scope">{{ formatDateTime(scope.row.updatedTime) }}</template>
-          </el-table-column>
-          <el-table-column label="截止时间" min-width="170">
-            <template #default="scope">{{ formatDateTime(scope.row.deadlineTime) }}</template>
-          </el-table-column>
-          <el-table-column label="操作" width="180">
-            <template #default="scope">
-              <div class="row-actions">
-                <el-button link type="primary" @click="openRowDetail(scope.row)">查看详情</el-button>
-                <el-button v-if="scope.row.relatedPath" link @click="openRelatedPath(scope.row)">{{ relatedActionLabel(scope.row) }}</el-button>
-                <el-button v-if="supportsWorkQueryDrilldown()" link @click="openWorkQueryDrilldown(scope.row)">{{ workQueryActionLabel() }}</el-button>
-              </div>
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
-    </section>
-
-    <el-drawer v-model="detailVisible" :with-header="false" size="420px">
-    <div v-if="detailRow" class="ledger-drawer">
-      <div class="ledger-drawer__head">
-        <div>
-          <h3 class="panel-title">{{ detailRow.primaryText }}</h3>
-          <p class="panel-subtitle">{{ detailRow.secondaryText }}</p>
-        </div>
-        <el-tag class="status-tag" :class="getStatusClass(detailRow.statusLabel)" effect="plain">
-          {{ detailRow.statusLabel }}
-        </el-tag>
-      </div>
-
-      <div class="drawer-metric">
-        <p class="drawer-metric__label">{{ listMetricLabel }}</p>
-        <p class="drawer-metric__value">{{ detailRow.metricText }}</p>
-      </div>
-
-      <div class="module-center-panel">
-        <div class="module-center-panel__head">
-          <h4>当前说明</h4>
-          <span>{{ detailRow.ownerName || '-' }}</span>
-        </div>
-        <ul class="compact-list">
-          <li>{{ detailRow.progressLabel || '-' }}</li>
-          <li>{{ detailRow.actionHint || '-' }}</li>
-          <li>最近更新：{{ formatDateTime(detailRow.updatedTime) }}</li>
-          <li>截止时间：{{ formatDateTime(detailRow.deadlineTime) }}</li>
-        </ul>
-      </div>
-
-      <div class="module-center-panel">
-        <div class="module-center-panel__head">
-          <h4>业务事实</h4>
-          <span>{{ detailRow.tertiaryText || '详情' }}</span>
-        </div>
-        <ul class="compact-list">
-          <li v-for="fact in detailRow.facts" :key="fact">{{ fact }}</li>
-        </ul>
-      </div>
-
-      <div v-if="detailRow.relatedPath" class="drawer-actions">
-        <el-button type="primary" @click="openRelatedPath(detailRow)">{{ relatedActionLabel(detailRow) }}</el-button>
-        <el-button v-if="supportsWorkQueryDrilldown()" @click="openWorkQueryDrilldown(detailRow)">{{ workQueryActionLabel() }}</el-button>
-      </div>
-    </div>
-  </el-drawer>
+    <LedgerDrawer
+      v-model:visible="detailVisible"
+      :detail-row="detailRow"
+      :list-metric-label="listMetricLabel"
+      :supports-work-query-drilldown="supportsWorkQueryDrilldown"
+      :work-query-action-label="workQueryActionLabel"
+      @open-related-path="openRelatedPath"
+      @open-work-query-drilldown="openWorkQueryDrilldown"
+    />
   </main>
 </template>
 
 <style scoped>
-.overview-value--compact {
-  font-size: 22px;
-}
-
 .module-center-layout {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
   padding: 18px 20px 22px;
-}
-
-.ledger-metric-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
-  padding: 18px 20px 10px;
-}
-
-.board-action-bar {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  padding: 0 20px 8px;
-}
-
-.ledger-metric-card {
-  padding: 16px 18px;
-  border: 1px solid rgba(229, 215, 199, 0.9);
-  border-radius: 12px;
-  background: linear-gradient(180deg, #fffdfa 0%, #faf4eb 100%);
-}
-
-.ledger-metric-card.is-accent {
-  border-color: rgba(196, 60, 47, 0.2);
-  background: linear-gradient(180deg, #fff8f6 0%, #fdf0ec 100%);
-}
-
-.ledger-metric-value {
-  font-size: 26px;
-}
-
-.ledger-filter-group {
-  flex-wrap: wrap;
 }
 
 .module-center-panel {
@@ -934,58 +735,9 @@ watch([keyword, statusFilter], () => {
   background: var(--td-accent-soft);
 }
 
-.row-actions {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.ledger-drawer {
-  display: grid;
-  gap: 16px;
-}
-
-.ledger-drawer__head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.drawer-metric {
-  padding: 16px;
-  border: 1px solid var(--td-border);
-  border-radius: 12px;
-  background: var(--td-card-muted);
-}
-
-.drawer-metric__label {
-  margin: 0;
-  color: var(--td-text-secondary);
-  font-size: 13px;
-}
-
-.drawer-metric__value {
-  margin: 10px 0 0;
-  color: var(--td-text);
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.drawer-actions {
-  display: flex;
-  justify-content: flex-start;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
 @media (max-width: 960px) {
   .module-center-layout {
     grid-template-columns: 1fr;
-  }
-
-  .ledger-metric-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 </style>

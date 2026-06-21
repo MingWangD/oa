@@ -97,10 +97,10 @@
    ```yaml
    spring:
      datasource:
-       # 默认配置为 3307 端口，如果你的本地 MySQL 是默认 3306 端口，请修改此处
-       url: jdbc:mysql://localhost:3307/judicial_appraisal?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
-       username: root
-       password: 123456 # 替换为你的 MySQL 密码
+       # 默认使用标准 3306 端口，如需自定义可设置环境变量 DB_PORT
+       url: jdbc:mysql://localhost:${DB_PORT:3306}/judicial_appraisal?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+       username: ${DB_USERNAME:root}
+       password: ${DB_PASSWORD:123456} # 替换为你的 MySQL 密码，或设置环境变量 DB_PASSWORD
    ```
 3. **导入完整数据库文件**：
    项目只保留一个完整 SQL 文件，路径为：
@@ -110,7 +110,7 @@
    请在命令行中导入：
    ```bash
    # 请根据实际端口和密码情况调整命令
-   mysql -h localhost -P 3307 -u root -p judicial_appraisal < judicial-appraisal-backend/src/main/resources/db/judicial_appraisal_full_dump.sql
+   mysql -h localhost -P 3306 -u root -p judicial_appraisal < judicial-appraisal-backend/src/main/resources/db/judicial_appraisal_full_dump.sql
    ```
    该文件包含完整表结构、流程定义、案件样例、部门、岗位、角色、菜单权限和默认测试账号。导入后默认账号密码统一为 `123456`。
 
