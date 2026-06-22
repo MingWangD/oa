@@ -2,6 +2,7 @@
 import type { WorkflowActionCode } from '../../api/judicial';
 
 interface TransitionOption {
+  key: string;
   value: WorkflowActionCode;
   label: string;
   targetNode?: string;
@@ -18,11 +19,11 @@ defineProps<{
 
 const emit = defineEmits<{
   'save-form': [];
-  'submit-action': [code: WorkflowActionCode];
+  'submit-action': [code: string];
 }>();
 
 const opinion = defineModel<string>('opinion', { required: true });
-const selectedTransition = defineModel<WorkflowActionCode>('selectedTransition', { required: true });
+const selectedTransition = defineModel<string>('selectedTransition', { required: true });
 </script>
 
 <template>
@@ -50,9 +51,9 @@ const selectedTransition = defineModel<WorkflowActionCode>('selectedTransition',
         <el-select v-model="selectedTransition" :disabled="!canHandle" class="transition-select">
           <el-option
             v-for="option in transitionOptions"
-            :key="option.value"
+            :key="option.key"
             :label="option.label"
-            :value="option.value"
+            :value="option.key"
           />
         </el-select>
         <el-button :disabled="!canHandle" :loading="saving" @click="emit('save-form')">保存表单</el-button>

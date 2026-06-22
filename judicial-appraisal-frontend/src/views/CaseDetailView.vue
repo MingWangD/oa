@@ -40,6 +40,7 @@ interface DynamicFormField {
 }
 
 interface RuntimeTransitionOption {
+  key: string;
   value: WorkflowActionCode;
   label: string;
   targetNode?: string;
@@ -64,7 +65,7 @@ const userOptions = ref<AdminUser[]>([]);
 const formData = ref<Record<string, unknown>>({});
 const uploadedFiles = ref<FileUploadResponse[]>([]);
 const opinion = ref('');
-const selectedTransition = ref<WorkflowActionCode>('SUBMIT');
+const selectedTransition = ref<string>('SUBMIT');
 
 const caseId = computed(() => Number(route.params.id));
 const returnPath = computed(() => (typeof route.query.from === 'string' ? route.query.from : ''));
@@ -285,12 +286,13 @@ function formatTransitionCondition(expression: string | null): string | null {
 const transitionOptions = computed<RuntimeTransitionOption[]>(() => {
   if (isDraftCase.value && !currentTask.value) {
     return [
-      { value: 'SUBMIT', label: '提交并启动流程' }
+      { key: 'SUBMIT', value: 'SUBMIT', label: '提交并启动流程' }
     ];
   }
   if (workflowView.value?.nextTransitions.length) {
     const nodeNames = new Map(workflowView.value.nodes.map((node) => [node.nodeCode, node.nodeName]));
-    return workflowView.value.nextTransitions.map((transition) => ({
+    return workflowView.value.nextTransitions.map((transition, idx) => ({
+      key: `${transition.actionCode}-${transition.toNodeCode}-${idx}`,
       value: transition.actionCode,
       label: transition.actionName || '转交下一步',
       targetNode: nodeNames.get(transition.toNodeCode) || transition.toNodeCode,
@@ -298,11 +300,11 @@ const transitionOptions = computed<RuntimeTransitionOption[]>(() => {
     }));
   }
   return [
-    { value: 'APPROVE', label: '完成当前节点' }
+    { key: 'APPROVE', value: 'APPROVE', label: '完成当前节点' }
   ];
 });
 const selectedNextStepText = computed(() => transitionOptions.value
-  .filter((option) => option.value === selectedTransition.value)
+  .filter((option) => option.key === selectedTransition.value)
   .map((option) => option.targetNode || option.label)
   .join('、'));
 const fallbackFlowchartUrl = computed(() => {
@@ -369,7 +371,7 @@ async function loadDetail(): Promise<void> {
     workflowView.value = await fetchCaseWorkflowView(caseDetail.id, currentTask.value?.id).catch(() => null);
     selectedTransition.value = currentTask.value ? 'APPROVE' : 'SUBMIT';
     if (currentTask.value && transitionOptions.value.length > 0) {
-      selectedTransition.value = transitionOptions.value[0].value;
+      selectedTransition.value = transitionOptions.value[0].key;
     }
     uploadedFiles.value = [];
     await loadFormPreview();
@@ -443,7 +445,7 @@ async function loadCurrentTask(caseDetail: CaseDetail): Promise<TaskDetail | nul
   }
 }
 
-async function submitAction(actionCode: WorkflowActionCode): Promise<void> {
+async function submitAction(actionCodeOrKey: string): Promise<void> {
   if (!detail.value) {
     return;
   }
@@ -451,6 +453,9 @@ async function submitAction(actionCode: WorkflowActionCode): Promise<void> {
     ElMessage.warning('当前用户不是本环节主办人，暂不能提交办理动作');
     return;
   }
+  const matchedOption = transitionOptions.value.find((opt) => opt.key === actionCodeOrKey);
+  const actionCode = matchedOption ? matchedOption.value : (actionCodeOrKey as WorkflowActionCode);
+
   const missingFields = missingRequiredFields(actionCode);
   if (missingFields.length > 0) {
     ElMessage.warning(`请先补齐必填字段：${missingFields.slice(0, 4).join('、')}`);
