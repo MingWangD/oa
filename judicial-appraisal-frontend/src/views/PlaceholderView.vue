@@ -19,10 +19,6 @@ interface SectionDefinition {
   code: string;
   title: string;
   moduleCode: string;
-  focus: string;
-  milestoneTitle: string;
-  milestones: string[];
-  nextActions: string[];
   prefixes: string[];
 }
 
@@ -44,70 +40,42 @@ const SECTION_DEFINITIONS: SectionDefinition[] = [
     code: 'application-center',
     title: '应用中心',
     moduleCode: 'business-suite',
-    focus: '先建立应用入口、设计台账和权限承接，再逐步接入低代码应用与部门专属场景。',
-    milestoneTitle: '本阶段先做什么',
-    milestones: ['梳理我的应用与设计应用入口', '沉淀统一模块中心与权限承接方式', '为后续业务域应用挂接保留固定入口'],
-    nextActions: ['补应用分组和收藏能力', '接入角色可见范围', '接入应用配置发布流程'],
     prefixes: ['/placeholder/application']
   },
   {
     code: 'business-suite',
     title: '业务管理',
     moduleCode: 'business-suite',
-    focus: '第五阶段已经开始，先把 CRM、合同、项目、仓库和安全风险从菜单目录推进到可运营的模块中心。',
-    milestoneTitle: '第一批落地重点',
-    milestones: ['建立业务模块中心和统一状态视图', '梳理 CRM、合同、项目、仓库的共享台账能力', '复用统一流程、附件、审计和数据权限底座'],
-    nextActions: ['优先补 CRM 与合同台账', '为项目和仓库准备状态流转与查询页面', '补报表和导出基线'],
     prefixes: ['/placeholder/crm', '/placeholder/performance', '/placeholder/contract', '/placeholder/project', '/placeholder/warehouse', '/placeholder/risk']
   },
   {
     code: 'admin-office',
     title: '行政办公',
     moduleCode: 'business-suite',
-    focus: '行政办公、督查、门户和报表要逐步长成完整 OA 的公共工作面，不再停留在占位目录。',
-    milestoneTitle: '当前建设方向',
-    milestones: ['承接公告新闻、会议、资产等日常协同入口', '补督查督办、门户和报表中心的统一入口层', '复用消息、权限和审计能力'],
-    nextActions: ['补公告新闻与会议台账', '补门户模块配置入口', '补报表中心分组和权限基线'],
     prefixes: ['/placeholder/admin-office', '/placeholder/supervision', '/placeholder/portal', '/placeholder/report-center']
   },
   {
     code: 'people-docs',
     title: '人资/考勤/公文/档案',
     moduleCode: 'business-suite',
-    focus: '这一组是旧 OA 的高频区，后续要重点补人资、公文和档案的主页面、权限和状态查询。',
-    milestoneTitle: '当前建设方向',
-    milestones: ['为人力资源、考勤、公文、档案建立统一入口页', '预留组织、审批、归档与报表复用位', '为交流园地保留消息与权限承接结构'],
-    nextActions: ['优先补公文和档案台账', '补考勤与人资的查询入口', '规划交流园地与消息中心衔接'],
     prefixes: ['/placeholder/hr', '/placeholder/attendance', '/placeholder/official-doc', '/placeholder/archive', '/placeholder/community']
   },
   {
     code: 'integration',
     title: '开放与集成平台',
     moduleCode: 'integration',
-    focus: '开放接口、SSO 和统一待办会在第五、六阶段之间衔接推进，当前先把入口和依赖关系放稳。',
-    milestoneTitle: '当前建设方向',
-    milestones: ['归拢外部系统集成、SSO、统一待办入口', '标记认证、回调、幂等和监控依赖', '为后续移动开放平台留扩展位'],
-    nextActions: ['补集成清单与认证方式说明', '补统一待办对接基线', '补集成验收清单'],
     prefixes: ['/placeholder/integration']
   },
   {
     code: 'system-center',
     title: '系统管理',
     moduleCode: 'platform',
-    focus: '系统管理继续承接完整 OA 的全局治理能力，包括权限、日志和数据源等后台功能。',
-    milestoneTitle: '当前建设方向',
-    milestones: ['承接权限管理、管理日志和系统数据源入口', '复用 RBAC、审计和配置基线', '为上线治理做后台准备'],
-    nextActions: ['补权限矩阵管理页', '补管理日志查询页', '补数据源与集成配置页'],
     prefixes: ['/placeholder/system']
   },
   {
     code: 'workflow-report',
     title: '数据报表',
     moduleCode: 'business-suite',
-    focus: '汇总司法鉴定流程办理结果、待办办结状态和归档情况，支撑手册要求的数据报表查看与导出。',
-    milestoneTitle: '当前报表能力',
-    milestones: ['按真实流程数据汇总统计信息', '支持状态筛选、关键字筛选和页面导出', '支持从报表行下钻到相关工作查询'],
-    nextActions: ['补齐手册截图中的全部统计字段', '扩展部门、人员和时间维度筛选', '固化导出格式选择'],
     prefixes: ['/placeholder/workflow/report']
   }
 ];
@@ -599,9 +567,6 @@ watch([keyword, statusFilter], () => {
       <div class="panel-heading panel-heading--warm">
         <div>
           <h3 class="panel-title">{{ currentTitle }}</h3>
-          <p class="panel-subtitle">
-            {{ currentSection?.focus ?? '该模块正在建设中，将逐步接入核心业务域。' }}
-          </p>
         </div>
         <el-button type="primary" :loading="loading" @click="loadData">刷新</el-button>
       </div>
@@ -629,15 +594,6 @@ watch([keyword, statusFilter], () => {
           </div>
         </div>
 
-        <div class="module-center-panel">
-          <div class="module-center-panel__head">
-            <h4>{{ currentSection?.milestoneTitle ?? '当前建设方向' }}</h4>
-            <span>{{ statusText(currentModule?.implementationStatus ?? 'planned') }}</span>
-          </div>
-          <ul class="compact-list">
-            <li v-for="item in currentSection?.milestones ?? []" :key="item">{{ item }}</li>
-          </ul>
-        </div>
       </div>
     </section>
 

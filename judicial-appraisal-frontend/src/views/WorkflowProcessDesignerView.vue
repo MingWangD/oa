@@ -152,7 +152,6 @@ onMounted(async () => {
     <div class="designer-header">
       <div>
         <h2>动态流程设计</h2>
-        <p>维护开始、办理、审批、并行、汇聚、子流程、结束节点，以及办理人、条件、退回和超时规则。</p>
       </div>
       <div class="designer-actions">
         <el-button :loading="saving" type="primary" @click="saveDraft">保存草稿</el-button>

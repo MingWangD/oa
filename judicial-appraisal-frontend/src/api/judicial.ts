@@ -698,6 +698,10 @@ export function login(username: string, password: string): Promise<LoginResponse
   return post<LoginResponse>('/auth/login', { username, password });
 }
 
+export function register(payload: any): Promise<void> {
+  return post<void>('/auth/register', payload);
+}
+
 export function fetchCurrentUser(): Promise<UserInfo> {
   return get<UserInfo>('/auth/me');
 }

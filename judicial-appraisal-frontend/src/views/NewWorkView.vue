@@ -10,6 +10,7 @@ import {
   type JudicialWorkflowDefinition
 } from '../api/judicial';
 import { useAuthStore } from '../stores/auth';
+import { formatFormCode, formatRoleCode, formatRoleNames, formatWorkflowCode } from '../utils/display';
 
 interface WorkCategory {
   key: string;
@@ -116,7 +117,13 @@ const categories: WorkCategory[] = [
 
 const userRoleNames = computed(() => authStore.roleNames);
 const isAdmin = computed(() => authStore.isAdmin);
-const currentRoleLabel = computed(() => isAdmin.value ? '系统管理员' : (userRoleNames.value.join('、') || '未分配角色'));
+const currentRoleLabel = computed(() => {
+  if (isAdmin.value) {
+    return '系统管理员';
+  }
+  const roleText = formatRoleNames(userRoleNames.value);
+  return roleText === '-' ? '未分配角色' : roleText;
+});
 
 const visibleWorkflows = computed(() => {
   const selectedCategory = categories.find((item) => item.key === activeCategory.value);
@@ -133,9 +140,9 @@ const visibleWorkflows = computed(() => {
     filtered = filtered.filter((workflow) => {
       return [
         workflow.name,
-        workflow.code,
-        workflow.formCode,
-        workflow.roles.join(' ')
+        formatWorkflowCode(workflow.code),
+        formatFormCode(workflow.formCode),
+        formatRoleNames(workflow.roles)
       ].some((value) => value.toLowerCase().includes(query));
     });
   }
@@ -372,12 +379,6 @@ function handleFlowchartWheel(event: WheelEvent): void {
       destroy-on-close
       custom-class="flowchart-dialog"
     >
-      <!-- 提示横幅移到最上方 -->
-      <div class="flowchart-tip" style="background: #fff7e6; border: 1px solid #ffd591; border-radius: 4px; padding: 8px 16px; color: #d46b08; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px; text-align: left; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(212, 107, 8, 0.05);">
-        <span style="font-size: 16px;">💡</span>
-        <span>提示：<strong>单击图片</strong>可开启全屏大图预览，支持鼠标滚轮缩放与按住拖拽查看。</span>
-      </div>
-
       <div style="text-align: center; margin-bottom: 20px;">
         <el-radio-group v-model="flowchartTab" size="large">
           <el-radio-button
@@ -476,7 +477,7 @@ function handleFlowchartWheel(event: WheelEvent): void {
               关联业务表单
             </h4>
             <p style="margin: 0; color: #5e6d82; font-size: 13px; line-height: 1.5; font-family: monospace;">
-              {{ currentWorkflow.formCode }}
+              {{ formatFormCode(currentWorkflow.formCode) }}
             </p>
           </div>
         </div>
@@ -495,7 +496,7 @@ function handleFlowchartWheel(event: WheelEvent): void {
               effect="light"
               style="font-size: 13px; padding: 6px 12px; height: auto;"
             >
-              {{ role }}
+              {{ formatRoleCode(role) }}
             </el-tag>
             <span v-if="!currentWorkflow.roles || currentWorkflow.roles.length === 0" style="color: #909399; font-size: 13px;">
               不限角色

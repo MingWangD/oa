@@ -4,14 +4,13 @@ import type { Pinia } from 'pinia';
 import { useAuthStore } from '../stores/auth';
 
 const LoginView = () => import('../views/LoginView.vue');
+const RegisterView = () => import('../views/RegisterView.vue');
 const NewWorkView = () => import('../views/NewWorkView.vue');
 const CaseDetailView = () => import('../views/CaseDetailView.vue');
 const WorkbenchView = () => import('../views/WorkbenchView.vue');
 const CaseListView = () => import('../views/CaseListView.vue');
 const KnowledgeBaseView = () => import('../views/KnowledgeBaseView.vue');
 const ContractManagementView = () => import('../views/ContractManagementView.vue');
-const WorkflowFormDesignerView = () => import('../views/WorkflowFormDesignerView.vue');
-const WorkflowProcessDesignerView = () => import('../views/WorkflowProcessDesignerView.vue');
 const UserManagementView = () => import('../views/UserManagementView.vue');
 const ProfileView = () => import('../views/ProfileView.vue');
 const PlaceholderView = () => import('../views/PlaceholderView.vue');
@@ -29,6 +28,15 @@ export const routes: RouteRecordRaw[] = [
     component: LoginView,
     meta: {
       title: '登录',
+      public: true
+    }
+  },
+  {
+    path: '/register',
+    name: 'register',
+    component: RegisterView,
+    meta: {
+      title: '注册',
       public: true
     }
   },
@@ -110,28 +118,6 @@ export const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/workflow/forms',
-    name: 'workflow-form-designer',
-    component: WorkflowFormDesignerView,
-    meta: {
-      title: '设计表单',
-      tabKey: 'workflow-form-designer',
-      menuGroup: 'workflow',
-      requiresAuth: true
-    }
-  },
-  {
-    path: '/workflow/processes',
-    name: 'workflow-process-designer',
-    component: WorkflowProcessDesignerView,
-    meta: {
-      title: '设计流程',
-      tabKey: 'workflow-process-designer',
-      menuGroup: 'workflow',
-      requiresAuth: true
-    }
-  },
-  {
     path: '/admin/users',
     name: 'admin-users',
     component: UserManagementView,
@@ -199,7 +185,7 @@ export function createAppRouter(pinia: Pinia): Router {
     const authStore = useAuthStore(pinia);
     const isAuthenticated = authStore.isAuthenticated;
 
-    if (to.path === '/login' && isAuthenticated) {
+    if ((to.path === '/login' || to.path === '/register') && isAuthenticated) {
       return {
         path: '/my-work'
       };

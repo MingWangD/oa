@@ -3,6 +3,7 @@ import { reactive, ref } from 'vue';
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus';
 
 import { useAuthStore } from '../stores/auth';
+import { formatRoleNames } from '../utils/display';
 
 const authStore = useAuthStore();
 const formRef = ref<FormInstance>();
@@ -47,7 +48,6 @@ async function submitPassword(): Promise<void> {
     <div class="panel-heading panel-heading--warm">
       <div>
         <h3 class="panel-title">个人资料</h3>
-        <p class="panel-subtitle">查看当前登录用户信息，并维护个人密码。</p>
       </div>
     </div>
 
@@ -60,7 +60,7 @@ async function submitPassword(): Promise<void> {
         <el-descriptions-item label="手机号">{{ authStore.user?.mobile || '-' }}</el-descriptions-item>
         <el-descriptions-item label="邮箱">{{ authStore.user?.email || '-' }}</el-descriptions-item>
         <el-descriptions-item label="角色" :span="2">
-          {{ authStore.roleNames.join('、') || '-' }}
+          {{ formatRoleNames(authStore.roleNames) }}
         </el-descriptions-item>
       </el-descriptions>
 

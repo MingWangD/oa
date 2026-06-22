@@ -10,6 +10,7 @@ import {
   type WorkbenchSummary
 } from '../api/judicial';
 import { useAuthStore } from '../stores/auth';
+import { formatStatusCode } from '../utils/display';
 
 const authStore = useAuthStore();
 const route = useRoute();
@@ -170,7 +171,6 @@ onMounted(() => {
     <div class="panel-heading panel-heading--warm">
       <div>
         <h3 class="panel-title">我的工作</h3>
-        <p class="panel-subtitle">查看与当前登录人相关的待办和已办，优先处理临近到期事项。</p>
       </div>
       <div class="card-meta">
         <el-button type="primary" :loading="loading" @click="loadData">刷新</el-button>
@@ -210,7 +210,7 @@ onMounted(() => {
           </template>
         </el-table-column>
         <el-table-column prop="nodeName" label="当前环节" min-width="150">
-          <template #default="scope">{{ scope.row.nodeName || scope.row.nodeCode || '-' }}</template>
+          <template #default="scope">{{ scope.row.nodeName || (scope.row.nodeCode ? '未命名环节' : '-') }}</template>
         </el-table-column>
         <el-table-column prop="assigneeName" label="办理人" width="120">
           <template #default="scope">{{ scope.row.assigneeName || '-' }}</template>
@@ -234,7 +234,7 @@ onMounted(() => {
         <el-table-column prop="status" label="状态" width="130">
           <template #default="scope">
             <el-tag class="status-tag" :class="getStatusClass(scope.row.status)" effect="plain">
-              {{ scope.row.status || '-' }}
+              {{ formatStatusCode(scope.row.status) }}
             </el-tag>
           </template>
         </el-table-column>

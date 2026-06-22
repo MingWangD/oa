@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
 import { deleteCaseDraft, fetchCases, type CaseItem, type PageResult } from '../api/judicial';
+import { formatStatusCode } from '../utils/display';
 
 const route = useRoute();
 const router = useRouter();
@@ -196,7 +197,6 @@ watch(
     <div class="panel-heading panel-heading--warm">
       <div>
         <h3 class="panel-title">工作查询</h3>
-        <p class="panel-subtitle">按关键字和状态筛选当前有权限查看的业务流程。</p>
       </div>
       <el-button v-if="returnPath" @click="goBackToSource">返回{{ returnLabel }}</el-button>
     </div>
@@ -249,12 +249,12 @@ watch(
         <el-table-column label="状态" min-width="130">
           <template #default="scope">
             <el-tag class="status-tag" :class="getStatusClass(scope.row.caseStatus)" effect="plain">
-              {{ scope.row.caseStatusName || scope.row.caseStatus || '-' }}
+              {{ scope.row.caseStatusName || formatStatusCode(scope.row.caseStatus) }}
             </el-tag>
           </template>
         </el-table-column>
         <el-table-column label="当前环节" min-width="150">
-          <template #default="scope">{{ scope.row.currentNodeName || scope.row.currentNodeCode || '-' }}</template>
+          <template #default="scope">{{ scope.row.currentNodeName || (scope.row.currentNodeCode ? '未命名环节' : '-') }}</template>
         </el-table-column>
         <el-table-column prop="currentHandlerName" label="办理人" width="120">
           <template #default="scope">{{ scope.row.currentHandlerName || '-' }}</template>

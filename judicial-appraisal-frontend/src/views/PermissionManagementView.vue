@@ -9,6 +9,7 @@ import {
   type AdminRole,
   type MenuDto
 } from '../api/judicial';
+import { formatRoleCode } from '../utils/display';
 
 const loading = ref(false);
 const saving = ref(false);
@@ -150,7 +151,6 @@ onMounted(() => {
       <div class="panel-heading panel-heading--warm">
         <div>
           <h3 class="panel-title">权限管理</h3>
-          <p class="panel-subtitle">分配角色与菜单功能按钮的关联，控制系统各模块的访问与操作权限。</p>
         </div>
         <el-button type="primary" :loading="loading" @click="initData">刷新数据</el-button>
       </div>
@@ -171,7 +171,7 @@ onMounted(() => {
           >
             <div class="role-item__main">
               <span class="role-name">{{ role.roleName }}</span>
-              <span class="role-code">{{ role.roleCode }}</span>
+              <span class="role-code">{{ formatRoleCode(role.roleCode) }}</span>
             </div>
             <div class="role-item__sub">
               <el-tag size="small" :type="role.status === 'enabled' ? 'success' : 'danger'" effect="plain">
@@ -194,7 +194,6 @@ onMounted(() => {
                 （当前配置角色：{{ selectedRole.roleName }}）
               </span>
             </h3>
-            <p class="panel-subtitle">勾选右侧树状菜单和按钮以授予对应角色相应的访问及操作权限。</p>
           </div>
           <div class="action-buttons">
             <el-button size="small" @click="setAllChecked(true)">全选</el-button>
@@ -223,7 +222,6 @@ onMounted(() => {
                   <el-tag v-if="data.menuType === 'M'" size="small" type="primary" effect="light">目录</el-tag>
                   <el-tag v-else-if="data.menuType === 'C'" size="small" type="success" effect="light">菜单</el-tag>
                   <el-tag v-else-if="data.menuType === 'F'" size="small" type="warning" effect="light">按钮</el-tag>
-                  <span class="node-code-text">{{ data.menuCode }}</span>
                 </div>
               </div>
             </template>

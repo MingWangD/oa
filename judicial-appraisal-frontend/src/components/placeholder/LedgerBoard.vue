@@ -66,7 +66,6 @@ function relatedActionLabel(row: LedgerRow): string {
     <div class="panel-heading">
       <div>
         <h3 class="panel-title">{{ ledgerBoard.moduleName }}</h3>
-        <p class="panel-subtitle">{{ ledgerBoard.description }}</p>
       </div>
       <div class="inline-actions">
         <el-tag :type="sourceTag.type" effect="plain">{{ sourceTag.label }}</el-tag>

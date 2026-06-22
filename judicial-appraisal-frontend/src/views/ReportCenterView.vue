@@ -149,7 +149,6 @@ onMounted(() => {
     <section class="report-header">
       <div>
         <h3 class="panel-title">{{ board?.moduleName || '报表中心' }}</h3>
-        <p class="panel-subtitle">{{ board?.description || '根据流程表单填写情况自动收集统计信息。' }}</p>
       </div>
       <div class="report-actions">
         <el-button :icon="Refresh" @click="loadData">刷新数据</el-button>

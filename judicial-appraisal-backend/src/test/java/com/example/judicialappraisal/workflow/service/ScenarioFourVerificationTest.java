@@ -286,6 +286,17 @@ class ScenarioFourVerificationTest {
         CaseInfo finalCase = caseInfoMapper.selectById(withdrawCaseId);
         assertThat(finalCase.getCaseStatus()).isEqualTo(CaseStatus.COMPLETED.name());
         System.out.println(">>> 自动化测试完美结束！撤案退费、终止用章、邮寄入库全链路已顺利流转至 COMPLETED (结案) <<<");
+
+        // 将主案件状态也置为 TERMINATED 并取消 pending 任务，避免遗留脏数据在“我的工作”中显示
+        CaseInfo mainCaseFinal = new CaseInfo();
+        mainCaseFinal.setId(mainCaseId);
+        mainCaseFinal.setCaseStatus(CaseStatus.TERMINATED.name());
+        caseInfoMapper.updateById(mainCaseFinal);
+        caseTaskMapper.update(null, new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<CaseTask>()
+                .set(CaseTask::getStatus, "cancelled")
+                .eq(CaseTask::getCaseId, mainCaseId)
+                .in(CaseTask::getStatus, "pending", "processing"));
+        System.out.println(">>> 主案件 (ID=" + mainCaseId + ") 已被置为 TERMINATED (终止)，测试数据清理完成 <<<");
     }
 
     private void completeTask(Long caseId, String nodeCode, Map<String, Object> formData) {

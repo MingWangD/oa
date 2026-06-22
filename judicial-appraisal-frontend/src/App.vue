@@ -8,6 +8,7 @@ import zhCn from 'element-plus/es/locale/lang/zh-cn';
 const locale = ref(zhCn);
 
 import { useAuthStore } from './stores/auth';
+import { formatRoleNames } from './utils/display';
 
 interface MenuItem {
   title: string;
@@ -32,9 +33,12 @@ const authStore = useAuthStore();
 
 const homePath = '/my-work';
 const loggingOut = ref(false);
-const isLoginPage = computed(() => route.path === '/login');
+const isPublicPage = computed(() => Boolean(route.meta.public));
 const currentUserName = computed(() => authStore.displayName);
-const currentUserMeta = computed(() => authStore.roleNames.join(' / ') || authStore.statusLabel);
+const currentUserMeta = computed(() => {
+  const roleText = formatRoleNames(authStore.roleNames);
+  return roleText === '-' ? authStore.statusLabel : roleText;
+});
 const avatarText = computed(() => currentUserName.value.slice(0, 1) || '管');
 
 const iconMap: Record<string, object> = {
@@ -46,6 +50,9 @@ const iconMap: Record<string, object> = {
   Setting,
   User
 };
+
+const hiddenMenuCodes = new Set(['workflow:form-design', 'workflow:process-design']);
+const hiddenMenuPaths = new Set(['/workflow/forms', '/workflow/processes']);
 
 function getIcon(name: string): object {
   if (!name || name === '#') {
@@ -69,6 +76,10 @@ function findMenuTitleByPath(path: string, menus: typeof authStore.menus): strin
 
 function collectMenuItems(menus: typeof authStore.menus, depth = 0): MenuItem[] {
   return menus.flatMap((menu) => {
+    if (hiddenMenuCodes.has(menu.menuCode) || (menu.path && hiddenMenuPaths.has(menu.path))) {
+      return [];
+    }
+
     const children = collectMenuItems(menu.children || [], depth + 1);
     if (!menu.path || menu.menuType.toUpperCase() === 'M') {
       return children;
@@ -192,7 +203,7 @@ watch(
 
 <template>
   <el-config-provider :locale="locale">
-    <RouterView v-if="isLoginPage" />
+    <RouterView v-if="isPublicPage" />
 
     <el-container v-else class="td-layout">
       <el-header class="td-header">

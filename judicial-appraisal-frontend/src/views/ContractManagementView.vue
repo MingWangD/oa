@@ -246,7 +246,6 @@ onMounted(() => {
     <div class="panel-heading panel-heading--warm">
       <div>
         <h3 class="panel-title">合同管理</h3>
-        <p class="panel-subtitle">第五阶段第一条业务闭环：创建、提交、部门审核、知识库归档和审计留痕。</p>
       </div>
       <div class="inline-actions">
         <el-input

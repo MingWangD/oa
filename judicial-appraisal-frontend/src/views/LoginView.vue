@@ -41,23 +41,57 @@ async function submit(): Promise<void> {
 </script>
 
 <template>
-  <main class="login-page">
-    <section class="login-card">
-      <div class="login-brand">
-        <p class="login-eyebrow">欢迎使用</p>
-        <h1>司法鉴定业务管理系统</h1>
-        <p>提供专业、规范、高效的电子司法鉴定全流程管理服务。</p>
+  <main class="auth-page">
+    <section class="auth-shell">
+      <div class="auth-hero">
+        <div>
+          <p class="auth-kicker">电子司法鉴定所</p>
+          <h1 class="auth-title">司法鉴定业务管理系统</h1>
+        </div>
+
+        <div class="auth-metrics" aria-label="系统能力">
+          <div class="auth-metric">
+            <strong>流程</strong>
+            <span>鉴定节点闭环</span>
+          </div>
+          <div class="auth-metric">
+            <strong>材料</strong>
+            <span>收发留痕管理</span>
+          </div>
+          <div class="auth-metric">
+            <strong>权限</strong>
+            <span>角色分级控制</span>
+          </div>
+        </div>
       </div>
 
-      <el-form ref="formRef" class="login-form" :model="form" :rules="rules" label-position="top" @submit.prevent="submit">
-        <el-form-item label="账号" prop="username">
-          <el-input v-model="form.username" autocomplete="off" />
-        </el-form-item>
-        <el-form-item label="密码" prop="password">
-          <el-input v-model="form.password" type="password" autocomplete="off" show-password />
-        </el-form-item>
-        <el-button class="login-submit" type="primary" :loading="loading" @click="submit">登录</el-button>
-      </el-form>
+      <section class="auth-card" aria-labelledby="login-title">
+        <div class="auth-card-header">
+          <p class="auth-card-label">账号登录</p>
+          <h2 id="login-title">进入工作台</h2>
+        </div>
+
+        <el-form
+          ref="formRef"
+          class="auth-form"
+          :model="form"
+          :rules="rules"
+          label-position="top"
+          @submit.prevent="submit"
+        >
+          <el-form-item label="账号" prop="username">
+            <el-input v-model="form.username" autocomplete="off" placeholder="请输入账号" />
+          </el-form-item>
+          <el-form-item label="密码" prop="password">
+            <el-input v-model="form.password" type="password" autocomplete="off" show-password placeholder="请输入密码" />
+          </el-form-item>
+          <el-button class="auth-submit" type="primary" :loading="loading" @click="submit">登录</el-button>
+          <p class="auth-switch">
+            没有账号？
+            <router-link to="/register">申请注册</router-link>
+          </p>
+        </el-form>
+      </section>
     </section>
   </main>
 </template>

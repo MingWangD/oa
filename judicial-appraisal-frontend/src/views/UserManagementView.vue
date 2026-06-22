@@ -16,6 +16,7 @@ import {
   type OrganizationDept,
   type OrganizationPost
 } from '../api/judicial';
+import { formatRoleCode } from '../utils/display';
 
 const loading = ref(false);
 const saving = ref(false);
@@ -36,6 +37,14 @@ const dataScopeForm = reactive({
   deptIds: [] as number[]
 });
 
+const postDeptMapping: Record<string, string[]> = {
+  'ARCHIVE_DEPARTMENT': ['ARCHIVIST', 'CENTER_ARCHIVIST'],
+  'FINANCE_DEPARTMENT': ['FINANCE'],
+  'BUSINESS_DEPARTMENT': ['CASE_ACCEPTOR', 'BUSINESS_COMPREHENSIVE'],
+  'APPRAISAL_DEPARTMENT': ['PROJECT_ASSISTANT', 'PROJECT_LEADER', 'DEPT_LEADER', 'TECH_LEADER', 'DIRECTOR_REVIEW'],
+  'JUDICIAL_APPRAISAL_OFFICE': ['SYSTEM_ADMIN']
+};
+
 const form = reactive({
   username: '',
   realName: '',
@@ -46,6 +55,21 @@ const form = reactive({
   postId: null as number | null,
   status: 'enabled'
 });
+
+const filteredPosts = computed(() => {
+  if (!form.deptId) return posts.value;
+  const dept = depts.value.find(d => d.id === form.deptId);
+  if (!dept || !dept.deptCode) return posts.value;
+  
+  const allowedPostCodes = postDeptMapping[dept.deptCode] || [];
+  if (allowedPostCodes.length === 0) return posts.value;
+  
+  return posts.value.filter(p => allowedPostCodes.includes(p.postCode));
+});
+
+function handleDeptChange() {
+  form.postId = null;
+}
 
 const rules = computed<FormRules<typeof form>>(() => ({
   username: editingUser.value ? [] : [{ required: true, message: '请输入账号', trigger: 'blur' }],
@@ -219,7 +243,6 @@ onMounted(() => {
     <div class="panel-heading panel-heading--warm">
       <div>
         <h3 class="panel-title">用户管理</h3>
-        <p class="panel-subtitle">维护系统用户基础信息和角色，为后续 RBAC 与数据权限打底。</p>
       </div>
       <el-button type="primary" @click="openCreate">新增用户</el-button>
     </div>
@@ -265,12 +288,13 @@ onMounted(() => {
     <div class="panel-heading">
       <div>
         <h3 class="panel-title">角色数据权限</h3>
-        <p class="panel-subtitle">维护 全部数据、本部门及下级、自定义组织、本部门、本人 五类数据范围；自定义组织 可绑定指定组织。</p>
       </div>
     </div>
     <div class="table-frame">
       <el-table :data="roles" border stripe>
-        <el-table-column prop="roleCode" label="角色编码" min-width="140" />
+        <el-table-column label="角色标识" min-width="140">
+          <template #default="scope">{{ formatRoleCode(scope.row.roleCode) }}</template>
+        </el-table-column>
         <el-table-column prop="roleName" label="角色名称" min-width="140" />
         <el-table-column label="数据范围" min-width="140">
           <template #default="scope">{{ scopeLabel(scope.row.dataScope) }}</template>
@@ -310,13 +334,13 @@ onMounted(() => {
           </el-select>
         </el-form-item>
         <el-form-item label="部门" prop="deptId">
-          <el-select v-model="form.deptId" clearable filterable>
+          <el-select v-model="form.deptId" clearable filterable @change="handleDeptChange">
             <el-option v-for="item in depts" :key="item.id" :label="item.deptName" :value="item.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="岗位" prop="postId">
           <el-select v-model="form.postId" clearable filterable>
-            <el-option v-for="item in posts" :key="item.id" :label="item.postName" :value="item.id" />
+            <el-option v-for="item in filteredPosts" :key="item.id" :label="item.postName" :value="item.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="手机号" prop="mobile">
@@ -346,7 +370,7 @@ onMounted(() => {
   <el-dialog v-model="dataScopeDialogVisible" title="设置角色数据权限" width="560px">
     <el-form label-position="top">
       <el-form-item label="角色">
-        <el-input :model-value="editingRole ? `${editingRole.roleName}（${editingRole.roleCode}）` : ''" disabled />
+        <el-input :model-value="editingRole ? `${editingRole.roleName}（${formatRoleCode(editingRole.roleCode)}）` : ''" disabled />
       </el-form-item>
       <el-form-item label="数据范围">
         <el-select v-model="dataScopeForm.dataScope">

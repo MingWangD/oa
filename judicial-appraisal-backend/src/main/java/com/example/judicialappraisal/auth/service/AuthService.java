@@ -19,6 +19,13 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import com.example.judicialappraisal.auth.dto.RegisterRequest;
+import com.example.judicialappraisal.organization.entity.SysRole;
+import com.example.judicialappraisal.organization.entity.SysUserRole;
+import com.example.judicialappraisal.organization.mapper.SysRoleMapper;
+import com.example.judicialappraisal.organization.mapper.SysUserRoleMapper;
+import java.time.LocalDateTime;
 
 @Service
 public class AuthService {
@@ -28,17 +35,23 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenService jwtTokenService;
     private final PermissionService permissionService;
+    private final SysRoleMapper sysRoleMapper;
+    private final SysUserRoleMapper sysUserRoleMapper;
 
     public AuthService(SysUserMapper sysUserMapper,
                        AuthQueryMapper authQueryMapper,
                        PasswordEncoder passwordEncoder,
                        JwtTokenService jwtTokenService,
-                       PermissionService permissionService) {
+                       PermissionService permissionService,
+                       SysRoleMapper sysRoleMapper,
+                       SysUserRoleMapper sysUserRoleMapper) {
         this.sysUserMapper = sysUserMapper;
         this.authQueryMapper = authQueryMapper;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenService = jwtTokenService;
         this.permissionService = permissionService;
+        this.sysRoleMapper = sysRoleMapper;
+        this.sysUserRoleMapper = sysUserRoleMapper;
     }
 
     public LoginResponse login(LoginRequest request) {
@@ -56,6 +69,37 @@ public class AuthService {
 
         CurrentUserInfo userInfo = getCurrentUser(user.getId());
         return new LoginResponse(jwtTokenService.generateToken(userInfo), userInfo);
+    }
+
+    @Transactional
+    public void register(RegisterRequest request) {
+        Long count = sysUserMapper.selectCount(Wrappers.<SysUser>lambdaQuery()
+                .eq(SysUser::getUsername, request.getUsername()));
+        if (count != null && count > 0) {
+            throw new BusinessException("用户名已存在 (Username already exists)");
+        }
+
+        SysUser user = new SysUser();
+        user.setUsername(request.getUsername());
+        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        user.setRealName(request.getRealName());
+        user.setMobile(request.getMobile());
+        user.setEmail(request.getEmail());
+        user.setStatus("enabled");
+        user.setCreatedTime(LocalDateTime.now());
+        sysUserMapper.insert(user);
+
+        SysRole role = sysRoleMapper.selectOne(Wrappers.<SysRole>lambdaQuery()
+                .eq(SysRole::getRoleCode, "APPLICANT")
+                .last("LIMIT 1"));
+        if (role == null) {
+            throw new BusinessException("系统未配置默认的申请人角色 (APPLICANT)，请联系管理员");
+        }
+
+        SysUserRole userRole = new SysUserRole();
+        userRole.setUserId(user.getId());
+        userRole.setRoleId(role.getId());
+        sysUserRoleMapper.insert(userRole);
     }
 
     public CurrentUserInfo getCurrentUser(Long userId) {

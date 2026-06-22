@@ -271,7 +271,6 @@ onMounted(() => {
     <div class="panel-heading panel-heading--warm">
       <div>
         <h3 class="panel-title">知识库</h3>
-        <p class="panel-subtitle">集中保存业务规范、模板文件、案件自动归档和节点产物。</p>
       </div>
       <div class="inline-actions">
         <el-input
@@ -303,7 +302,7 @@ onMounted(() => {
 
       <div class="knowledge-main">
         <div class="knowledge-toolbar">
-          <p class="knowledge-toolbar-text">当前收录 {{ documents.length }} 份材料，预览/下载都会写入审计日志。</p>
+          <p class="knowledge-toolbar-text">当前收录 {{ documents.length }} 份材料</p>
           <p class="knowledge-toolbar-text">当前分类：{{ activeDirectoryName }}</p>
           <el-button
             type="primary"

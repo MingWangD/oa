@@ -30,6 +30,12 @@ public class AuthController {
         return ApiResponse.success(authService.login(request));
     }
 
+    @PostMapping("/register")
+    public ApiResponse<Void> register(@Valid @RequestBody com.example.judicialappraisal.auth.dto.RegisterRequest request) {
+        authService.register(request);
+        return ApiResponse.success();
+    }
+
     @PostMapping("/logout")
     public ApiResponse<Void> logout() {
         return ApiResponse.success();

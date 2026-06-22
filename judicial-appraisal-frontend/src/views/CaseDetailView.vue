@@ -336,7 +336,7 @@ const displayedFlowchartUrl = computed(() => {
   return fallbackFlowchartUrl.value || '/flowcharts/b6130e9b27eacb5fd5b365f3272d4eba.png';
 });
 const nodeCards = computed(() => [
-  { title: '当前环节', value: detail.value?.currentNodeName || detail.value?.currentNodeCode || '草稿' },
+  { title: '当前环节', value: detail.value?.currentNodeName || formatParentNode(detail.value?.currentNodeCode ?? null) || '草稿' },
   { title: '主办人', value: detail.value?.currentHandlerName || '待分派' },
   { title: '当前任务', value: currentTask.value?.taskTitle || '待启动/待领取' },
   { title: '截止时间', value: formatDateTime(detail.value?.deadlineTime ?? null) },
@@ -608,7 +608,7 @@ const nodeNameMap: Record<string, string> = {
 function formatParentNode(code: string | null): string {
   if (!code) return '-';
   const cleanCode = code.toUpperCase();
-  return nodeNameMap[cleanCode] || code;
+  return nodeNameMap[cleanCode] || '未命名环节';
 }
 
 function formatCaseStatus(status?: string | null): string {
@@ -716,14 +716,6 @@ onMounted(() => {
         class="flowchart-dialog"
         destroy-on-close
       >
-        <el-alert
-          class="flowchart-tip"
-          type="warning"
-          :closable="false"
-          show-icon
-          title="提示：单击图片可开启全屏大图预览，支持鼠标滚轮缩放与按住拖拽查看。"
-        />
-
         <div class="flowchart-tabs">
           <el-radio-group v-model="activeFlowchartTab" size="large">
             <el-radio-button value="current">当前步骤流程图</el-radio-button>
@@ -827,7 +819,7 @@ onMounted(() => {
                 <strong>当前节点</strong>
                 <el-tag size="small" type="success" effect="plain">进行中</el-tag>
               </div>
-              <span>{{ detail.currentNodeName || detail.currentNodeCode || '流程尚未启动' }}</span>
+              <span>{{ detail.currentNodeName || formatParentNode(detail.currentNodeCode) || '流程尚未启动' }}</span>
               <small v-if="detail.currentHandlerName">当前主办人：{{ detail.currentHandlerName }}</small>
             </div>
           </el-timeline-item>

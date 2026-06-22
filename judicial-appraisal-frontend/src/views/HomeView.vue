@@ -108,7 +108,6 @@ onMounted(() => {
     <div class="panel-heading panel-heading--warm">
       <div>
         <h3 class="panel-title">业务模块中心</h3>
-        <p class="panel-subtitle">展示当前系统的核心业务模块与运行状态。</p>
       </div>
       <el-button type="primary" :loading="loading" @click="loadData">刷新</el-button>
     </div>

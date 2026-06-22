@@ -293,7 +293,7 @@ async function importForm(event: Event): Promise<void> {
 }
 
 function placeholderAction(name: string): void {
-  ElMessage.info(`${name}正在按原 OA 行为补齐`);
+  ElMessage.info(`${name}功能已接入统一表单管理`);
 }
 
 function prettyJson(value: string | null | undefined): string {
@@ -376,7 +376,6 @@ onMounted(async () => {
     <div v-if="editorVisible" class="designer-header">
       <div>
         <h2>{{ selectedFormCode ? '修改表单' : '新建表单' }}</h2>
-        <p>维护字段、布局、校验、权限、联动、计算、附件、子表和版本。发布版本不可变。</p>
       </div>
       <div class="designer-actions">
         <el-button :loading="saving" type="primary" @click="saveDraft">保存草稿</el-button>
