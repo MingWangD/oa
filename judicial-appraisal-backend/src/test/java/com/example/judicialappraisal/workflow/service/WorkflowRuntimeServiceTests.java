@@ -94,7 +94,7 @@ class WorkflowRuntimeServiceTests {
         firstNode.setNodeType("task");
         firstNode.setEnabled(1);
 
-        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+        when(caseInfoMapper.selectRawById(88L)).thenReturn(caseInfo);
         when(caseWfInstanceMapper.selectOne(any())).thenReturn(null);
         when(wfDefinitionMapper.selectOne(any())).thenReturn(definition);
         when(wfNodeDefMapper.selectOne(any())).thenReturn(firstNode);
@@ -166,7 +166,7 @@ class WorkflowRuntimeServiceTests {
         targetNode.setTaskType("single");
         targetNode.setEnabled(1);
 
-        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+        when(caseInfoMapper.selectRawById(88L)).thenReturn(caseInfo);
         when(caseTaskMapper.selectById(701L)).thenReturn(currentTask);
         when(caseNodeInstanceMapper.selectById(601L)).thenReturn(currentNode);
         when(caseWfInstanceMapper.selectOne(any())).thenReturn(wfInstance);
@@ -235,7 +235,7 @@ class WorkflowRuntimeServiceTests {
         financeRole.setId(22L);
         financeRole.setRoleCode("FINANCE");
 
-        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+        when(caseInfoMapper.selectRawById(88L)).thenReturn(caseInfo);
         when(caseTaskMapper.selectById(701L)).thenReturn(currentTask);
         when(caseNodeInstanceMapper.selectById(601L)).thenReturn(currentNode);
         when(caseWfInstanceMapper.selectOne(any())).thenReturn(wfInstance);
@@ -320,7 +320,7 @@ class WorkflowRuntimeServiceTests {
         financeRole.setId(22L);
         financeRole.setRoleCode("FINANCE");
 
-        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+        when(caseInfoMapper.selectRawById(88L)).thenReturn(caseInfo);
         when(caseTaskMapper.selectById(701L)).thenReturn(currentTask);
         when(caseNodeInstanceMapper.selectById(601L)).thenReturn(currentNode);
         when(caseWfInstanceMapper.selectOne(any())).thenReturn(wfInstance);
@@ -360,7 +360,7 @@ class WorkflowRuntimeServiceTests {
         currentTask.setAssigneeId(10L);
         currentTask.setStatus("pending");
 
-        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+        when(caseInfoMapper.selectRawById(88L)).thenReturn(caseInfo);
         when(caseTaskMapper.selectById(701L)).thenReturn(currentTask);
 
         assertThatThrownBy(() -> complete(new WorkflowActionRequest(
@@ -387,7 +387,7 @@ class WorkflowRuntimeServiceTests {
         currentTask.setAssigneeId(10L);
         currentTask.setStatus("pending");
 
-        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+        when(caseInfoMapper.selectRawById(88L)).thenReturn(caseInfo);
         when(caseTaskMapper.selectById(701L)).thenReturn(currentTask);
 
         assertThatThrownBy(() -> complete(new WorkflowActionRequest(
@@ -418,7 +418,7 @@ class WorkflowRuntimeServiceTests {
         candidate.setTaskId(701L);
         candidate.setCandidateRoleId(22L);
 
-        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+        when(caseInfoMapper.selectRawById(88L)).thenReturn(caseInfo);
         when(caseTaskMapper.selectById(701L)).thenReturn(currentTask);
         when(caseTaskCandidateMapper.selectList(any())).thenReturn(java.util.List.of(candidate));
         when(sysUserRoleMapper.selectEnabledRoleIdsByUserId(9L)).thenReturn(java.util.List.of());
@@ -462,7 +462,7 @@ class WorkflowRuntimeServiceTests {
         wfInstance.setWfId(77L);
         wfInstance.setStatus("running");
 
-        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+        when(caseInfoMapper.selectRawById(88L)).thenReturn(caseInfo);
         when(caseTaskMapper.selectById(701L)).thenReturn(currentTask);
         when(caseNodeInstanceMapper.selectById(601L)).thenReturn(currentNode);
         when(caseWfInstanceMapper.selectOne(any())).thenReturn(wfInstance);
@@ -511,7 +511,7 @@ class WorkflowRuntimeServiceTests {
         wfInstance.setWfId(77L);
         wfInstance.setStatus("running");
 
-        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+        when(caseInfoMapper.selectRawById(88L)).thenReturn(caseInfo);
         when(caseTaskMapper.selectById(701L)).thenReturn(currentTask);
         when(caseNodeInstanceMapper.selectById(601L)).thenReturn(currentNode);
         when(caseWfInstanceMapper.selectOne(any())).thenReturn(wfInstance);
@@ -583,7 +583,7 @@ class WorkflowRuntimeServiceTests {
                 ]
                 """);
 
-        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+        when(caseInfoMapper.selectRawById(88L)).thenReturn(caseInfo);
         when(caseTaskMapper.selectById(701L)).thenReturn(currentTask);
         when(caseWfInstanceMapper.selectOne(any())).thenReturn(wfInstance);
         when(wfDefinitionMapper.selectById(77L)).thenReturn(definition);
@@ -653,7 +653,7 @@ class WorkflowRuntimeServiceTests {
         rejectNode.setTaskType("single");
         rejectNode.setEnabled(1);
 
-        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+        when(caseInfoMapper.selectRawById(88L)).thenReturn(caseInfo);
         when(caseTaskMapper.selectById(701L)).thenReturn(currentTask);
         when(caseNodeInstanceMapper.selectById(601L)).thenReturn(currentNode);
         when(caseWfInstanceMapper.selectOne(any())).thenReturn(wfInstance);
@@ -739,7 +739,7 @@ class WorkflowRuntimeServiceTests {
         subflowDefinition.setWfName("初步勘验");
         subflowDefinition.setPublishStatus("published");
 
-        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+        when(caseInfoMapper.selectRawById(88L)).thenReturn(caseInfo);
         when(caseTaskMapper.selectById(701L)).thenReturn(currentTask);
         when(caseNodeInstanceMapper.selectById(601L)).thenReturn(currentNode);
         when(caseWfInstanceMapper.selectOne(any())).thenReturn(wfInstance);
@@ -849,7 +849,7 @@ class WorkflowRuntimeServiceTests {
         endNode.setNodeType("end");
         endNode.setEnabled(1);
 
-        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+        when(caseInfoMapper.selectRawById(88L)).thenReturn(caseInfo);
         when(caseTaskMapper.selectById(702L)).thenReturn(currentTask);
         when(caseNodeInstanceMapper.selectById(602L)).thenReturn(currentNode);
         when(caseWfInstanceMapper.selectOne(any())).thenReturn(wfInstance);
@@ -953,7 +953,7 @@ class WorkflowRuntimeServiceTests {
         taskBNode.setTaskType("single");
         taskBNode.setEnabled(1);
 
-        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+        when(caseInfoMapper.selectRawById(88L)).thenReturn(caseInfo);
         when(caseTaskMapper.selectById(701L)).thenReturn(currentTask);
         when(caseNodeInstanceMapper.selectById(601L)).thenReturn(currentNode);
         when(caseWfInstanceMapper.selectOne(any())).thenReturn(wfInstance);
@@ -1027,7 +1027,7 @@ class WorkflowRuntimeServiceTests {
         gatewayJoinNode.setTaskType("inclusive");
         gatewayJoinNode.setEnabled(1);
 
-        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+        when(caseInfoMapper.selectRawById(88L)).thenReturn(caseInfo);
         when(caseTaskMapper.selectById(701L)).thenReturn(currentTask);
         when(caseNodeInstanceMapper.selectById(601L)).thenReturn(currentNode);
         when(caseWfInstanceMapper.selectOne(any())).thenReturn(wfInstance);

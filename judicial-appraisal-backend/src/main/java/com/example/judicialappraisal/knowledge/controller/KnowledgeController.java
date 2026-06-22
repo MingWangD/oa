@@ -61,6 +61,12 @@ public class KnowledgeController {
         return ApiResponse.success(knowledgeService.uploadDocument(request.directoryId(), request.title(), request.fileId()));
     }
 
+    @org.springframework.web.bind.annotation.DeleteMapping("/documents/{documentId}")
+    public ApiResponse<Void> deleteDocument(@PathVariable Long documentId) {
+        knowledgeService.deleteDocument(documentId);
+        return ApiResponse.success(null);
+    }
+
     @GetMapping("/documents/{documentId}/download")
     public ResponseEntity<byte[]> download(@PathVariable Long documentId) {
         FileContent content = knowledgeService.downloadDocument(documentId);

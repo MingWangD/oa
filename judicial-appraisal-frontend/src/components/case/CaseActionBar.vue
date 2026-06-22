@@ -2,8 +2,10 @@
 import type { WorkflowActionCode } from '../../api/judicial';
 
 interface TransitionOption {
-  value: string;
+  value: WorkflowActionCode;
   label: string;
+  targetNode?: string;
+  condition?: string | null;
 }
 
 defineProps<{
@@ -41,8 +43,8 @@ const selectedTransition = defineModel<WorkflowActionCode>('selectedTransition',
 
     <section class="process-section transition-section">
       <div class="section-title">
-        <h2>流转处理</h2>
-        <span>按流程图选择下一步</span>
+        <h2>选择下一步骤</h2>
+        <span>请确认流转节点符合预期后再转交</span>
       </div>
       <div class="transition-row">
         <el-select v-model="selectedTransition" :disabled="!canHandle" class="transition-select">
@@ -66,6 +68,13 @@ const selectedTransition = defineModel<WorkflowActionCode>('selectedTransition',
         <el-button type="danger" plain :disabled="!canHandle" :loading="acting" @click="emit('submit-action', 'TERMINATE')">
           终止
         </el-button>
+      </div>
+      <div v-if="transitionOptions.length" class="next-step-preview">
+        <div v-for="option in transitionOptions" :key="`${option.value}-${option.targetNode}`" class="next-step-item">
+          <strong>{{ option.targetNode || option.label }}</strong>
+          <span>{{ option.label }}</span>
+          <el-tag v-if="option.condition" size="small" type="warning" effect="plain">条件：{{ option.condition }}</el-tag>
+        </div>
       </div>
     </section>
   </template>
@@ -107,5 +116,30 @@ const selectedTransition = defineModel<WorkflowActionCode>('selectedTransition',
 
 .transition-select {
   width: min(100%, 320px);
+}
+
+.next-step-preview {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.next-step-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  background: #f8fafc;
+}
+
+.next-step-item strong {
+  color: #1d4ed8;
+}
+
+.next-step-item span {
+  color: #64748b;
+  font-size: 13px;
 }
 </style>

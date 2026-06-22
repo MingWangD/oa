@@ -388,6 +388,35 @@ public class KnowledgeService {
         return toDocumentDto(document);
     }
 
+    @Transactional
+    public void deleteDocument(Long documentId) {
+        CurrentUserInfo user = currentUserOrNull();
+        if (user == null || user.roles() == null || user.roles().stream().noneMatch(r -> "ADMIN".equalsIgnoreCase(r.code()) || "ROLE_ADMIN".equalsIgnoreCase(r.code()))) {
+            throw new BusinessException("只有管理员才能删除知识库记录");
+        }
+        KnowledgeDocument document = documentMapper.selectById(documentId);
+        if (document == null) {
+            throw new BusinessException("记录不存在");
+        }
+        documentMapper.deleteById(documentId);
+        
+        auditLogService.record("DELETE", "管理员删除知识库记录", "knowledge_document", documentId, null, "{\"title\": \"" + document.getTitle() + "\"}");
+
+        // Clean up empty case directory
+        Long directoryId = document.getDirectoryId();
+        if (directoryId != null) {
+            long count = documentMapper.selectCount(new LambdaQueryWrapper<KnowledgeDocument>()
+                    .eq(KnowledgeDocument::getDirectoryId, directoryId)
+                    .eq(KnowledgeDocument::getDeleted, 0));
+            if (count == 0) {
+                KnowledgeDirectory directory = directoryMapper.selectById(directoryId);
+                if (directory != null && "case".equals(directory.getDirectoryType())) {
+                    directoryMapper.deleteById(directoryId);
+                }
+            }
+        }
+    }
+
     public void ensureBaseDirectories() {
         ensureDirectory(null, "public", "公共知识库", "public", null, null, null, "/公共知识库", 10);
         ensureDirectory(null, "department", "部门知识库", "dept", null, null, null, "/部门知识库", 20);

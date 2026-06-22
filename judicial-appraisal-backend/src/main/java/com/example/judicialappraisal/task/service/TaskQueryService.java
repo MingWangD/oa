@@ -11,10 +11,14 @@ import com.example.judicialappraisal.workflow.entity.CaseWfInstance;
 import com.example.judicialappraisal.workflow.entity.WfDefinition;
 import com.example.judicialappraisal.workflow.entity.WfNodeDef;
 import com.example.judicialappraisal.workflow.mapper.CaseSubflowInstanceMapper;
+import com.example.judicialappraisal.workflow.entity.CaseTaskCandidate;
+import com.example.judicialappraisal.workflow.mapper.CaseTaskCandidateMapper;
 import com.example.judicialappraisal.workflow.mapper.CaseTaskMapper;
 import com.example.judicialappraisal.workflow.mapper.CaseWfInstanceMapper;
 import com.example.judicialappraisal.workflow.mapper.WfDefinitionMapper;
 import com.example.judicialappraisal.workflow.mapper.WfNodeDefMapper;
+import java.util.List;
+import java.util.Objects;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,6 +30,7 @@ public class TaskQueryService {
     private final CaseSubflowInstanceMapper caseSubflowInstanceMapper;
     private final WfDefinitionMapper wfDefinitionMapper;
     private final WfNodeDefMapper wfNodeDefMapper;
+    private final CaseTaskCandidateMapper caseTaskCandidateMapper;
 
     public TaskQueryService(
             CaseTaskMapper caseTaskMapper,
@@ -33,13 +38,15 @@ public class TaskQueryService {
             CaseInfoMapper caseInfoMapper,
             CaseSubflowInstanceMapper caseSubflowInstanceMapper,
             WfDefinitionMapper wfDefinitionMapper,
-            WfNodeDefMapper wfNodeDefMapper) {
+            WfNodeDefMapper wfNodeDefMapper,
+            CaseTaskCandidateMapper caseTaskCandidateMapper) {
         this.caseTaskMapper = caseTaskMapper;
         this.caseWfInstanceMapper = caseWfInstanceMapper;
         this.caseInfoMapper = caseInfoMapper;
         this.caseSubflowInstanceMapper = caseSubflowInstanceMapper;
         this.wfDefinitionMapper = wfDefinitionMapper;
         this.wfNodeDefMapper = wfNodeDefMapper;
+        this.caseTaskCandidateMapper = caseTaskCandidateMapper;
     }
 
     public TaskDetailResponse getTaskDetail(Long taskId) {
@@ -105,6 +112,17 @@ public class TaskQueryService {
             }
         }
 
+        List<CaseTaskCandidate> candidates = caseTaskCandidateMapper.selectList(
+                new LambdaQueryWrapper<CaseTaskCandidate>().eq(CaseTaskCandidate::getTaskId, task.getId()));
+        List<Long> candidateUserIds = candidates.stream()
+                .map(CaseTaskCandidate::getCandidateUserId)
+                .filter(Objects::nonNull)
+                .toList();
+        List<Long> candidateRoleIds = candidates.stream()
+                .map(CaseTaskCandidate::getCandidateRoleId)
+                .filter(Objects::nonNull)
+                .toList();
+
         return new TaskDetailResponse(
                 task.getId(),
                 task.getCaseId(),
@@ -128,6 +146,8 @@ public class TaskQueryService {
                 task.getResultAction(),
                 task.getResultOpinion(),
                 formCode,
-                formRuleJson);
+                formRuleJson,
+                candidateUserIds,
+                candidateRoleIds);
     }
 }

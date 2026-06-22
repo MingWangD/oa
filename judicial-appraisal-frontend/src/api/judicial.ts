@@ -144,6 +144,8 @@ export interface TaskDetail {
   resultOpinion: string | null;
   formCode: string | null;
   formRuleJson: string | null;
+  candidateUserIds?: number[];
+  candidateRoleIds?: number[];
 }
 
 export interface CaseItem {
@@ -266,6 +268,31 @@ export interface CaseSubflowSummary {
   startedBy: number | null;
   startedTime: string | null;
   completedTime: string | null;
+}
+
+export interface CaseWorkflowNode {
+  nodeCode: string;
+  nodeName: string;
+  nodeType: string;
+  sortNo: number | null;
+}
+
+export interface CaseWorkflowTransition {
+  fromNodeCode: string;
+  toNodeCode: string;
+  actionCode: WorkflowActionCode;
+  actionName: string;
+  conditionExpression: string | null;
+  sortNo: number | null;
+}
+
+export interface CaseWorkflowView {
+  workflowCode: string;
+  workflowName: string;
+  currentNodeCode: string | null;
+  nodes: CaseWorkflowNode[];
+  transitions: CaseWorkflowTransition[];
+  nextTransitions: CaseWorkflowTransition[];
 }
 
 export interface MenuDto {
@@ -770,6 +797,10 @@ export function fetchCaseSubflows(caseId: number): Promise<CaseSubflowSummary[]>
   return get<CaseSubflowSummary[]>(`/cases/${caseId}/subflows`);
 }
 
+export function fetchCaseWorkflowView(caseId: number, taskId?: number): Promise<CaseWorkflowView> {
+  return get<CaseWorkflowView>(`/cases/${caseId}/workflow-view`, { taskId });
+}
+
 export function uploadWorkflowFile(payload: {
   file: File;
   caseId?: number;
@@ -883,6 +914,10 @@ export function uploadManualDocument(payload: {
   fileId: number;
 }): Promise<KnowledgeDocument> {
   return post<KnowledgeDocument>('/knowledge/documents/upload', payload);
+}
+
+export function deleteKnowledgeDocument(documentId: number): Promise<void> {
+  return del<void>(`/knowledge/documents/${documentId}`);
 }
 
 export function fetchContracts(query: ContractQuery): Promise<PageResult<ContractItem>> {

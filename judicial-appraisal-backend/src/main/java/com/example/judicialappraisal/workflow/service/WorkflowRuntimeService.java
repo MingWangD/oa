@@ -407,6 +407,15 @@ public class WorkflowRuntimeService {
         List<String> missingFields = fields.stream()
                 .filter(field -> {
                     String fieldName = stringValue(field.get("field"));
+                    // 如果 委托审查是否受理 为 否 (entrustAccepted == false)，则后续的初步勘验、材料接收、指定人等字段在后端也不作必填校验
+                    if (Boolean.FALSE.equals(toBoolean(formData.get("entrustAccepted"))) && 
+                            ("preliminarySurveyRequired".equals(fieldName) || 
+                             "materialReceiveRequired".equals(fieldName) || 
+                             "projectLeaderId".equals(fieldName) || 
+                             "projectAssistantId".equals(fieldName) || 
+                             "departmentHeadId".equals(fieldName))) {
+                        return false;
+                    }
                     boolean isRequired = Boolean.TRUE.equals(toBoolean(field.get("required")));
                     if (finalFormRule != null && finalFormRule.containsKey("fieldAuth")) {
                         Map<String, Map<String, Object>> fieldAuth = (Map<String, Map<String, Object>>) finalFormRule.get("fieldAuth");
@@ -1357,7 +1366,7 @@ public class WorkflowRuntimeService {
     }
 
     private CaseInfo requireCase(Long caseId) {
-        CaseInfo caseInfo = caseInfoMapper.selectById(caseId);
+        CaseInfo caseInfo = caseInfoMapper.selectRawById(caseId);
         if (caseInfo == null) {
             throw new BusinessException("案件不存在");
         }

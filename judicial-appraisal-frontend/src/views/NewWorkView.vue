@@ -256,6 +256,20 @@ function openExplanation(workflow: JudicialWorkflowDefinition) {
   currentWorkflow.value = workflow;
   explanationVisible.value = true;
 }
+
+function handleFlowchartWheel(event: WheelEvent): void {
+  const viewer = event.currentTarget as HTMLElement | null;
+  if (!viewer) {
+    return;
+  }
+  event.preventDefault();
+  if (event.shiftKey) {
+    viewer.scrollLeft += event.deltaY || event.deltaX;
+    return;
+  }
+  viewer.scrollTop += event.deltaY;
+  viewer.scrollLeft += event.deltaX;
+}
 </script>
 
 <template>
@@ -377,14 +391,20 @@ function openExplanation(workflow: JudicialWorkflowDefinition) {
         </el-radio-group>
       </div>
 
-      <div class="flowchart-viewer" style="display: flex; justify-content: center; align-items: center; min-height: 400px; max-height: 70vh; overflow: auto; background: #fafafa; border: 1px solid #ebeef5; border-radius: 4px; padding: 10px;">
+      <div
+        class="flowchart-viewer"
+        tabindex="0"
+        title="使用鼠标滚轮上下浏览，按住 Shift 滚动可左右浏览"
+        @wheel="handleFlowchartWheel"
+      >
         <template v-if="flowchartTab === 'current' && currentWorkflow">
           <el-image
             :src="'/flowcharts/' + flowchartMap[currentWorkflow.code]"
             :preview-src-list="['/flowcharts/' + flowchartMap[currentWorkflow.code]]"
             fit="contain"
-            style="max-width: 100%; max-height: 65vh;"
+            class="flowchart-image"
             hide-on-click-modal
+            preview-teleported
           >
             <template #placeholder>
               <div class="image-slot" style="color: #909399; font-size: 14px;">加载中...</div>
@@ -396,8 +416,9 @@ function openExplanation(workflow: JudicialWorkflowDefinition) {
             src="/flowcharts/b6130e9b27eacb5fd5b365f3272d4eba.png"
             :preview-src-list="['/flowcharts/b6130e9b27eacb5fd5b365f3272d4eba.png']"
             fit="contain"
-            style="max-width: 100%; max-height: 65vh;"
+            class="flowchart-image"
             hide-on-click-modal
+            preview-teleported
           >
             <template #placeholder>
               <div class="image-slot" style="color: #909399; font-size: 14px;">加载中...</div>
@@ -409,8 +430,9 @@ function openExplanation(workflow: JudicialWorkflowDefinition) {
             src="/flowcharts/ff4fe8d56d1e2775159a261ad55e2f74.png"
             :preview-src-list="['/flowcharts/ff4fe8d56d1e2775159a261ad55e2f74.png']"
             fit="contain"
-            style="max-width: 100%; max-height: 65vh;"
+            class="flowchart-image"
             hide-on-click-modal
+            preview-teleported
           >
             <template #placeholder>
               <div class="image-slot" style="color: #909399; font-size: 14px;">加载中...</div>
@@ -542,6 +564,41 @@ function openExplanation(workflow: JudicialWorkflowDefinition) {
   min-height: calc(100vh - 92px);
   background: #f6f6f6;
   color: #4d5968;
+}
+
+.flowchart-viewer {
+  display: block;
+  min-height: 400px;
+  max-height: 70vh;
+  padding: 10px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  background: #fafafa;
+  outline: none;
+}
+
+.flowchart-viewer:focus {
+  border-color: #409eff;
+  box-shadow: 0 0 0 2px rgb(64 158 255 / 12%);
+}
+
+.flowchart-image {
+  display: block;
+  width: 100%;
+  max-width: none;
+  height: auto;
+  cursor: zoom-in;
+}
+
+.flowchart-image :deep(img) {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: none;
+  object-fit: contain;
 }
 
 .new-work-header {

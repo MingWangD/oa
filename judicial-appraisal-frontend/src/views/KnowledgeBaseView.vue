@@ -8,10 +8,13 @@ import {
   fetchKnowledgeDocuments,
   previewKnowledgeDocument,
   uploadManualDocument,
+  deleteKnowledgeDocument,
   type KnowledgeDirectory,
   type KnowledgeDocument
 } from '../api/judicial';
 import { getAccessToken } from '../api/http';
+import { useAuthStore } from '../stores/auth';
+import { ElMessageBox } from 'element-plus';
 
 interface TreeNode {
   label: string;
@@ -20,6 +23,7 @@ interface TreeNode {
   children?: TreeNode[];
 }
 
+const authStore = useAuthStore();
 const loading = ref(false);
 const batchDownloading = ref(false);
 const directories = ref<KnowledgeDirectory[]>([]);
@@ -125,6 +129,36 @@ async function download(row: KnowledgeDocument): Promise<void> {
     URL.revokeObjectURL(url);
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : '下载失败');
+  }
+}
+
+function formatDateTime(isoString: string | null | undefined): string {
+  if (!isoString) return '';
+  const date = new Date(isoString);
+  const m = date.getMonth() + 1;
+  const d = date.getDate();
+  const w = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][date.getDay()];
+  const hh = String(date.getHours()).padStart(2, '0');
+  const mm = String(date.getMinutes()).padStart(2, '0');
+  const ss = String(date.getSeconds()).padStart(2, '0');
+  return `${m}月${d}日 ${w} ${hh}:${mm}:${ss}`;
+}
+
+async function handleDelete(row: KnowledgeDocument): Promise<void> {
+  try {
+    await ElMessageBox.confirm(`确定要删除记录 "${row.title}" 吗？此操作不可恢复。`, '确认删除', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    });
+    
+    await deleteKnowledgeDocument(row.id);
+    ElMessage.success('删除成功');
+    void refresh();
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error(error instanceof Error ? error.message : '删除失败');
+    }
   }
 }
 
@@ -270,15 +304,15 @@ onMounted(() => {
               </template>
             </el-table-column>
             <el-table-column prop="nodeName" label="流程节点" width="180" />
-            <el-table-column prop="currentVersionNo" label="版本" width="90">
-              <template #default="scope">v{{ scope.row.currentVersionNo }}</template>
+            <el-table-column prop="updatedTime" label="更新时间" width="220">
+              <template #default="scope">{{ formatDateTime(scope.row.updatedTime) }}</template>
             </el-table-column>
-            <el-table-column prop="updatedTime" label="更新时间" width="180" />
-            <el-table-column label="操作" width="170">
+            <el-table-column label="操作" width="220">
               <template #default="scope">
                 <div class="inline-actions">
-                  <el-button link type="primary" @click="openPreview(scope.row)">查看</el-button>
-                  <el-button link type="primary" @click="download(scope.row)">下载</el-button>
+                  <el-button link type="primary" @click.stop="openPreview(scope.row)">查看</el-button>
+                  <el-button link type="primary" @click.stop="download(scope.row)">下载</el-button>
+                  <el-button v-if="authStore.isAdmin" link type="danger" @click.stop="handleDelete(scope.row)">删除</el-button>
                 </div>
               </template>
             </el-table-column>

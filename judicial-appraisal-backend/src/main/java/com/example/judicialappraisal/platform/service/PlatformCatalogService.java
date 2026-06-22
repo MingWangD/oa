@@ -69,6 +69,9 @@ public class PlatformCatalogService {
     }
 
     private boolean canSeeWorkflow(List<String> userRoleNames, JudicialWorkflowDefinitionDto workflow) {
+        if ("received-entrust".equals(workflow.code())) {
+            return true;
+        }
         if ("expense-reimbursement".equals(workflow.code())) {
             return hasRole(userRoleNames, "财务人员", "业务人员");
         }

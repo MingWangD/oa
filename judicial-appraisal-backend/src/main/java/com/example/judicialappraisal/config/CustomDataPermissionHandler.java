@@ -47,10 +47,17 @@ public class CustomDataPermissionHandler implements MultiDataPermissionHandler {
             case ALL -> null;
         };
         Expression workflowAccessExpression = workflowParticipantCases(table, userInfo);
+        Expression result;
         if (scopeExpression == null) {
-            return workflowAccessExpression == null ? denyAll() : workflowAccessExpression;
+            result = workflowAccessExpression == null ? denyAll() : workflowAccessExpression;
+        } else {
+            result = or(scopeExpression, workflowAccessExpression);
         }
-        return or(scopeExpression, workflowAccessExpression);
+
+        if (result != null && !(result instanceof Parenthesis)) {
+            result = new Parenthesis(result);
+        }
+        return result;
     }
 
     DataScopeLevel resolveScope(CurrentUserInfo userInfo) {

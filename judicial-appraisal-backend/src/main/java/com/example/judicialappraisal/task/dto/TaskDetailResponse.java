@@ -25,5 +25,7 @@ public record TaskDetailResponse(
         String resultAction,
         String resultOpinion,
         String formCode,
-        String formRuleJson
+        String formRuleJson,
+        java.util.List<Long> candidateUserIds,
+        java.util.List<Long> candidateRoleIds
 ) {}

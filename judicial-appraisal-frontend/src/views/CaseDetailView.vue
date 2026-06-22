@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 
 import {
   fetchCaseDetail,
+  fetchCaseWorkflowView,
   fetchCaseSubflows,
   fetchJudicialCatalog,
   fetchRuntimeFormPreview,
@@ -15,6 +16,7 @@ import {
   uploadWorkflowFile,
   fetchUserOptions,
   type CaseDetail,
+  type CaseWorkflowView,
   type CaseSubflowSummary,
   type FileUploadResponse,
   type FormVersionDesign,
@@ -37,6 +39,13 @@ interface DynamicFormField {
   options: string[];
 }
 
+interface RuntimeTransitionOption {
+  value: WorkflowActionCode;
+  label: string;
+  targetNode?: string;
+  condition?: string | null;
+}
+
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
@@ -44,6 +53,9 @@ const loading = ref(false);
 const acting = ref(false);
 const saving = ref(false);
 const detail = ref<CaseDetail | null>(null);
+const workflowView = ref<CaseWorkflowView | null>(null);
+const flowchartVisible = ref(false);
+const activeFlowchartTab = ref<'current' | 'panorama' | 'detailed'>('current');
 const subflows = ref<CaseSubflowSummary[]>([]);
 const forms = ref<JudicialFormDefinition[]>([]);
 const currentTask = ref<TaskDetail | null>(null);
@@ -78,7 +90,42 @@ const canHandle = computed(() => {
   if (detail.value.caseStatus !== 'DRAFT' && !currentTask.value) {
     return false;
   }
-  return authStore.isAdmin || !detail.value.currentHandlerId || detail.value.currentHandlerId === authStore.user?.id;
+  // 如果任务已经明确指派给特定处理人，且该处理人不是当前登录用户，则当前用户不能办理
+  if (detail.value.currentHandlerId && detail.value.currentHandlerId !== authStore.user?.id) {
+    return false;
+  }
+
+  // 草稿案件且没有当前任务时，默认允许起草人（或管理员）办理
+  if (isDraftCase.value) {
+    return authStore.isAdmin || !detail.value.currentHandlerId || detail.value.currentHandlerId === authStore.user?.id;
+  }
+
+  // 非草稿案件，必须有当前任务
+  if (currentTask.value) {
+    // 如果已经指派处理人，则只有该处理人能处理
+    if (detail.value.currentHandlerId) {
+      return authStore.isAdmin || detail.value.currentHandlerId === authStore.user?.id;
+    }
+    // 如果任务还未指派处理人（待领取状态），校验当前用户是否为候选人或拥有候选角色
+    const candidateUsers = currentTask.value.candidateUserIds || [];
+    const candidateRoles = currentTask.value.candidateRoleIds || [];
+    const userRoles = authStore.user?.roles || [];
+
+    const hasCandidateUser = candidateUsers.length > 0;
+    const hasCandidateRole = candidateRoles.length > 0;
+
+    // 如果该任务没有任何候选限制（防呆设计，一般不应该发生），则默认允许办理
+    if (!hasCandidateUser && !hasCandidateRole) {
+      return authStore.isAdmin || true;
+    }
+
+    const isUserMatch = hasCandidateUser && authStore.user?.id && candidateUsers.includes(authStore.user.id);
+    const isRoleMatch = hasCandidateRole && userRoles.some((role) => role.id && candidateRoles.includes(role.id));
+
+    return authStore.isAdmin || Boolean(isUserMatch) || Boolean(isRoleMatch);
+  }
+
+  return false;
 });
 const currentForm = computed(() => {
   const current = detail.value;
@@ -113,6 +160,15 @@ const dynamicFields = computed<DynamicFormField[]>(() => {
         return false;
       }
       if (isDraftCase.value && (field.group === '流程基础' || field.group === '受理决策')) {
+        return false;
+      }
+      // 如果选择不予受理，则隐藏受理并指定项目负责人、指定项目辅助人等相关字段，不作必填校验
+      if (formData.value?.entrustAccepted === false &&
+          (key === 'preliminarySurveyRequired' ||
+           key === 'materialReceiveRequired' ||
+           key === 'projectLeaderId' ||
+           key === 'projectAssistantId' ||
+           key === 'departmentHeadId')) {
         return false;
       }
       return key !== 'handlerOpinion';
@@ -194,26 +250,88 @@ const formRequirementRows = computed(() => {
     { label: '版本产物', value: form?.versionedArtifacts.join('、') || '无独立版本产物' }
   ];
 });
-const transitionOptions = computed(() => {
-  const name = detail.value?.caseType ?? '';
+
+function formatTransitionCondition(expression: string | null): string | null {
+  if (!expression) {
+    return null;
+  }
+  const match = expression.trim().match(/^form\.([A-Za-z0-9_]+)\s*==\s*(.+)$/);
+  if (!match) {
+    return '满足当前表单的流转条件';
+  }
+
+  const [, field, rawValue] = match;
+  const fieldLabels: Record<string, string> = {
+    entrustAccepted: '受理决定',
+    sealRequired: '是否需要用章',
+    nextRecommendation: '下一步建议',
+    objectionAccepted: '是否属于异议函',
+    replyRequired: '是否需要回复',
+    archivistReviewed: '档案审核结果',
+    sealCompleted: '盖章是否完成'
+  };
+  const normalizedValue = rawValue.trim().replace(/^['"]|['"]$/g, '');
+  let valueLabel = normalizedValue;
+  if (field === 'entrustAccepted') {
+    valueLabel = normalizedValue === 'true' ? '受理' : '不予受理';
+  } else if (normalizedValue === 'true') {
+    valueLabel = '是';
+  } else if (normalizedValue === 'false') {
+    valueLabel = '否';
+  }
+  return `${fieldLabels[field] || '表单选项'}：${valueLabel}`;
+}
+
+const transitionOptions = computed<RuntimeTransitionOption[]>(() => {
   if (isDraftCase.value && !currentTask.value) {
     return [
       { value: 'SUBMIT', label: '提交并启动流程' }
     ];
   }
-  if (name.includes('收到委托书')) {
-    return [
-      { value: 'APPROVE', label: '转交/继续流转到下一节点' },
-      { value: 'RETURN', label: '退回到允许节点' },
-      { value: 'TERMINATE', label: '终止办理' }
-    ];
+  if (workflowView.value?.nextTransitions.length) {
+    const nodeNames = new Map(workflowView.value.nodes.map((node) => [node.nodeCode, node.nodeName]));
+    return workflowView.value.nextTransitions.map((transition) => ({
+      value: transition.actionCode,
+      label: transition.actionName || '转交下一步',
+      targetNode: nodeNames.get(transition.toNodeCode) || transition.toNodeCode,
+      condition: formatTransitionCondition(transition.conditionExpression)
+    }));
   }
   return [
-    { value: 'SUBMIT', label: '提交当前节点' },
-    { value: 'APPROVE', label: '同意并流转' },
-    { value: 'RETURN', label: '退回' },
-    { value: 'TERMINATE', label: '终止' }
+    { value: 'APPROVE', label: '完成当前节点' }
   ];
+});
+const selectedNextStepText = computed(() => transitionOptions.value
+  .filter((option) => option.value === selectedTransition.value)
+  .map((option) => option.targetNode || option.label)
+  .join('、'));
+const fallbackFlowchartUrl = computed(() => {
+  const caseType = detail.value?.caseType ?? '';
+  const assets: Array<[string, string]> = [
+    ['收到委托书', '收到委托书流程.png'],
+    ['不予受理', '不予受理.jpg'],
+    ['内部质量控制', '编制内部质量控制文件.jpg'],
+    ['现场勘验', '现场勘验.jpg'],
+    ['初步勘验', '初步勘验.jpg'],
+    ['材料接收', '材料接收与返还.jpg'],
+    ['材料返还', '材料接收与返还.jpg'],
+    ['发交费通知', '发交费通知书及相关函件.jpg'],
+    ['终止鉴定', '终止鉴定.jpg'],
+    ['退费', '退费.jpg'],
+    ['归档', '归档.jpg'],
+    ['征求意见稿', '鉴定意见书征求意见稿送审稿编.jpg']
+  ];
+  const matched = assets.find(([keyword]) => caseType.includes(keyword));
+  return matched ? `/flowcharts/${matched[1]}` : null;
+});
+const displayedFlowchartUrl = computed(() => {
+  if (activeFlowchartTab.value === 'panorama') {
+    return '/flowcharts/b6130e9b27eacb5fd5b365f3272d4eba.png';
+  }
+  if (activeFlowchartTab.value === 'detailed') {
+    return '/flowcharts/ff4fe8d56d1e2775159a261ad55e2f74.png';
+  }
+  return fallbackFlowchartUrl.value || '/flowcharts/b6130e9b27eacb5fd5b365f3272d4eba.png';
 });
 const nodeCards = computed(() => [
   { title: '当前环节', value: detail.value?.currentNodeName || detail.value?.currentNodeCode || '草稿' },
@@ -248,7 +366,11 @@ async function loadDetail(): Promise<void> {
     forms.value = catalog.forms;
     userOptions.value = users;
     currentTask.value = await loadCurrentTask(caseDetail);
+    workflowView.value = await fetchCaseWorkflowView(caseDetail.id, currentTask.value?.id).catch(() => null);
     selectedTransition.value = currentTask.value ? 'APPROVE' : 'SUBMIT';
+    if (currentTask.value && transitionOptions.value.length > 0) {
+      selectedTransition.value = transitionOptions.value[0].value;
+    }
     uploadedFiles.value = [];
     await loadFormPreview();
   } catch (error) {
@@ -338,9 +460,22 @@ async function submitAction(actionCode: WorkflowActionCode): Promise<void> {
     ElMessage.warning('退回或终止必须填写明确办理意见');
     return;
   }
+  if (!['RETURN', 'TERMINATE', 'REOPEN', 'WITHDRAW'].includes(actionCode)) {
+    const target = selectedNextStepText.value || '流程配置 of 下一节点';
+    try {
+      await ElMessageBox.confirm(
+        `信息填写完成后，请再次确认下一步骤为“${target}”。确认无误后将转交下一步。`,
+        '确认流转节点',
+        { confirmButtonText: '确认并转交', cancelButtonText: '返回检查', type: 'warning' }
+      );
+    } catch {
+      return;
+    }
+  }
   acting.value = true;
   try {
-    await submitWorkflowAction(detail.value.id, {
+    const isDraft = isDraftCase.value;
+    const res = await submitWorkflowAction(detail.value.id, {
       taskId: currentTask.value?.id,
       actionCode,
       opinion: opinion.value || undefined,
@@ -350,7 +485,28 @@ async function submitAction(actionCode: WorkflowActionCode): Promise<void> {
       },
       fileIds: uploadedFiles.value.map((file) => file.fileId)
     });
-    ElMessage.success('流程动作已提交');
+
+    if (isDraft && res.taskId) {
+      try {
+        await submitWorkflowAction(detail.value.id, {
+          taskId: res.taskId,
+          actionCode: 'APPROVE',
+          opinion: opinion.value || '草稿转正自动流转',
+          formData: {
+            ...formData.value,
+            handlerOpinion: opinion.value || '草稿转正自动流转'
+          },
+          fileIds: uploadedFiles.value.map((file) => file.fileId)
+        });
+        ElMessage.success('案件草稿转正成功，已自动提交并流转至收案员登记环节');
+      } catch (autoErr) {
+        console.warn('草稿转正后自动流转失败:', autoErr);
+        ElMessage.warning('草稿已创建，但部分必填字段尚未完善，请继续填写后点击提交流转');
+      }
+    } else {
+      ElMessage.success('流程动作已提交');
+    }
+
     await loadDetail();
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : '提交流程动作失败');
@@ -511,6 +667,7 @@ onMounted(() => {
         <h1>{{ detail?.caseTitle || '案件办理' }}</h1>
       </div>
       <div class="query-actions">
+        <el-button type="primary" plain @click="flowchartVisible = true">流程图</el-button>
         <el-button v-if="returnPath" @click="goBack">返回{{ returnLabel }}</el-button>
         <el-button :loading="loading" @click="loadDetail">刷新</el-button>
       </div>
@@ -545,6 +702,46 @@ onMounted(() => {
           <el-descriptions-item label="更新时间">{{ formatDateTime(detail.updatedTime) }}</el-descriptions-item>
         </el-descriptions>
       </section>
+
+      <el-dialog
+        v-model="flowchartVisible"
+        title="流程设计图"
+        width="96vw"
+        top="2vh"
+        class="flowchart-dialog"
+        destroy-on-close
+      >
+        <el-alert
+          class="flowchart-tip"
+          type="warning"
+          :closable="false"
+          show-icon
+          title="提示：单击图片可开启全屏大图预览，支持鼠标滚轮缩放与按住拖拽查看。"
+        />
+
+        <div class="flowchart-tabs">
+          <el-radio-group v-model="activeFlowchartTab" size="large">
+            <el-radio-button value="current">当前步骤流程图</el-radio-button>
+            <el-radio-button value="panorama">全景工作流程图</el-radio-button>
+            <el-radio-button value="detailed">细化工作流程图</el-radio-button>
+          </el-radio-group>
+        </div>
+
+        <div class="workflow-image-wrap">
+          <el-image
+            :key="displayedFlowchartUrl"
+            :src="displayedFlowchartUrl"
+            :preview-src-list="[displayedFlowchartUrl]"
+            fit="contain"
+            class="workflow-image"
+            preview-teleported
+          />
+        </div>
+
+        <template #footer>
+          <el-button type="primary" @click="flowchartVisible = false">关闭</el-button>
+        </template>
+      </el-dialog>
 
       <CaseDynamicForm
         :form-preview="formPreview"
@@ -600,14 +797,46 @@ onMounted(() => {
 
       <section class="process-section">
         <div class="section-title">
-          <h2>流程图与日志</h2>
-          <span>节点、意见、附件、归档动作需全量留痕</span>
+          <h2>办理轨迹</h2>
+          <span>展示当前案件的关键流程状态</span>
         </div>
-        <ol class="flow-log">
-          <li>发起/草稿：{{ formatDateTime(detail.createdTime) }}</li>
-          <li>当前节点：{{ detail.currentNodeName || detail.currentNodeCode || '未启动' }}</li>
-          <li>最近更新：{{ formatDateTime(detail.updatedTime) }}</li>
-        </ol>
+        <el-timeline class="process-timeline">
+          <el-timeline-item
+            :timestamp="formatDateTime(detail.createdTime)"
+            placement="top"
+            type="primary"
+          >
+            <div class="timeline-card">
+              <strong>案件发起</strong>
+              <span>{{ detail.caseStatus === 'DRAFT' ? '已创建工作草稿，等待提交启动流程' : '案件已创建并进入办理流程' }}</span>
+            </div>
+          </el-timeline-item>
+          <el-timeline-item
+            :timestamp="formatDateTime(detail.updatedTime)"
+            placement="top"
+            type="success"
+            hollow
+          >
+            <div class="timeline-card timeline-card--current">
+              <div class="timeline-card-title">
+                <strong>当前节点</strong>
+                <el-tag size="small" type="success" effect="plain">进行中</el-tag>
+              </div>
+              <span>{{ detail.currentNodeName || detail.currentNodeCode || '流程尚未启动' }}</span>
+              <small v-if="detail.currentHandlerName">当前主办人：{{ detail.currentHandlerName }}</small>
+            </div>
+          </el-timeline-item>
+          <el-timeline-item
+            :timestamp="formatDateTime(detail.updatedTime)"
+            placement="top"
+            color="#94a3b8"
+          >
+            <div class="timeline-card">
+              <strong>最近更新</strong>
+              <span>案件信息或流程状态已更新</span>
+            </div>
+          </el-timeline-item>
+        </el-timeline>
       </section>
     </div>
 
@@ -697,11 +926,86 @@ onMounted(() => {
   font-size: 16px;
 }
 
-.flow-log {
-  margin: 0;
-  padding-left: 20px;
+.process-timeline {
+  max-width: 900px;
+  padding: 8px 8px 0 4px;
+}
+
+.timeline-card {
+  display: grid;
+  gap: 6px;
+  padding: 12px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #f8fafc;
+}
+
+.timeline-card--current {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.timeline-card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.timeline-card strong {
+  color: #1e293b;
+  font-size: 15px;
+}
+
+.timeline-card span {
   color: #475569;
-  line-height: 1.9;
+}
+
+.timeline-card small {
+  color: #64748b;
+}
+
+.flowchart-tip {
+  margin-bottom: 16px;
+}
+
+.flowchart-tabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.workflow-image-wrap {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  height: 67vh;
+  padding: 14px 24px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  overflow: auto;
+  background: #f8fafc;
+}
+
+.workflow-image {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  min-width: min(100%, 900px);
+  cursor: zoom-in;
+}
+
+:deep(.flowchart-dialog) {
+  max-width: none;
+  margin-bottom: 2vh;
+}
+
+:deep(.flowchart-dialog .el-dialog__body) {
+  padding: 14px 22px 0;
+}
+
+:deep(.flowchart-dialog .el-dialog__footer) {
+  padding: 14px 22px 16px;
 }
 
 .relation-actions {

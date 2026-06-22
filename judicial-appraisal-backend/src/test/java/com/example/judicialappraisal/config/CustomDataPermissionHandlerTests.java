@@ -57,6 +57,15 @@ class CustomDataPermissionHandlerTests {
     }
 
     @Test
+    void wrapsExpressionInParenthesisToAvoidPrecedenceIssues() {
+        authenticate(user(7L, 3L, "dept", "USER"));
+
+        Expression expression = handler.getSqlSegment(new Table("case_info"), null, "selectCases");
+
+        assertThat(expression).isInstanceOf(net.sf.jsqlparser.expression.Parenthesis.class);
+    }
+
+    @Test
     void appliesRecursiveDepartmentScopeForDepartmentAndChildren() {
         authenticate(user(7L, 3L, "dept_sub", "USER"));
 
