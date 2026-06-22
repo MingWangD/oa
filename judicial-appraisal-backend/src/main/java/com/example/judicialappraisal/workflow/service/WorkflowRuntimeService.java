@@ -1180,29 +1180,77 @@ public class WorkflowRuntimeService {
     }
 
     private TransitionAdvance handleEndTransition(CaseInfo caseInfo, CaseWfInstance wfInstance, CaseTask completedTask, LocalDateTime now) {
+        System.out.println("DEBUG: handleEndTransition called for task: " + completedTask.getNodeCode() + ", subflowInstanceId: " + completedTask.getSubflowInstanceId());
         if (completedTask.getSubflowInstanceId() != null) {
             finishSubflowInstance(completedTask.getSubflowInstanceId(), now);
             CaseSubflowInstance subflowInstance = caseSubflowInstanceMapper.selectById(completedTask.getSubflowInstanceId());
+            if (subflowInstance != null) {
+                System.out.println("DEBUG: subflowInstance found, wfCode: " + subflowInstance.getWfCode() + ", parentTaskId: " + subflowInstance.getParentTaskId());
+            } else {
+                System.out.println("DEBUG: subflowInstance is null for id: " + completedTask.getSubflowInstanceId());
+            }
             if (subflowInstance != null && "archive".equalsIgnoreCase(subflowInstance.getWfCode())) {
+                System.out.println("DEBUG: archive subflow ended, setting case status to COMPLETED for caseId: " + caseInfo.getId());
                 cancelOtherActiveTasksForCase(caseInfo.getId(), completedTask.getId(), now);
                 caseInfo.setCaseStatus(CaseStatus.COMPLETED.name());
                 caseInfoMapper.updateById(caseInfo);
             }
+            if (subflowInstance != null && "case-suspension".equals(subflowInstance.getWfCode())) {
+                if ("RESUME".equals(completedTask.getNodeCode())) {
+                    if (subflowInstance.getParentTaskId() != null) {
+                        CaseTask parentTask = caseTaskMapper.selectById(subflowInstance.getParentTaskId());
+                        if (parentTask != null) {
+                            parentTask.setStatus(TASK_PENDING);
+                            parentTask.setCompletedTime(null);
+                            parentTask.setResultAction(null);
+                            parentTask.setResultOpinion(null);
+                            caseTaskMapper.updateById(parentTask);
+                            
+                            if (parentTask.getNodeInstanceId() != null) {
+                                CaseNodeInstance nodeInst = caseNodeInstanceMapper.selectById(parentTask.getNodeInstanceId());
+                                if (nodeInst != null) {
+                                    nodeInst.setStatus(NODE_RUNNING);
+                                    nodeInst.setCompletedTime(null);
+                                    caseNodeInstanceMapper.updateById(nodeInst);
+                                }
+                            }
+                            return new TransitionAdvance(List.of(parentTask), false, true);
+                        }
+                    }
+                } else if ("TERMINATE_APPRAISAL".equals(completedTask.getNodeCode())) {
+                    completeParentTasksChain(subflowInstance.getParentTaskId(), now);
+                    caseInfo.setCaseStatus(CaseStatus.COMPLETED.name());
+                    caseInfo.setCurrentNodeCode(null);
+                    caseInfo.setCurrentNodeName(null);
+                    caseInfo.setCurrentHandlerId(null);
+                    caseInfo.setCurrentHandlerName(null);
+                    caseInfo.setCompletedTime(now);
+                    caseInfoMapper.updateById(caseInfo);
+                    
+                    CaseWfInstance mainWf = caseWfInstanceMapper.selectById(completedTask.getWfInstanceId());
+                    if (mainWf != null && WORKFLOW_RUNNING.equals(mainWf.getStatus())) {
+                        finishWorkflowInstance(mainWf, now);
+                    }
+                    return new TransitionAdvance(List.of(), true, true);
+                }
+            }
             if (subflowInstance != null && subflowInstance.getParentTaskId() != null) {
-                CaseTask parentTask = caseTaskMapper.selectById(subflowInstance.getParentTaskId());
-                if (parentTask != null && TASK_SUBFLOW_RUNNING.equals(parentTask.getStatus())) {
-                    WorkflowActionRequest completeRequest = new WorkflowActionRequest(
-                            parentTask.getId(), ActionCode.COMPLETE, "子流程已结束", null, null, null, null, null);
-                    completeCurrentTaskAndNode(
-                            caseInfo,
-                            parentTask,
-                            completeRequest,
-                            parentTask.getAssigneeId(),
-                            parentTask.getAssigneeName(),
-                            now);
-                    WorkflowActionResult advanceResult = tryAdvanceByDefinition(caseInfo, parentTask, completeRequest, now);
-                    if (advanceResult != null && "流程已完成".equals(advanceResult.message())) {
-                        return new TransitionAdvance(List.of(), true, true);
+                if (!"case-suspension".equals(subflowInstance.getWfCode())) {
+                    CaseTask parentTask = caseTaskMapper.selectById(subflowInstance.getParentTaskId());
+                    if (parentTask != null && TASK_SUBFLOW_RUNNING.equals(parentTask.getStatus())) {
+                        WorkflowActionRequest completeRequest = new WorkflowActionRequest(
+                                parentTask.getId(), ActionCode.COMPLETE, "子流程已结束", null, null, null, null, null);
+                        completeCurrentTaskAndNode(
+                                caseInfo,
+                                parentTask,
+                                completeRequest,
+                                parentTask.getAssigneeId(),
+                                parentTask.getAssigneeName(),
+                                now);
+                        WorkflowActionResult advanceResult = tryAdvanceByDefinition(caseInfo, parentTask, completeRequest, now);
+                        if (advanceResult != null && "流程已完成".equals(advanceResult.message())) {
+                            return new TransitionAdvance(List.of(), true, true);
+                        }
                     }
                 }
             }
@@ -1922,6 +1970,38 @@ public class WorkflowRuntimeService {
                     subflow.setCompletedTime(now);
                     caseSubflowInstanceMapper.updateById(subflow);
                 }
+            }
+        }
+    }
+
+    private void completeParentTasksChain(Long parentTaskId, LocalDateTime now) {
+        Long currentTaskId = parentTaskId;
+        while (currentTaskId != null) {
+            CaseTask task = caseTaskMapper.selectById(currentTaskId);
+            if (task == null) break;
+            if (List.of(TASK_SUBFLOW_RUNNING, TASK_PENDING, TASK_CLAIMED, "processing").contains(task.getStatus())) {
+                task.setStatus(TASK_COMPLETED);
+                task.setCompletedTime(now);
+                task.setResultAction("COMPLETE");
+                task.setResultOpinion("案件终止，自动结束");
+                caseTaskMapper.updateById(task);
+                if (task.getNodeInstanceId() != null) {
+                    CaseNodeInstance nodeInst = caseNodeInstanceMapper.selectById(task.getNodeInstanceId());
+                    if (nodeInst != null) {
+                        nodeInst.setStatus(NODE_COMPLETED);
+                        nodeInst.setCompletedTime(now);
+                        nodeInst.setResultAction("COMPLETE");
+                        nodeInst.setResultOpinion("案件终止，自动结束");
+                        caseNodeInstanceMapper.updateById(nodeInst);
+                    }
+                }
+            }
+            if (task.getSubflowInstanceId() != null) {
+                finishSubflowInstance(task.getSubflowInstanceId(), now);
+                CaseSubflowInstance sub = caseSubflowInstanceMapper.selectById(task.getSubflowInstanceId());
+                currentTaskId = sub != null ? sub.getParentTaskId() : null;
+            } else {
+                currentTaskId = null;
             }
         }
     }

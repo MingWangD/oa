@@ -920,6 +920,10 @@ export function deleteKnowledgeDocument(documentId: number): Promise<void> {
   return del<void>(`/knowledge/documents/${documentId}`);
 }
 
+export function batchDeleteKnowledgeDocuments(documentIds: number[]): Promise<void> {
+  return post<void>('/knowledge/documents/batch-delete', documentIds);
+}
+
 export function fetchContracts(query: ContractQuery): Promise<PageResult<ContractItem>> {
   return get<PageResult<ContractItem>>('/contracts', { ...query });
 }

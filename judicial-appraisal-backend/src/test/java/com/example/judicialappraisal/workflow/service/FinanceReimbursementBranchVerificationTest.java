@@ -33,7 +33,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
-@Transactional
 class FinanceReimbursementBranchVerificationTest {
 
     private static final Long OPERATOR_ID = 9L;
@@ -84,7 +83,9 @@ class FinanceReimbursementBranchVerificationTest {
     @Test
     void expenseReimbursement_independentFlow_toCompletion() {
         // 1. Independent Start
-        CaseInfo caseInfo = createCase("9.16-财务报销独立发起", "财务报销");
+        CaseInfo caseInfo = createCase("场景5：财务报销流程", "财务报销");
+        caseInfo.setCaseNo("场景5：财务报销流程");
+        caseInfoMapper.updateById(caseInfo);
         startWorkflow(caseInfo.getId(), "expense-reimbursement");
 
         // 2. INITIATOR_SUBMIT
@@ -117,6 +118,7 @@ class FinanceReimbursementBranchVerificationTest {
     }
 
     @Test
+    @Transactional
     void expenseReimbursement_returnPath() {
         // 1. Independent Start
         CaseInfo caseInfo = createCase("9.16-财务报销退回路径", "财务报销");

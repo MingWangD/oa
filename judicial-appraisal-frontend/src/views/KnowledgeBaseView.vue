@@ -9,6 +9,7 @@ import {
   previewKnowledgeDocument,
   uploadManualDocument,
   deleteKnowledgeDocument,
+  batchDeleteKnowledgeDocuments,
   type KnowledgeDirectory,
   type KnowledgeDocument
 } from '../api/judicial';
@@ -31,6 +32,19 @@ const documents = ref<KnowledgeDocument[]>([]);
 const selectedDocuments = ref<KnowledgeDocument[]>([]);
 const activeDirectoryId = ref<number | undefined>();
 const keyword = ref('');
+
+const currentPage = ref(1);
+const pageSize = ref(10);
+
+const paginatedDocuments = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value;
+  const end = start + pageSize.value;
+  return documents.value.slice(start, end);
+});
+
+function handlePageChange(val: number): void {
+  currentPage.value = val;
+}
 
 const treeData = computed<TreeNode[]>(() => {
   const nodeMap = new Map<number, TreeNode>();
@@ -75,6 +89,7 @@ async function loadDocuments(): Promise<void> {
       directoryId: activeDirectoryId.value,
       keyword: keyword.value
     });
+    currentPage.value = 1;
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : '加载知识文档失败');
   } finally {
@@ -158,6 +173,33 @@ async function handleDelete(row: KnowledgeDocument): Promise<void> {
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error(error instanceof Error ? error.message : '删除失败');
+    }
+  }
+}
+
+async function batchDelete(): Promise<void> {
+  if (selectedDocuments.value.length === 0) {
+    return;
+  }
+  try {
+    await ElMessageBox.confirm(
+      `确定要批量删除选中的 ${selectedDocuments.value.length} 条记录吗？此操作不可恢复。`,
+      '确认批量删除',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    );
+    
+    const ids = selectedDocuments.value.map((doc) => doc.id);
+    await batchDeleteKnowledgeDocuments(ids);
+    ElMessage.success('批量删除成功');
+    selectedDocuments.value = [];
+    void refresh();
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error(error instanceof Error ? error.message : '批量删除失败');
     }
   }
 }
@@ -271,6 +313,15 @@ onMounted(() => {
           >
             批量下载
           </el-button>
+          <el-button
+            v-if="authStore.isAdmin"
+            type="danger"
+            :disabled="selectedDocuments.length === 0"
+            style="margin-left: 12px"
+            @click="batchDelete"
+          >
+            批量删除
+          </el-button>
           <el-upload
             style="display: inline-block; margin-left: 12px"
             action="/api/files/upload"
@@ -288,7 +339,7 @@ onMounted(() => {
         <div class="table-frame">
           <el-table
             v-loading="loading"
-            :data="documents"
+            :data="paginatedDocuments"
             border
             stripe
             @selection-change="handleSelectionChange"
@@ -317,6 +368,18 @@ onMounted(() => {
               </template>
             </el-table-column>
           </el-table>
+        </div>
+
+        <div v-if="documents.length > 0" class="pager-bar" style="margin-top: 16px;">
+          <p class="pager-text">第 {{ currentPage }} 页，每页 {{ pageSize }} 条，共 {{ documents.length }} 条</p>
+          <el-pagination
+            background
+            layout="prev, pager, next"
+            :current-page="currentPage"
+            :page-size="pageSize"
+            :total="documents.length"
+            @current-change="handlePageChange"
+          />
         </div>
       </div>
     </div>

@@ -67,6 +67,12 @@ public class KnowledgeController {
         return ApiResponse.success(null);
     }
 
+    @PostMapping("/documents/batch-delete")
+    public ApiResponse<Void> batchDeleteDocuments(@RequestBody List<Long> documentIds) {
+        knowledgeService.batchDeleteDocuments(documentIds);
+        return ApiResponse.success(null);
+    }
+
     @GetMapping("/documents/{documentId}/download")
     public ResponseEntity<byte[]> download(@PathVariable Long documentId) {
         FileContent content = knowledgeService.downloadDocument(documentId);

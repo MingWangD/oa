@@ -30,7 +30,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
-@Transactional
 class RejectAcceptanceBranchVerificationTest {
 
     private static final Long OPERATOR_ID = 9L;
@@ -72,7 +71,7 @@ class RejectAcceptanceBranchVerificationTest {
     @Test
     void rejectAcceptanceFlow_shouldCompleteAllNodes() {
         // 1. Create case from Received Entrust branch
-        Long caseId = createSubmittedReceivedEntrustCase("6.13-不予受理全流程");
+        Long caseId = createSubmittedReceivedEntrustCase("场景1：不予受理流程");
 
         // Reach DEPT_REVIEW and select not accepted
         completeTask(caseId, "INIT_FILL", baseFormData(false));
@@ -131,9 +130,25 @@ class RejectAcceptanceBranchVerificationTest {
         
         assertThat(activeTaskNodeCodes(caseId)).contains("ARCHIVE_SUBFLOW", "ARCHIVIST_PREPARE");
         assertThat(runningSubflowCodes(caseId)).contains("archive");
+
+        // 10. Complete archive subflow
+        completeTask(caseId, "ARCHIVIST_PREPARE", Map.of(
+                "projectArchiveUploaded", true,
+                "paperScansUploaded", true,
+                "deliveryRoute", "直接中心审核"
+        ));
+        completeTask(caseId, "CENTRAL_REVIEW", Map.of(
+                "centralArchiveApproved", true,
+                "archiveRoomLocation", "A1-D4架"
+        ));
+
+        // Assert case is fully completed and archived
+        CaseInfo finalCase = caseInfoMapper.selectById(caseId);
+        assertThat(finalCase.getCaseStatus()).isEqualTo("COMPLETED");
     }
     
     @Test
+    @Transactional
     void rejectAcceptanceFlow_withoutSeal() {
         Long caseId = createSubmittedReceivedEntrustCase("6.13-不予受理无需用章");
 
@@ -182,24 +197,26 @@ class RejectAcceptanceBranchVerificationTest {
     
     private Long createSubmittedReceivedEntrustCase(String taskName) {
         CaseInfo caseInfo = caseInfoService.createDraft(new CaseCreateRequest(taskName, "司法鉴定", "测试法院", 1L));
+        caseInfo.setCaseNo(taskName);
+        caseInfoMapper.updateById(caseInfo);
         caseInfoService.submitCase(caseInfo.getId(), new CaseSubmitRequest(OPERATOR_ID, OPERATOR_NAME, "发起 " + taskName), OPERATOR_ID, OPERATOR_NAME);
         return caseInfo.getId();
     }
 
     private Map<String, Object> baseFormData(boolean accepted) {
         return Map.ofEntries(
-                Map.entry("clientName", "测试委托人"),
-                Map.entry("serialNo", "TEST-NO"),
-                Map.entry("initiatorName", "测试发起人"),
-                Map.entry("initiatedDate", "2026-06-13"),
-                Map.entry("receivedDate", "2026-06-13"),
-                Map.entry("caseNo", "JA-" + System.currentTimeMillis()),
-                Map.entry("entrustUnit", "测试法院"),
-                Map.entry("entrustDate", "2026-06-13"),
-                Map.entry("appraisalCategory", "法医临床"),
+                Map.entry("clientName", "深圳市罗湖区人民法院"),
+                Map.entry("serialNo", "SC-1-123456"),
+                Map.entry("initiatorName", "管理员"),
+                Map.entry("initiatedDate", "2026-06-23"),
+                Map.entry("receivedDate", "2026-06-23"),
+                Map.entry("caseNo", "场景1：不予受理流程"),
+                Map.entry("entrustUnit", "深圳市罗湖区人民法院"),
+                Map.entry("entrustDate", "2026-06-23"),
+                Map.entry("appraisalCategory", "工程造价"),
                 Map.entry("urgencyLevel", "普通"),
                 Map.entry("caseChannel", "线下"),
-                Map.entry("appraisalMatter", "不予受理测试"),
+                Map.entry("appraisalMatter", "工程造价纠纷鉴定"),
                 Map.entry("entrustAccepted", accepted),
                 Map.entry("preliminarySurveyRequired", false),
                 Map.entry("materialReceiveRequired", false),

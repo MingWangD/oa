@@ -47,6 +47,7 @@ class KnowledgeServiceTests {
     private final com.example.judicialappraisal.workflow.mapper.CaseTaskCandidateMapper caseTaskCandidateMapper = mock(com.example.judicialappraisal.workflow.mapper.CaseTaskCandidateMapper.class);
     private final FileStorageService fileStorageService = mock(FileStorageService.class);
     private final AuditLogService auditLogService = mock(AuditLogService.class);
+    private final com.example.judicialappraisal.organization.mapper.SysUserMapper sysUserMapper = mock(com.example.judicialappraisal.organization.mapper.SysUserMapper.class);
     private final KnowledgeService service = new KnowledgeService(
             directoryMapper,
             documentMapper,
@@ -58,7 +59,8 @@ class KnowledgeServiceTests {
             caseTaskCandidateMapper,
             fileStorageService,
             auditLogService,
-            new ObjectMapper()
+            new ObjectMapper(),
+            sysUserMapper
     );
 
     @AfterEach
@@ -112,7 +114,7 @@ class KnowledgeServiceTests {
         authenticateAdmin();
         CaseInfo caseInfo = new CaseInfo();
         caseInfo.setId(88L);
-        when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
+        when(caseInfoMapper.selectRawById(88L)).thenReturn(caseInfo);
 
         KnowledgeDocument document = new KnowledgeDocument();
         document.setId(9L);
@@ -139,6 +141,76 @@ class KnowledgeServiceTests {
         assertThat(matchedByFile).hasSize(1);
     }
 
+    @Test
+    void documentsAllowHistoricalCandidateRoleToReadArchivedCase() {
+        authenticateCaseAcceptor();
+        CaseInfo caseInfo = new CaseInfo();
+        caseInfo.setId(200L);
+        when(caseInfoMapper.selectRawById(200L)).thenReturn(caseInfo);
+        when(caseTaskMapper.selectList(any())).thenReturn(List.of());
+        when(caseTaskCandidateMapper.selectCount(any())).thenReturn(1L);
+
+        KnowledgeDirectory directory = new KnowledgeDirectory();
+        directory.setId(20L);
+        directory.setDirectoryType("case");
+        directory.setCaseId(200L);
+        KnowledgeDocument document = new KnowledgeDocument();
+        document.setId(30L);
+        document.setDirectoryId(20L);
+        document.setCaseId(200L);
+        document.setTitle("场景1：不予受理流程 / 收案员登记 / 任务1");
+        document.setSourceType("archive");
+        document.setNodeName("收案员登记");
+        KnowledgePermission permission = new KnowledgePermission();
+        permission.setSubjectType("all");
+        permission.setPermissionCode("read");
+
+        when(directoryMapper.selectList(any())).thenReturn(List.of());
+        when(documentMapper.selectList(any())).thenReturn(List.of(document));
+        when(directoryMapper.selectById(20L)).thenReturn(directory);
+        when(permissionMapper.selectList(any())).thenReturn(List.of(permission));
+
+        List<KnowledgeDocumentDto> result = service.documents(null, 200L, null);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).title()).contains("场景1");
+    }
+
+    @Test
+    void documentsAllowLoggedInUserToReadScenarioTestCaseArchive() {
+        authenticateCaseAcceptor();
+        CaseInfo caseInfo = new CaseInfo();
+        caseInfo.setId(201L);
+        caseInfo.setCaseNo("场景5：财务报销流程");
+        caseInfo.setCaseTitle("场景5：财务报销流程");
+        when(caseInfoMapper.selectRawById(201L)).thenReturn(caseInfo);
+
+        KnowledgeDirectory directory = new KnowledgeDirectory();
+        directory.setId(21L);
+        directory.setDirectoryType("case");
+        directory.setCaseId(201L);
+        KnowledgeDocument document = new KnowledgeDocument();
+        document.setId(31L);
+        document.setDirectoryId(21L);
+        document.setCaseId(201L);
+        document.setTitle("场景5：财务报销流程 / 财务处理报销 / 任务31048");
+        document.setSourceType("archive");
+        document.setNodeName("财务处理报销");
+        KnowledgePermission permission = new KnowledgePermission();
+        permission.setSubjectType("all");
+        permission.setPermissionCode("read");
+
+        when(directoryMapper.selectList(any())).thenReturn(List.of());
+        when(documentMapper.selectList(any())).thenReturn(List.of(document));
+        when(directoryMapper.selectById(21L)).thenReturn(directory);
+        when(permissionMapper.selectList(any())).thenReturn(List.of(permission));
+
+        List<KnowledgeDocumentDto> result = service.documents(null, 201L, null);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).title()).contains("场景5");
+    }
+
     private void authenticateAdmin() {
         CurrentUserInfo userInfo = new CurrentUserInfo(
                 1L,
@@ -152,6 +224,26 @@ class KnowledgeServiceTests {
                 null,
                 "enabled",
                 List.of(new CurrentUserRole(1L, "ADMIN", "系统管理员", "all", List.of())),
+                Set.of()
+        );
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(userInfo, "token", List.of())
+        );
+    }
+
+    private void authenticateCaseAcceptor() {
+        CurrentUserInfo userInfo = new CurrentUserInfo(
+                5L,
+                "case_acceptor1",
+                "收案员1",
+                null,
+                null,
+                90004L,
+                null,
+                null,
+                null,
+                "enabled",
+                List.of(new CurrentUserRole(22744L, "CASE_ACCEPTOR", "收案员", "self", List.of())),
                 Set.of()
         );
         SecurityContextHolder.getContext().setAuthentication(

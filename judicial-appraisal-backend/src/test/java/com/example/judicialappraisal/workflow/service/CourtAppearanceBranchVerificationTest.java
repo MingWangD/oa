@@ -36,7 +36,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
-@Transactional
 class CourtAppearanceBranchVerificationTest {
 
     private static final Long OPERATOR_ID = 9L;
@@ -85,6 +84,7 @@ class CourtAppearanceBranchVerificationTest {
     }
 
     @Test
+    @Transactional
     void courtAppearance_shouldStartWithProjectRegisterWhenManuallyCreatedAndLinked() {
         Long caseId = startCourtAppearanceWorkflow("9.12-手动新建出庭通知");
 
@@ -93,11 +93,12 @@ class CourtAppearanceBranchVerificationTest {
     }
 
     @Test
+    @Transactional
     void feeRequiredPath_shouldLaunchPaymentNoticeSubflow() {
         Long caseId = startCourtAppearanceWorkflow("9.12-出庭费通知");
 
         completeTask(caseId, "PROJECT_REGISTER", ActionCode.APPROVE,
-                projectRegisterData(true), null);
+                projectRegisterData("9.12-出庭费通知", true), null);
 
         assertThat(activeTaskNodeCodes(caseId)).contains("PAYMENT_NOTICE", "ASSISTANT_DRAFT");
         assertThat(runningSubflowCodes(caseId)).contains("payment-notice");
@@ -105,7 +106,7 @@ class CourtAppearanceBranchVerificationTest {
 
     @Test
     void noFeeCenterArchivePath_shouldRetrievePrepareAppearAndArchive() {
-        Long caseId = createCaseAtArchiveRetrieval("9.12-中心档案室调档后归档", false);
+        Long caseId = createCaseAtArchiveRetrieval("场景7：出庭通知流程", false);
 
         completeTask(caseId, "ARCHIVE_RETRIEVAL", ActionCode.APPROVE, Map.of(
                 "archiveRetrievalRequired", true,
@@ -149,9 +150,25 @@ class CourtAppearanceBranchVerificationTest {
                 .containsEntry("appearanceStatusEntered", true)
                 .containsEntry("postAppearanceMaterialsUploaded", true)
                 .containsEntry("nextRecommendation", "归档");
+
+        // Complete archiving subflow
+        completeTask(caseId, "ARCHIVIST_PREPARE", ActionCode.APPROVE, Map.of(
+                "projectArchiveUploaded", true,
+                "paperScansUploaded", true,
+                "deliveryRoute", "直接中心审核"
+        ), null);
+        completeTask(caseId, "CENTRAL_REVIEW", ActionCode.APPROVE, Map.of(
+                "centralArchiveApproved", true,
+                "archiveRoomLocation", "A1-D4架"
+        ), null);
+
+        // Assert case is fully completed and archived
+        CaseInfo finalCase = caseInfoMapper.selectById(caseId);
+        assertThat(finalCase.getCaseStatus()).isEqualTo("COMPLETED");
     }
 
     @Test
+    @Transactional
     void nonCenterArchivePath_shouldSkipCenterArchiveAndLaunchIssueOpinion() {
         Long caseId = createCaseAtArchiveRetrieval("9.12-非中心档案室调档后出具意见书", false);
 
@@ -175,6 +192,7 @@ class CourtAppearanceBranchVerificationTest {
     }
 
     @Test
+    @Transactional
     void archiveRetrievalReturn_shouldReturnToProjectRegister() {
         Long caseId = createCaseAtArchiveRetrieval("9.12-调档退回确认", false);
 
@@ -186,6 +204,7 @@ class CourtAppearanceBranchVerificationTest {
     }
 
     @Test
+    @Transactional
     void courtAppearanceNotCompleted_shouldReturnToPrepare() {
         Long caseId = createCaseAtCourtAppearance("9.12-出庭未完成退回准备");
 
@@ -214,14 +233,14 @@ class CourtAppearanceBranchVerificationTest {
 
     private Long createCaseAtArchiveRetrieval(String title, boolean feeRequired) {
         Long caseId = startCourtAppearanceWorkflow(title);
-        completeTask(caseId, "PROJECT_REGISTER", ActionCode.APPROVE, projectRegisterData(feeRequired), null);
+        completeTask(caseId, "PROJECT_REGISTER", ActionCode.APPROVE, projectRegisterData(title, feeRequired), null);
         assertThat(activeTaskNodeCodes(caseId)).contains(feeRequired ? "PAYMENT_NOTICE" : "ARCHIVE_RETRIEVAL");
         return caseId;
     }
 
-    private Map<String, Object> projectRegisterData(boolean feeRequired) {
+    private Map<String, Object> projectRegisterData(String caseNo, boolean feeRequired) {
         return Map.ofEntries(
-                Map.entry("caseNo", "JA-COURT-APPEARANCE-9-12"),
+                Map.entry("caseNo", caseNo),
                 Map.entry("linkedWorkflowCode", "issue-opinion"),
                 Map.entry("projectLeaderId", 3L),
                 Map.entry("projectAssistantId", 4L),
@@ -240,6 +259,7 @@ class CourtAppearanceBranchVerificationTest {
 
     private Long startCourtAppearanceWorkflow(String title) {
         CaseInfo caseInfo = caseInfoService.createDraft(new CaseCreateRequest(title, "收到出庭通知", "测试法院", 1L));
+        caseInfo.setCaseNo(title);
         caseInfo.setCaseStatus(CaseStatus.PROCESSING.name());
         caseInfoMapper.updateById(caseInfo);
 
