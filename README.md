@@ -198,20 +198,18 @@ npm run dev
 
 ## 🔒 动态表单权限与必填配置
 
-本项目实现了严格的节点级表单字段级权限隔离。不同审批节点（如“收案员登记”、“项目负责人审核”）的“必填星号”和“字段只读”状态，由后端和脚本动态下发：
+本项目实现了严格的节点级表单字段级权限隔离。不同审批节点（如“收案员登记”、“项目负责人审核”）的“必填星号”和“字段只读”状态，完全由后端动态解析下发：
 
-1. **核心规则**：对于任意一个审批节点，如果某个字段不在其显式规定的“必填(required)”或“可选(optional)”名单中，该字段将**强制变为只读 (`readonly: true`)**。这确保了如“收案员绝对无法篡改发起人填写的表单”的业务隔离要求。
-2. **修改权限配置**：
-   - 所有的权限规则和防篡改白名单定义在根目录的 `node_rules.json` 文件中。
-   - 如果你需要根据《使用手册》调整某个节点的必填或可填字段，请修改 `node_rules.json`。
-   - 修改完成后，在项目根目录运行以下命令将最新规则刷入数据库，并重新导出全量 SQL：
+1. **核心规则**：对于任意一个审批节点，如果某个字段不在其显式规定的“必填(required)”或“可选(optional)”名单中，该字段将**强制变为只读 (`readonly: true`)**。这确保了如“后续节点绝对无法篡改发起人填写的表单”的业务隔离要求。
+2. **表单模板与配置项修改**：
+   - 系统所有的表单模板、流程节点挂载及权限规则均在后端 `JudicialConfigImportService.java` 中集中声明和维护。
+   - 若需调整表单字段（如增加字段、修改只读权限、调整所属分组），请直接修改 `JudicialConfigImportService.java` 对应的配置代码。
+   - 修改完成后，重启后端项目，并调用配置导入接口使新模板生效（并同步导出最新的初始化 SQL 文件）：
      ```bash
-     # 1. 执行刷库脚本更新节点字段权限
-     node scripts/fix_form_permissions.js --apply
+     # 1. 通过管理员权限调用接口，将最新的代码配置刷入数据库
+     TOKEN=$(curl -s -X POST http://localhost:8080/api/auth/login -H "Content-Type: application/json" -d '{"username":"admin","password":"123456"}' | grep -o '"token":"[^"]*' | cut -d'"' -f4)
+     curl -s -X POST "http://localhost:8080/api/platform/judicial-catalog/import?forceNewVersion=true" -H "Authorization: Bearer $TOKEN"
      
-     # 2. 验证刷库结果无误
-     node scripts/fix_form_permissions.js --verify
-     
-     # 3. 导出最新数据库配置给其他协同开发者
-     mysqldump -u root -p[你的密码] judicial_appraisal > ./judicial-appraisal-backend/src/main/resources/db/judicial_appraisal_full_dump.sql
+     # 2. 导出最新数据库配置给其他协同开发者 (请根据实际端口和密码修改)
+     mysqldump -h localhost -P 3307 -u root -p123456 judicial_appraisal > ./judicial-appraisal-backend/src/main/resources/db/judicial_appraisal_full_dump.sql
      ```
