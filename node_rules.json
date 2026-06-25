@@ -1,0 +1,577 @@
+{
+  "preliminary-survey": {
+    "START": {
+      "required": [],
+      "optional": []
+    },
+    "ASSISTANT_PREPARE": {
+      "required": [
+        "surveyDate",
+        "surveyLocation",
+        "surveySummary",
+        "equipmentRecordUploaded",
+        "fieldPlanUploaded"
+      ],
+      "optional": []
+    },
+    "PROJECT_REVIEW": {
+      "required": [
+        "appraisalConditionMet",
+        "nextRecommendation"
+      ],
+      "optional": []
+    }
+  },
+  "payment-notice": {
+    "ASSISTANT_DRAFT": {
+      "required": [
+        "letterDraftCompleted",
+        "letterType",
+        "letterSummary"
+      ],
+      "optional": [
+        "sealRequired"
+      ]
+    },
+    "PROJECT_REVIEW": {
+      "required": [
+        "projectReviewPassed"
+      ],
+      "optional": [
+        "reviewOpinion"
+      ]
+    },
+    "SEAL_APPLICATION": {
+      "required": [],
+      "optional": []
+    },
+    "ARCHIVE_UPLOAD": {
+      "required": [
+        "sealedDocumentUploaded"
+      ],
+      "optional": []
+    },
+    "PAYMENT_CONFIRM": {
+      "required": [
+        "paymentReceived",
+        "nextRecommendation"
+      ],
+      "optional": []
+    }
+  },
+  "quality-control": {
+    "ASSISTANT_DRAFT": {
+      "required": [
+        "qualityControlDocumentUploaded",
+        "fClassProject"
+      ],
+      "optional": []
+    },
+    "PROJECT_REVIEW": {
+      "required": [
+        "projectReviewPassed"
+      ],
+      "optional": [
+        "reviewOpinion"
+      ]
+    },
+    "DEPARTMENT_REVIEW": {
+      "required": [
+        "departmentReviewPassed"
+      ],
+      "optional": [
+        "departmentReviewOpinion"
+      ]
+    },
+    "SEALED_FILE_UPLOAD": {
+      "required": [
+        "sealedDocumentUploaded"
+      ],
+      "optional": []
+    },
+    "NEXT_FLOW_DECISION": {
+      "required": [
+        "fieldSurveyRequired",
+        "nextRecommendation"
+      ],
+      "optional": []
+    }
+  },
+  "field-survey": {
+    "ASSISTANT_PREPARE": {
+      "required": [
+        "fieldPlanUploaded",
+        "equipmentRecordUploaded",
+        "surveyRecordUploaded"
+      ],
+      "optional": []
+    },
+    "PROJECT_REVIEW": {
+      "required": [
+        "projectReviewPassed",
+        "supplementaryMaterialRequired"
+      ],
+      "optional": [
+        "reviewOpinion"
+      ]
+    },
+    "TECHNICAL_REVIEW": {
+      "required": [
+        "technicalReviewPassed"
+      ],
+      "optional": [
+        "technicalReviewOpinion"
+      ]
+    },
+    "DEPARTMENT_REVIEW": {
+      "required": [
+        "departmentReviewPassed"
+      ],
+      "optional": [
+        "departmentReviewOpinion"
+      ]
+    },
+    "NEXT_FLOW_DECISION": {
+      "required": [
+        "nextRecommendation"
+      ],
+      "optional": []
+    }
+  },
+  "material-receive-return": {
+    "START": {
+      "required": [
+        "materialReceiveType",
+        "materialSource",
+        "requireSupplementaryMaterial",
+        "materialDetails",
+        "receiveDate"
+      ],
+      "optional": [
+        "materialUploaderId",
+        "supplementaryNotice",
+        "supplementaryNoticeUploaded"
+      ]
+    },
+    "PROJECT_CONFIRM": {
+      "required": [
+        "projectMaterialConfirmed"
+      ],
+      "optional": []
+    },
+    "ASSISTANT_REGISTER": {
+      "required": [
+        "materialsUploaded",
+        "materialMediaType",
+        "storageLocation",
+        "requireReturn",
+        "storageStatus"
+      ],
+      "optional": []
+    },
+    "RETURN_MATERIAL": {
+      "required": [
+        "returnRegistrationCompleted"
+      ],
+      "optional": [
+        "returnReceiver",
+        "returnDate"
+      ]
+    },
+    "NEXT_FLOW_DECISION": {
+      "required": [
+        "nextRecommendation"
+      ],
+      "optional": []
+    }
+  },
+  "reject-acceptance": {
+    "ASSISTANT_DRAFT": {
+      "required": [
+        "rejectionReason",
+        "noticeDraftCompleted"
+      ],
+      "optional": [
+        "noticeSummary"
+      ]
+    },
+    "PROJECT_REVIEW": {
+      "required": [
+        "projectReviewPassed",
+        "sealRequired"
+      ],
+      "optional": [
+        "reviewOpinion"
+      ]
+    },
+    "SEALED_NOTICE_UPLOAD": {
+      "required": [
+        "sealedNoticeUploaded"
+      ],
+      "optional": []
+    },
+    "ARCHIVE_SUBFLOW": {
+      "required": [
+        "deliveryMethod",
+        "deliveryDate",
+        "archiveConfirmed"
+      ],
+      "optional": []
+    }
+  },
+  "draft-opinion-review": {
+    "ASSISTANT_DRAFT": {
+      "required": [
+        "draftOpinionUploaded"
+      ],
+      "optional": []
+    },
+    "PROJECT_REVIEW": {
+      "required": [
+        "projectReviewPassed"
+      ],
+      "optional": [
+        "reviewOpinion"
+      ]
+    },
+    "TECHNICAL_REVIEW": {
+      "required": [
+        "technicalReviewPassed"
+      ],
+      "optional": [
+        "technicalReviewOpinion"
+      ]
+    },
+    "DEPARTMENT_REVIEW": {
+      "required": [
+        "departmentReviewPassed"
+      ],
+      "optional": [
+        "departmentReviewOpinion"
+      ]
+    },
+    "FINAL_UPLOAD": {
+      "required": [
+        "finalDraftUploaded"
+      ],
+      "optional": []
+    }
+  },
+  "final-opinion-review": {
+    "ASSISTANT_DRAFT": {
+      "required": [
+        "draftOpinionUploaded"
+      ],
+      "optional": []
+    },
+    "PROJECT_REVIEW": {
+      "required": [
+        "projectReviewPassed"
+      ],
+      "optional": [
+        "reviewOpinion"
+      ]
+    },
+    "TECHNICAL_REVIEW": {
+      "required": [
+        "technicalReviewPassed"
+      ],
+      "optional": [
+        "technicalReviewOpinion"
+      ]
+    },
+    "DEPARTMENT_REVIEW": {
+      "required": [
+        "departmentReviewPassed"
+      ],
+      "optional": [
+        "departmentReviewOpinion"
+      ]
+    },
+    "FINAL_UPLOAD": {
+      "required": [
+        "finalDraftUploaded"
+      ],
+      "optional": []
+    }
+  },
+  "issue-final-opinion": {
+    "PROJECT_MODIFY": {
+      "required": [],
+      "optional": []
+    },
+    "ASSISTANT_UPLOAD": {
+      "required": [
+        "commitmentLetterUploaded",
+        "reviewOpinionUploaded"
+      ],
+      "optional": []
+    },
+    "PROJECT_REVIEW": {
+      "required": [
+        "projectReviewPassed"
+      ],
+      "optional": [
+        "reviewOpinion"
+      ]
+    },
+    "SEAL_APPLICATION": {
+      "required": [],
+      "optional": []
+    },
+    "ARCHIVIST_UPLOAD": {
+      "required": [
+        "registrationFormUploaded"
+      ],
+      "optional": []
+    },
+    "SEALED_UPLOAD": {
+      "required": [
+        "sealedOpinionUploaded"
+      ],
+      "optional": []
+    }
+  },
+  "issue-draft-opinion": {
+    "ASSISTANT_SUPPLEMENT": {
+      "required": [
+        "explanationLetterUploaded"
+      ],
+      "optional": []
+    },
+    "PROJECT_REVIEW": {
+      "required": [
+        "projectReviewPassed"
+      ],
+      "optional": [
+        "reviewOpinion"
+      ]
+    },
+    "ARCHIVIST_CONFIRM": {
+      "required": [
+        "sealApproved",
+        "draftOpinionUploaded"
+      ],
+      "optional": []
+    },
+    "SEAL_APPLICATION": {
+      "required": [],
+      "optional": []
+    },
+    "SEALED_UPLOAD": {
+      "required": [
+        "sealedDocumentUploaded"
+      ],
+      "optional": []
+    },
+    "DELIVERY": {
+      "required": [
+        "deliveryTrackingNo"
+      ],
+      "optional": []
+    },
+    "WAIT_FEEDBACK": {
+      "required": [
+        "objectionReceived"
+      ],
+      "optional": []
+    }
+  },
+  "court-letter": {
+    "LETTER_UPLOAD": {
+      "required": [
+        "courtLetterUploaded",
+        "projectLeaderId"
+      ],
+      "optional": []
+    },
+    "PROJECT_REGISTER": {
+      "required": [
+        "isObjectionLetter",
+        "replyRequired"
+      ],
+      "optional": []
+    },
+    "ASSISTANT_REPLY": {
+      "required": [
+        "replyLetterUploaded"
+      ],
+      "optional": []
+    },
+    "PROJECT_REVIEW": {
+      "required": [
+        "projectReviewPassed"
+      ],
+      "optional": [
+        "reviewOpinion"
+      ]
+    },
+    "SEALED_REPLY_UPLOAD": {
+      "required": [
+        "sealedReplyUploaded"
+      ],
+      "optional": []
+    },
+    "NEXT_FLOW_DECISION": {
+      "required": [
+        "nextRecommendation"
+      ],
+      "optional": []
+    }
+  },
+  "court-appearance": {
+    "PROJECT_REGISTER": {
+      "required": [
+        "appearanceLetterConfirmed",
+        "projectNoConfirmed"
+      ],
+      "optional": []
+    },
+    "PAYMENT_NOTICE": {
+      "required": [],
+      "optional": []
+    },
+    "ARCHIVE_RETRIEVAL": {
+      "required": [
+        "borrowRegistrationUploaded",
+        "storeInCenterArchive"
+      ],
+      "optional": []
+    },
+    "APPEARANCE_PREPARE": {
+      "required": [
+        "preparationFilesUploaded"
+      ],
+      "optional": []
+    },
+    "COURT_APPEARANCE": {
+      "required": [
+        "appearanceRecord"
+      ],
+      "optional": []
+    },
+    "POST_APPEARANCE": {
+      "required": [
+        "postAppearanceOrganized"
+      ],
+      "optional": []
+    },
+    "NEXT_FLOW_DECISION": {
+      "required": [
+        "nextRecommendation"
+      ],
+      "optional": []
+    }
+  },
+  "withdraw-case-letter": {
+    "LETTER_REGISTER": {
+      "required": [
+        "withdrawReason",
+        "withdrawLetterReceivedDate"
+      ],
+      "optional": []
+    },
+    "PROJECT_DECISION": {
+      "required": [
+        "refundRequired"
+      ],
+      "optional": [
+        "decisionSummary"
+      ]
+    }
+  },
+  "refund": {
+    "PROJECT_PREPARE": {
+      "required": [
+        "contractChangeConfirmed",
+        "revenueConfirmed"
+      ],
+      "optional": []
+    },
+    "ARCHIVIST_APPLY": {
+      "required": [
+        "refundApplicationUploaded"
+      ],
+      "optional": []
+    },
+    "FINANCE_PAYMENT": {
+      "required": [
+        "paymentConfirmed"
+      ],
+      "optional": [
+        "paymentRecordUploaded"
+      ]
+    }
+  },
+  "terminate-appraisal": {
+    "ASSISTANT_DRAFT": {
+      "required": [
+        "terminationReason",
+        "draftCompleted"
+      ],
+      "optional": [
+        "terminationType"
+      ]
+    },
+    "PROJECT_REVIEW": {
+      "required": [
+        "projectReviewPassed"
+      ],
+      "optional": []
+    },
+    "SEALED_UPLOAD": {
+      "required": [
+        "sealedTerminationUploaded"
+      ],
+      "optional": []
+    }
+  },
+  "archive": {
+    "ARCHIVIST_PREPARE": {
+      "required": [
+        "archiveFilesUploaded",
+        "electronicArchiveAddress",
+        "mailRequired"
+      ],
+      "optional": [
+        "mailTrackingNo"
+      ]
+    },
+    "CENTRAL_REVIEW": {
+      "required": [
+        "centralReviewPassed"
+      ],
+      "optional": [
+        "centralReviewOpinion"
+      ]
+    }
+  },
+  "seal-application": {
+    "APPLICANT_SUBMIT": {
+      "required": [
+        "applicationReason",
+        "sealMode",
+        "applicationFilesPrepared"
+      ],
+      "optional": []
+    },
+    "ARCHIVIST_REVIEW": {
+      "required": [
+        "archivistReviewed"
+      ],
+      "optional": []
+    },
+    "SEAL_OPERATOR": {
+      "required": [
+        "sealCompleted"
+      ],
+      "optional": []
+    },
+    "ARCHIVIST_UPLOAD": {
+      "required": [
+        "sealedScanUploaded"
+      ],
+      "optional": []
+    }
+  }
+}

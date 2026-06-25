@@ -381,7 +381,8 @@ public class WorkflowRuntimeService {
                 // ignore
             }
         }
-        Map<String, Object> finalFormRule = formRule;
+        String assigneeRuleJson = nodeDef == null ? null : nodeDef.getAssigneeRuleJson();
+        Map<String, Object> finalFormRule = FieldAccessRules.withNodeDefaults(task.getNodeCode(), formRule, assigneeRuleJson, formVersion.getPermissionSchemaJson(), fields, objectMapper);
 
         Map<String, Object> permissionSchema = null;
         if (formVersion.getPermissionSchemaJson() != null && !formVersion.getPermissionSchemaJson().isBlank()) {
@@ -416,35 +417,11 @@ public class WorkflowRuntimeService {
                              "departmentHeadId".equals(fieldName))) {
                         return false;
                     }
-                    boolean isRequired = Boolean.TRUE.equals(toBoolean(field.get("required")));
-                    if (finalFormRule != null && finalFormRule.containsKey("fieldAuth")) {
-                        Map<String, Map<String, Object>> fieldAuth = (Map<String, Map<String, Object>>) finalFormRule.get("fieldAuth");
-                        if (fieldAuth != null && fieldAuth.containsKey(fieldName)) {
-                            Map<String, Object> auth = fieldAuth.get(fieldName);
-                            if (Boolean.TRUE.equals(auth.get("hidden"))) return false;
-                            if (auth.containsKey("required")) {
-                                isRequired = Boolean.TRUE.equals(auth.get("required"));
-                            }
-                        }
-                    }
-                    return isRequired;
+                    if (FieldAccessRules.isHidden(fieldName, finalFormRule)) return false;
+                    return FieldAccessRules.isRequired(field, finalFormRule);
                 })
                 .filter(field -> {
-                    String fieldName = stringValue(field.get("field"));
-                    boolean isReadOnly = Boolean.TRUE.equals(toBoolean(field.get("readOnly")))
-                            || Boolean.TRUE.equals(toBoolean(field.get("readonly")));
-                    if (finalFormRule != null && finalFormRule.containsKey("fieldAuth")) {
-                        Map<String, Map<String, Object>> fieldAuth = (Map<String, Map<String, Object>>) finalFormRule.get("fieldAuth");
-                        if (fieldAuth != null && fieldAuth.containsKey(fieldName)) {
-                            Map<String, Object> auth = fieldAuth.get(fieldName);
-                            if (auth.containsKey("readonly")) {
-                                isReadOnly = isReadOnly || Boolean.TRUE.equals(toBoolean(auth.get("readonly")));
-                            }
-                            if (auth.containsKey("readOnly")) {
-                                isReadOnly = isReadOnly || Boolean.TRUE.equals(toBoolean(auth.get("readOnly")));
-                            }
-                        }
-                    }
+                    boolean isReadOnly = FieldAccessRules.isReadOnly(field, finalFormRule);
                     return !isReadOnly;
                 })
                 .filter(field -> isFieldWritableForUser(field, finalPermissionSchema, finalUserId))
@@ -1180,17 +1157,10 @@ public class WorkflowRuntimeService {
     }
 
     private TransitionAdvance handleEndTransition(CaseInfo caseInfo, CaseWfInstance wfInstance, CaseTask completedTask, LocalDateTime now) {
-        System.out.println("DEBUG: handleEndTransition called for task: " + completedTask.getNodeCode() + ", subflowInstanceId: " + completedTask.getSubflowInstanceId());
         if (completedTask.getSubflowInstanceId() != null) {
             finishSubflowInstance(completedTask.getSubflowInstanceId(), now);
             CaseSubflowInstance subflowInstance = caseSubflowInstanceMapper.selectById(completedTask.getSubflowInstanceId());
-            if (subflowInstance != null) {
-                System.out.println("DEBUG: subflowInstance found, wfCode: " + subflowInstance.getWfCode() + ", parentTaskId: " + subflowInstance.getParentTaskId());
-            } else {
-                System.out.println("DEBUG: subflowInstance is null for id: " + completedTask.getSubflowInstanceId());
-            }
             if (subflowInstance != null && "archive".equalsIgnoreCase(subflowInstance.getWfCode())) {
-                System.out.println("DEBUG: archive subflow ended, setting case status to COMPLETED for caseId: " + caseInfo.getId());
                 cancelOtherActiveTasksForCase(caseInfo.getId(), completedTask.getId(), now);
                 caseInfo.setCaseStatus(CaseStatus.COMPLETED.name());
                 caseInfoMapper.updateById(caseInfo);

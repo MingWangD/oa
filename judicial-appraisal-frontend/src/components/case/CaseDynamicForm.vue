@@ -72,13 +72,18 @@ function getCandidateUsers(fieldKey: string): AdminUser[] {
           <el-form-item
             v-for="field in group.fields"
             :key="field.key"
-            :label="field.label"
             :required="field.required && !field.readonly"
             :class="{
               'highlight-required': field.required && !field.readonly,
               'field-is-readonly': field.readonly
             }"
           >
+            <template #label>
+              <span class="field-label" :class="{ 'field-label--required': field.required && !field.readonly }">
+                <span>{{ field.label }}</span>
+                <span v-if="field.required && !field.readonly" class="required-star" aria-hidden="true">*</span>
+              </span>
+            </template>
             <el-input
               v-if="field.type === 'textarea'"
               v-model="formData[field.key]"
@@ -239,6 +244,26 @@ function getCandidateUsers(fieldKey: string): AdminUser[] {
   width: 100%;
 }
 
+.field-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #5f6877;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.field-label--required {
+  color: #374151;
+}
+
+.required-star {
+  color: #d92d20;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+}
+
 .attachment-panel {
   margin-top: 16px;
   padding-top: 14px;
@@ -276,12 +301,6 @@ function getCandidateUsers(fieldKey: string): AdminUser[] {
 .highlight-required :deep(.el-select__wrapper) {
   background-color: #fff2f0 !important;
   box-shadow: 0 0 0 1px #ffccc7 inset !important;
-}
-
-.highlight-required :deep(.el-form-item__label::before) {
-  color: var(--el-color-danger) !important;
-  font-size: 1.2em;
-  font-weight: bold;
 }
 
 /* Read-only and disabled field styling */

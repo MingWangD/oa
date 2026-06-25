@@ -28,6 +28,13 @@ import {
 import { useAuthStore } from '../stores/auth';
 import CaseDynamicForm from '../components/case/CaseDynamicForm.vue';
 import CaseActionBar from '../components/case/CaseActionBar.vue';
+import {
+  getWorkflowFieldAuth,
+  getWorkflowFieldKey,
+  isWorkflowFieldHidden,
+  resolveWorkflowFieldReadonly,
+  resolveWorkflowFieldRequired
+} from '../utils/workflowFieldRules';
 
 interface DynamicFormField {
   key: string;
@@ -115,9 +122,9 @@ const canHandle = computed(() => {
     const hasCandidateUser = candidateUsers.length > 0;
     const hasCandidateRole = candidateRoles.length > 0;
 
-    // 如果该任务没有任何候选限制（防呆设计，一般不应该发生），则默认允许办理
+    // 如果该任务没有任何候选限制（防呆设计，一般不应该发生），如果没有限制则意味着需要由系统自动流转或者管理员介入
     if (!hasCandidateUser && !hasCandidateRole) {
-      return authStore.isAdmin || true;
+      return authStore.isAdmin;
     }
 
     const isUserMatch = hasCandidateUser && authStore.user?.id && candidateUsers.includes(authStore.user.id);
@@ -137,12 +144,62 @@ const currentForm = computed(() => {
     ?? forms.value.find((form) => current.caseType?.includes(form.name) || form.name.includes(current.caseType ?? ''))
     ?? null;
 });
+const activeNodeCode = computed(() => currentTask.value?.nodeCode || detail.value?.currentNodeCode || '');
+const activeFormCode = computed(() => currentTask.value?.formCode || currentForm.value?.code || formPreview.value?.formCode || '');
+const isReceivedEntrustFillStage = computed(() =>
+  activeNodeCode.value === 'INIT_FILL' ||
+  activeNodeCode.value === 'CLERK_REGISTER' ||
+  (isDraftCase.value && activeFormCode.value === 'received-entrust')
+);
+
+function mergeFieldAuthDefaults(
+  parsed: Record<string, any>,
+  defaults: Record<string, Record<string, unknown>>
+): Record<string, any> {
+  const sourceAuth = parsed.fieldAuth || {};
+  return {
+    ...parsed,
+    fieldAuth: Object.fromEntries(
+      Array.from(new Set([...Object.keys(defaults), ...Object.keys(sourceAuth)])).map((fieldName) => [
+        fieldName,
+        {
+          ...(defaults[fieldName] || {}),
+          ...(sourceAuth[fieldName] || {})
+        }
+      ])
+    )
+  };
+}
 
 const formRule = computed(() => {
-  if (!currentTask.value?.formRuleJson) {
-    return {};
+  const parsed = currentTask.value?.formRuleJson ? parseJson<Record<string, any>>(currentTask.value.formRuleJson, {}) : {};
+  if (isReceivedEntrustFillStage.value) {
+    const requiredFields = [
+      'receivedDate',
+      'filingDate',
+      'clientName',
+      'caseNo',
+      'undertakingLegalPerson',
+      'institutionSelectionMethod',
+      'institutionSelectionTime',
+      'appraisalCategory',
+      'applicantName',
+      'respondentName',
+      'urgencyLevel',
+      'caseChannel',
+      'appraisalMatter'
+    ];
+    return mergeFieldAuthDefaults(
+      parsed,
+      Object.fromEntries(requiredFields.map((fieldName) => [fieldName, { required: true, readonly: false }]))
+    );
   }
-  return parseJson<Record<string, any>>(currentTask.value.formRuleJson, {});
+  if (activeNodeCode.value === 'DEPT_REVIEW') {
+    return mergeFieldAuthDefaults(parsed, {
+      entrustAccepted: { required: true }
+    });
+  }
+  return parsed;
 });
 
 const dynamicFields = computed<DynamicFormField[]>(() => {
@@ -155,9 +212,8 @@ const dynamicFields = computed<DynamicFormField[]>(() => {
 
   return fields
     .filter((field) => {
-      const key = String(field.field || field.code || '');
-      const auth = fieldAuth[key] || {};
-      if (auth.hidden) {
+      const key = getWorkflowFieldKey(field);
+      if (isWorkflowFieldHidden(key, fieldAuth)) {
         return false;
       }
       if (isDraftCase.value && (field.group === '流程基础' || field.group === '受理决策')) {
@@ -175,12 +231,9 @@ const dynamicFields = computed<DynamicFormField[]>(() => {
       return key !== 'handlerOpinion';
     })
     .map((field, index) => {
-      const key = String(field.field || field.code || `field_${index + 1}`);
-      const auth = fieldAuth[key] || {};
-      let isReadonly = Boolean(field.readOnly ?? field.readonly);
-      if (auth.readonly !== undefined) {
-        isReadonly = Boolean(auth.readonly);
-      }
+      const key = getWorkflowFieldKey(field, `field_${index + 1}`);
+      const auth = getWorkflowFieldAuth(key, fieldAuth);
+      let isReadonly = resolveWorkflowFieldReadonly(field, auth, formRule.value?.readonly);
 
       // Check group-level permissions (e.g., role restrictions)
       const groupName = String(field.group || '');
@@ -206,10 +259,7 @@ const dynamicFields = computed<DynamicFormField[]>(() => {
         }
       }
 
-      let isRequired = Boolean(field.required);
-      if (auth.required !== undefined) {
-        isRequired = Boolean(auth.required);
-      }
+      let isRequired = resolveWorkflowFieldRequired(field, auth, formRule.value?.required);
 
       // Dynamic validation linkage:
       if (key === 'supplementaryNotice' && formData.value?.requireSupplementaryMaterial === true) {
