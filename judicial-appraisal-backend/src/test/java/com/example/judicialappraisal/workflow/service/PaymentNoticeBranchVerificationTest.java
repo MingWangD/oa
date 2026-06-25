@@ -174,7 +174,14 @@ class PaymentNoticeBranchVerificationTest {
 
     private Map<String, Object> receivedEntrustFormData() {
         return Map.ofEntries(
-                Map.entry("clientName", "9.3 分支验证委托人"),
+                
+                Map.entry("filingDate", "2026-06-13"),
+                Map.entry("undertakingLegalPerson", "测试承办人"),
+                Map.entry("institutionSelectionMethod", "随机抽取"),
+                Map.entry("institutionSelectionTime", "2026-06-13"),
+                Map.entry("applicantName", "测试原告"),
+                Map.entry("respondentName", "测试被告"),
+Map.entry("clientName", "9.3 分支验证委托人"),
                 Map.entry("serialNo", "BRANCH-9-3"),
                 Map.entry("initiatorName", "测试发起人"),
                 Map.entry("initiatedDate", "2026-06-12"),
@@ -256,10 +263,15 @@ class PaymentNoticeBranchVerificationTest {
                 role.setDeleted(0);
                 sysRoleMapper.insert(role);
             }
-            SysUserRole userRole = new SysUserRole();
-            userRole.setUserId(OPERATOR_ID);
-            userRole.setRoleId(role.getId());
-            sysUserRoleMapper.insert(userRole);
+            Long count = sysUserRoleMapper.selectCount(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<SysUserRole>()
+                    .eq(SysUserRole::getUserId, OPERATOR_ID)
+                    .eq(SysUserRole::getRoleId, role.getId()));
+            if (count == null || count == 0L) {
+                SysUserRole userRole = new SysUserRole();
+                userRole.setUserId(OPERATOR_ID);
+                userRole.setRoleId(role.getId());
+                sysUserRoleMapper.insert(userRole);
+            }
         }
     }
 }

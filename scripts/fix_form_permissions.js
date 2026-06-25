@@ -27,6 +27,12 @@ const ENTRUST_REGISTRATION_REQUIRED_FIELDS = new Set([
 
 const ENTRUST_REGISTRATION_OPTIONAL_WRITABLE_FIELDS = new Set([
   "expressNo",
+  "projectAmount",
+]);
+const ENTRUST_REGISTRATION_BASE_FIELDS = new Set([
+  "expressNo",
+  "projectAmount",
+  ...ENTRUST_REGISTRATION_REQUIRED_FIELDS,
 ]);
 
 const dbConfig = {
@@ -222,6 +228,21 @@ function setRegistrationWritableOptional(rule, field, matrixLog) {
   return changed;
 }
 
+function setReceivedEntrustBaseReadonlyOptional(rule, field, matrixLog) {
+  rule.fieldAuth[field] ||= {};
+  let changed = false;
+  if (rule.fieldAuth[field].readonly !== true) {
+    rule.fieldAuth[field].readonly = true;
+    changed = true;
+  }
+  if (rule.fieldAuth[field].required !== false) {
+    rule.fieldAuth[field].required = false;
+    changed = true;
+  }
+  matrixLog.push(`    ${field}: ${changed ? "READONLY+OPTIONAL" : "OK"} 后续节点基础字段`);
+  return changed;
+}
+
 function loadRoles() {
   const output = runSql("SELECT role_name, role_code FROM sys_role WHERE deleted = 0;");
   const rows = parseRows(output, ["role_name", "role_code"]);
@@ -360,20 +381,16 @@ function main() {
         });
       }
 
-      if (node.node_code === "INIT_FILL") {
+      if (node.node_code === "INIT_FILL" || node.node_code === "CLERK_REGISTER") {
         ENTRUST_REGISTRATION_OPTIONAL_WRITABLE_FIELDS.forEach((field) => {
           modified = setRegistrationWritableOptional(rule, field, matrixLog) || modified;
         });
         ENTRUST_REGISTRATION_REQUIRED_FIELDS.forEach((field) => {
           modified = setRegistrationWritableRequired(rule, originalFieldAuth, field, matrixLog) || modified;
         });
-      } else if (node.node_code === "CLERK_REGISTER") {
-        // 收案员（Clerk）节点按理来说不能修改表单内容，只负责登记。所以设为只读。
-        ENTRUST_REGISTRATION_OPTIONAL_WRITABLE_FIELDS.forEach((field) => {
-          modified = setReadonlyIfImplicit(rule, originalFieldAuth, field, matrixLog) || modified;
-        });
-        ENTRUST_REGISTRATION_REQUIRED_FIELDS.forEach((field) => {
-          modified = setReadonlyIfImplicit(rule, originalFieldAuth, field, matrixLog) || modified;
+      } else if (workflow.form_code === "received-entrust") {
+        ENTRUST_REGISTRATION_BASE_FIELDS.forEach((field) => {
+          modified = setReceivedEntrustBaseReadonlyOptional(rule, field, matrixLog) || modified;
         });
       }
 

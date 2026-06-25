@@ -33,13 +33,16 @@ public class CaseInfoService extends ServiceImpl<CaseInfoMapper, CaseInfo> {
     private final WorkflowRuntimeService workflowRuntimeService;
     private final CaseTaskMapper caseTaskMapper;
     private final CaseTaskCandidateMapper caseTaskCandidateMapper;
+    private final SerialNoGenerator serialNoGenerator;
 
     public CaseInfoService(WorkflowRuntimeService workflowRuntimeService,
                            CaseTaskMapper caseTaskMapper,
-                           CaseTaskCandidateMapper caseTaskCandidateMapper) {
+                           CaseTaskCandidateMapper caseTaskCandidateMapper,
+                           SerialNoGenerator serialNoGenerator) {
         this.workflowRuntimeService = workflowRuntimeService;
         this.caseTaskMapper = caseTaskMapper;
         this.caseTaskCandidateMapper = caseTaskCandidateMapper;
+        this.serialNoGenerator = serialNoGenerator;
     }
 
     public CaseInfo createDraft(CaseCreateRequest request) {
@@ -56,6 +59,11 @@ public class CaseInfoService extends ServiceImpl<CaseInfoMapper, CaseInfo> {
         caseInfo.setCreatedBy(currentUserId);
         caseInfo.setUpdatedBy(currentUserId);
         caseInfo.setDeleted(0);
+        
+        Map<String, Object> initialFormData = new LinkedHashMap<>();
+        initialFormData.put("serialNo", serialNoGenerator.generateSerialNo());
+        caseInfo.setFormData(initialFormData);
+        
         save(caseInfo);
         return caseInfo;
     }
@@ -113,6 +121,11 @@ public class CaseInfoService extends ServiceImpl<CaseInfoMapper, CaseInfo> {
             Map<String, Object> merged = caseInfo.getFormData() == null
                     ? new LinkedHashMap<>()
                     : new LinkedHashMap<>(caseInfo.getFormData());
+                    
+            if (!merged.containsKey("serialNo") && !incoming.containsKey("serialNo")) {
+                merged.put("serialNo", serialNoGenerator.generateSerialNo());
+            }
+            
             merged.putAll(incoming);
             caseInfo.setFormData(merged);
             syncCaseSummaryFields(caseInfo, merged);
@@ -233,14 +246,18 @@ public class CaseInfoService extends ServiceImpl<CaseInfoMapper, CaseInfo> {
         if (hasText(caseNo)) {
             caseInfo.setCaseNo(caseNo);
         }
-        String title = firstText(formData, "flowName", "caseTitle", "projectName");
-        if (hasText(title)) {
-            caseInfo.setCaseTitle(title);
-        }
         String entrustOrgName = firstText(formData, "entrustOrgName", "clientName");
         if (hasText(entrustOrgName)) {
             caseInfo.setEntrustOrgName(entrustOrgName);
         }
+        
+        String cNo = hasText(caseInfo.getCaseNo()) ? caseInfo.getCaseNo() : "空";
+        String cName = hasText(caseInfo.getEntrustOrgName()) ? caseInfo.getEntrustOrgName() : "空";
+        String generatedTitle = String.format("[案件号]%s-[委托人]%s", cNo, cName);
+        
+        caseInfo.setCaseTitle(generatedTitle);
+        formData.put("caseTitle", generatedTitle);
+        formData.put("flowName", generatedTitle);
     }
 
     private String firstText(Map<String, Object> formData, String... keys) {

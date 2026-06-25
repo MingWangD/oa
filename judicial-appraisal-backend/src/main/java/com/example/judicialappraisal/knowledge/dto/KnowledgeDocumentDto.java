@@ -2,6 +2,8 @@ package com.example.judicialappraisal.knowledge.dto;
 
 import java.time.LocalDateTime;
 
+import java.util.List;
+
 public record KnowledgeDocumentDto(
         Long id,
         Long directoryId,
@@ -15,6 +17,12 @@ public record KnowledgeDocumentDto(
         Long currentFileId,
         Integer currentVersionNo,
         String status,
-        LocalDateTime updatedTime
+        LocalDateTime updatedTime,
+        List<DocumentAttachmentDto> attachments
 ) {
+    public record DocumentAttachmentDto(
+            Long fileId,
+            String fileName,
+            String fileExt
+    ) {}
 }

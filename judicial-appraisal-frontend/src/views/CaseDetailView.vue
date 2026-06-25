@@ -112,7 +112,7 @@ const canHandle = computed(() => {
   if (currentTask.value) {
     // 如果已经指派处理人，则只有该处理人能处理
     if (detail.value.currentHandlerId) {
-      return authStore.isAdmin || detail.value.currentHandlerId === authStore.user?.id;
+      return detail.value.currentHandlerId === authStore.user?.id;
     }
     // 如果任务还未指派处理人（待领取状态），校验当前用户是否为候选人或拥有候选角色
     const candidateUsers = currentTask.value.candidateUserIds || [];
@@ -124,13 +124,13 @@ const canHandle = computed(() => {
 
     // 如果该任务没有任何候选限制（防呆设计，一般不应该发生），如果没有限制则意味着需要由系统自动流转或者管理员介入
     if (!hasCandidateUser && !hasCandidateRole) {
-      return authStore.isAdmin;
+      return false;
     }
 
     const isUserMatch = hasCandidateUser && authStore.user?.id && candidateUsers.includes(authStore.user.id);
     const isRoleMatch = hasCandidateRole && userRoles.some((role) => role.id && candidateRoles.includes(role.id));
 
-    return authStore.isAdmin || Boolean(isUserMatch) || Boolean(isRoleMatch);
+    return Boolean(isUserMatch) || Boolean(isRoleMatch);
   }
 
   return false;
@@ -148,23 +148,24 @@ const activeNodeCode = computed(() => currentTask.value?.nodeCode || detail.valu
 const activeFormCode = computed(() => currentTask.value?.formCode || currentForm.value?.code || formPreview.value?.formCode || '');
 const isReceivedEntrustFillStage = computed(() =>
   activeNodeCode.value === 'INIT_FILL' ||
-  activeNodeCode.value === 'CLERK_REGISTER' ||
   (isDraftCase.value && activeFormCode.value === 'received-entrust')
 );
 
 function mergeFieldAuthDefaults(
   parsed: Record<string, any>,
-  defaults: Record<string, Record<string, unknown>>
+  defaults: Record<string, Record<string, unknown>>,
+  overrides: Record<string, Record<string, unknown>> = {}
 ): Record<string, any> {
   const sourceAuth = parsed.fieldAuth || {};
   return {
     ...parsed,
     fieldAuth: Object.fromEntries(
-      Array.from(new Set([...Object.keys(defaults), ...Object.keys(sourceAuth)])).map((fieldName) => [
+      Array.from(new Set([...Object.keys(defaults), ...Object.keys(sourceAuth), ...Object.keys(overrides)])).map((fieldName) => [
         fieldName,
         {
           ...(defaults[fieldName] || {}),
-          ...(sourceAuth[fieldName] || {})
+          ...(sourceAuth[fieldName] || {}),
+          ...(overrides[fieldName] || {})
         }
       ])
     )
@@ -191,7 +192,41 @@ const formRule = computed(() => {
     ];
     return mergeFieldAuthDefaults(
       parsed,
-      Object.fromEntries(requiredFields.map((fieldName) => [fieldName, { required: true, readonly: false }]))
+      Object.fromEntries(requiredFields.map((fieldName) => [fieldName, { required: true, readonly: false }])),
+      {
+        expressNo: { required: false, readonly: false },
+        projectAmount: { required: false, readonly: false }
+      }
+    );
+  }
+  if (activeFormCode.value === 'received-entrust') {
+    const registrationBaseFields = [
+      'expressNo',
+      'projectAmount',
+      'receivedDate',
+      'filingDate',
+      'clientName',
+      'caseNo',
+      'undertakingLegalPerson',
+      'institutionSelectionMethod',
+      'institutionSelectionTime',
+      'appraisalCategory',
+      'applicantName',
+      'respondentName',
+      'urgencyLevel',
+      'caseChannel',
+      'appraisalMatter'
+    ];
+    const nodeOverrides: Record<string, Record<string, unknown>> = activeNodeCode.value === 'DEPT_REVIEW'
+      ? { entrustAccepted: { required: true } }
+      : {};
+    return mergeFieldAuthDefaults(
+      parsed,
+      {},
+      {
+        ...Object.fromEntries(registrationBaseFields.map((fieldName) => [fieldName, { required: false, readonly: true }])),
+        ...nodeOverrides
+      }
     );
   }
   if (activeNodeCode.value === 'DEPT_REVIEW') {
@@ -293,14 +328,7 @@ const fieldGroups = computed(() => {
   });
   return Array.from(groupMap.entries()).map(([title, fields]) => ({ title, fields }));
 });
-const formRequirementRows = computed(() => {
-  const form = currentForm.value;
-  return [
-    { label: '输入文件', value: form?.inputFiles.join('、') || '按当前节点表单配置校验' },
-    { label: '输出文件', value: form?.outputFiles.join('、') || '节点完成后固化归档' },
-    { label: '版本产物', value: form?.versionedArtifacts.join('、') || '无独立版本产物' }
-  ];
-});
+
 
 function formatTransitionCondition(expression: string | null): string | null {
   if (!expression) {
@@ -386,7 +414,7 @@ const displayedFlowchartUrl = computed(() => {
   return fallbackFlowchartUrl.value || '/flowcharts/b6130e9b27eacb5fd5b365f3272d4eba.png';
 });
 const nodeCards = computed(() => [
-  { title: '当前环节', value: detail.value?.currentNodeName || formatParentNode(detail.value?.currentNodeCode ?? null) || '草稿' },
+  { title: '当前环节', value: detail.value?.currentNodeName || formatParentNode(detail.value?.currentNodeCode ?? null) || '撰写草稿' },
   { title: '主办人', value: detail.value?.currentHandlerName || '待分派' },
   { title: '当前任务', value: currentTask.value?.taskTitle || '待启动/待领取' },
   { title: '截止时间', value: formatDateTime(detail.value?.deadlineTime ?? null) },
@@ -656,7 +684,7 @@ const nodeNameMap: Record<string, string> = {
 };
 
 function formatParentNode(code: string | null): string {
-  if (!code) return '-';
+  if (!code) return '';
   const cleanCode = code.toUpperCase();
   return nodeNameMap[cleanCode] || '未命名环节';
 }
@@ -747,6 +775,7 @@ onMounted(() => {
         <el-tag :type="canHandle ? 'success' : 'info'" effect="plain">{{ canHandle ? '主办可办理' : '只读查看' }}</el-tag>
         </div>
         <el-descriptions border :column="2">
+          <el-descriptions-item label="流水号">{{ formData?.serialNo || '-' }}</el-descriptions-item>
           <el-descriptions-item label="案件名称">{{ detail.caseTitle || '-' }}</el-descriptions-item>
           <el-descriptions-item label="案件编号">{{ detail.caseNo || '-' }}</el-descriptions-item>
           <el-descriptions-item label="案件类型">{{ detail.caseType || '-' }}</el-descriptions-item>
@@ -796,7 +825,6 @@ onMounted(() => {
         :case-type="detail.caseType"
         :field-groups="fieldGroups"
         :form-data="formData"
-        :form-requirement-rows="formRequirementRows"
         :can-handle="canHandle"
         :uploaded-files="uploadedFiles"
         :user-options="userOptions"
@@ -869,7 +897,7 @@ onMounted(() => {
                 <strong>当前节点</strong>
                 <el-tag size="small" type="success" effect="plain">进行中</el-tag>
               </div>
-              <span>{{ detail.currentNodeName || formatParentNode(detail.currentNodeCode) || '流程尚未启动' }}</span>
+              <span>{{ detail.currentNodeName || formatParentNode(detail.currentNodeCode) || '撰写草稿' }}</span>
               <small v-if="detail.currentHandlerName">当前主办人：{{ detail.currentHandlerName }}</small>
             </div>
           </el-timeline-item>

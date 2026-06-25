@@ -102,8 +102,25 @@ class ManualAcceptanceWalkthroughVerificationTest {
 
         // --- 5. case_acceptor 完成 INIT_FILL 节点 ---
         Long taskId = getTaskId(caseId, "INIT_FILL");
-        WorkflowActionRequest initFillReq = new WorkflowActionRequest(taskId, ActionCode.APPROVE, "填写完成", null, null, null, 
-                Map.of("caseNo", "REAL-CHAIN-001", "entrustOrgName", "测试法院", "appraisalCategory", "法医临床", "urgencyLevel", "普通", "caseChannel", "线下"), null);
+        Map<String, Object> formData = new java.util.HashMap<>();
+        formData.put("entrustOrgName", "测试法院");
+        formData.put("appraisalCategory", "法医临床");
+        formData.put("urgencyLevel", "普通");
+        formData.put("caseNo", "REAL-CHAIN-001");
+        formData.put("caseChannel", "线下");
+        
+        // --- 补充必填字段，满足权限系统要求 ---
+        formData.put("receivedDate", "2026-06-20");
+        formData.put("filingDate", "2026-06-20");
+        formData.put("clientName", "测试委托人");
+        formData.put("undertakingLegalPerson", "测试法人");
+        formData.put("institutionSelectionMethod", "抽签");
+        formData.put("institutionSelectionTime", "2026-06-20");
+        formData.put("applicantName", "张三申请人");
+        formData.put("respondentName", "李四被申请人");
+        formData.put("appraisalMatter", "法医临床鉴定");
+
+        WorkflowActionRequest initFillReq = new WorkflowActionRequest(taskId, ActionCode.APPROVE, "填写完成", null, null, null, formData, null);
         mockMvc.perform(post("/api/cases/" + caseId + "/actions")
                 .header("Authorization", "Bearer " + acceptorToken)
                 .contentType(MediaType.APPLICATION_JSON)

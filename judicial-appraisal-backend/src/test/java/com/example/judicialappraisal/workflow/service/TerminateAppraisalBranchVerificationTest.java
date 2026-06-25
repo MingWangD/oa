@@ -174,7 +174,7 @@ class TerminateAppraisalBranchVerificationTest {
         // Upstream: Preliminary Survey (Not Feasible)
         Long caseId1 = createCaseRecord("9.17-初勘不具备条件触发", "收到委托书");
         startWorkflowRecord(caseId1, "received-entrust");
-        completeTask(caseId1, "START", Map.of("projectLeaderId", OPERATOR_ID, "projectAssistantId", OPERATOR_ID, "departmentHeadId", OPERATOR_ID));
+        completeTask(caseId1, "START", baseReceivedEntrustData(true, true, false));
         completeTask(caseId1, "INIT_FILL", baseReceivedEntrustData(true, true, false));
         completeTask(caseId1, "CLERK_REGISTER", Map.of());
         completeTask(caseId1, "DEPT_REVIEW", Map.of("entrustAccepted", true));
@@ -197,7 +197,7 @@ class TerminateAppraisalBranchVerificationTest {
         // Upstream: Payment Notice (Not Paid)
         Long caseId2 = createCaseRecord("9.17-未缴费触发终止", "收到委托书");
         startWorkflowRecord(caseId2, "received-entrust");
-        completeTask(caseId2, "START", Map.of("projectLeaderId", OPERATOR_ID, "projectAssistantId", OPERATOR_ID, "departmentHeadId", OPERATOR_ID));
+        completeTask(caseId2, "START", baseReceivedEntrustData(true, false, false));
         completeTask(caseId2, "INIT_FILL", baseReceivedEntrustData(true, false, false));
         completeTask(caseId2, "CLERK_REGISTER", Map.of());
         completeTask(caseId2, "DEPT_REVIEW", Map.of("entrustAccepted", true));
@@ -293,7 +293,13 @@ class TerminateAppraisalBranchVerificationTest {
                 Map.entry("materialReceiveRequired", material),
                 Map.entry("departmentHeadId", OPERATOR_ID),
                 Map.entry("projectLeaderId", OPERATOR_ID),
-                Map.entry("projectAssistantId", OPERATOR_ID)
+                Map.entry("projectAssistantId", OPERATOR_ID),
+                Map.entry("filingDate", "2026-06-13"),
+                Map.entry("undertakingLegalPerson", "测试承办人"),
+                Map.entry("institutionSelectionMethod", "随机抽取"),
+                Map.entry("institutionSelectionTime", "2026-06-13"),
+                Map.entry("applicantName", "测试原告"),
+                Map.entry("respondentName", "测试被告")
         );
     }
 

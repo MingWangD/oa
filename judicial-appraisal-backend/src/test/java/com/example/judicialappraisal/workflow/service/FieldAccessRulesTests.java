@@ -69,12 +69,23 @@ class FieldAccessRulesTests {
     }
 
     @Test
+    void deptReviewKeepsReceivedEntrustBaseFieldsReadonlyAndNotRequired() {
+        Map<String, Object> formRule = FieldAccessRules.withNodeDefaults("DEPT_REVIEW", Map.of("formCode", "received-entrust"));
+
+        assertThat(FieldAccessRules.isRequired(optionalField("expressNo"), formRule)).isFalse();
+        assertThat(FieldAccessRules.isRequired(optionalField("projectAmount"), formRule)).isFalse();
+        assertThat(FieldAccessRules.isRequired(optionalField("caseNo"), formRule)).isFalse();
+        assertThat(FieldAccessRules.isReadOnly(optionalField("caseNo"), formRule)).isTrue();
+    }
+
+    @Test
     void initFillDefaultsRegistrationFieldsToRequiredForExistingImportedData() {
         Map<String, Object> formRule = FieldAccessRules.withNodeDefaults("INIT_FILL", Map.of("formCode", "received-entrust"));
 
         assertThat(FieldAccessRules.isRequired(optionalField("caseNo"), formRule)).isTrue();
         assertThat(FieldAccessRules.isRequired(optionalField("clientName"), formRule)).isTrue();
         assertThat(FieldAccessRules.isRequired(optionalField("expressNo"), formRule)).isFalse();
+        assertThat(FieldAccessRules.isRequired(optionalField("projectAmount"), formRule)).isFalse();
         assertThat(FieldAccessRules.isRequired(optionalField("filingDate"), formRule)).isTrue();
         assertThat(FieldAccessRules.isRequired(optionalField("undertakingLegalPerson"), formRule)).isTrue();
         assertThat(FieldAccessRules.isRequired(optionalField("institutionSelectionMethod"), formRule)).isTrue();
@@ -92,8 +103,27 @@ class FieldAccessRulesTests {
 
         assertThat(FieldAccessRules.isRequired(optionalField("caseNo"), formRule)).isTrue();
         assertThat(FieldAccessRules.isRequired(optionalField("clientName"), formRule)).isTrue();
+        assertThat(FieldAccessRules.isRequired(optionalField("expressNo"), formRule)).isFalse();
+        assertThat(FieldAccessRules.isRequired(optionalField("projectAmount"), formRule)).isFalse();
         assertThat(FieldAccessRules.isRequired(optionalField("urgencyLevel"), formRule)).isTrue();
         assertThat(FieldAccessRules.isRequired(optionalField("caseChannel"), formRule)).isTrue();
+    }
+
+    @Test
+    void receivedEntrustOptionalRegistrationFieldsOverrideStaleRequiredRules() {
+        Map<String, Object> formRule = FieldAccessRules.withNodeDefaults(
+                "CLERK_REGISTER",
+                Map.of(
+                        "formCode", "received-entrust",
+                        "fieldAuth", Map.of(
+                                "expressNo", Map.of("required", true),
+                                "projectAmount", Map.of("required", true)
+                        )
+                )
+        );
+
+        assertThat(FieldAccessRules.isRequired(optionalField("expressNo"), formRule)).isFalse();
+        assertThat(FieldAccessRules.isRequired(optionalField("projectAmount"), formRule)).isFalse();
     }
 
     @Test

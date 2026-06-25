@@ -106,7 +106,7 @@ class CourtAppearanceBranchVerificationTest {
 
     @Test
     void noFeeCenterArchivePath_shouldRetrievePrepareAppearAndArchive() {
-        Long caseId = createCaseAtArchiveRetrieval("场景7：出庭通知流程", false);
+        Long caseId = createCaseAtArchiveRetrieval("场景7：出庭通知流程-" + System.currentTimeMillis(), false);
 
         completeTask(caseId, "ARCHIVE_RETRIEVAL", ActionCode.APPROVE, Map.of(
                 "archiveRetrievalRequired", true,
@@ -259,7 +259,7 @@ class CourtAppearanceBranchVerificationTest {
 
     private Long startCourtAppearanceWorkflow(String title) {
         CaseInfo caseInfo = caseInfoService.createDraft(new CaseCreateRequest(title, "收到出庭通知", "测试法院", 1L));
-        caseInfo.setCaseNo(title);
+        caseInfo.setCaseNo(title + "-" + System.currentTimeMillis());
         caseInfo.setCaseStatus(CaseStatus.PROCESSING.name());
         caseInfoMapper.updateById(caseInfo);
 
@@ -367,10 +367,10 @@ class CourtAppearanceBranchVerificationTest {
                 role.setDeleted(0);
                 sysRoleMapper.insert(role);
             }
-            Long count = sysUserRoleMapper.selectCount(new LambdaQueryWrapper<SysUserRole>()
+            Long count = sysUserRoleMapper.selectCount(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<SysUserRole>()
                     .eq(SysUserRole::getUserId, OPERATOR_ID)
                     .eq(SysUserRole::getRoleId, role.getId()));
-            if (count == 0) {
+            if (count == null || count == 0L) {
                 SysUserRole userRole = new SysUserRole();
                 userRole.setUserId(OPERATOR_ID);
                 userRole.setRoleId(role.getId());

@@ -21,11 +21,6 @@ interface FieldGroup {
   fields: DynamicFormField[];
 }
 
-interface FormRequirementRow {
-  label: string;
-  value: string;
-}
-
 const props = defineProps<{
   formPreview: FormVersionDesign | null;
   currentForm: JudicialFormDefinition | null;
@@ -33,7 +28,6 @@ const props = defineProps<{
   fieldGroups: FieldGroup[];
   /** formData 对象由父组件维护响应式状态，字段值在此处原地修改 */
   formData: Record<string, unknown>;
-  formRequirementRows: FormRequirementRow[];
   canHandle: boolean;
   uploadedFiles: FileUploadResponse[];
   userOptions: AdminUser[];
@@ -55,15 +49,9 @@ function getCandidateUsers(fieldKey: string): AdminUser[] {
 <template>
   <section class="process-section">
     <div class="section-title">
-      <h2>动态表单</h2>
       <span>{{ formPreview?.formName || currentForm?.name || caseType || '待匹配表单' }}</span>
     </div>
-    <div class="form-board">
-      <article v-for="row in formRequirementRows" :key="row.label">
-        <span>{{ row.label }}</span>
-        <strong>{{ row.value }}</strong>
-      </article>
-    </div>
+
     <el-empty v-if="fieldGroups.length === 0" description="暂未匹配到已发布表单字段" />
     <el-form v-else class="dynamic-form" label-position="top" :model="formData" :disabled="!canHandle">
       <section v-for="group in fieldGroups" :key="group.title" class="dynamic-form-group">

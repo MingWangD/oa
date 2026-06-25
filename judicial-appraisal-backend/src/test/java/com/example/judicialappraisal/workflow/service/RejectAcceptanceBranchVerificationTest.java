@@ -197,7 +197,7 @@ class RejectAcceptanceBranchVerificationTest {
     
     private Long createSubmittedReceivedEntrustCase(String taskName) {
         CaseInfo caseInfo = caseInfoService.createDraft(new CaseCreateRequest(taskName, "司法鉴定", "测试法院", 1L));
-        caseInfo.setCaseNo(taskName);
+        caseInfo.setCaseNo(taskName + "-" + System.currentTimeMillis());
         caseInfoMapper.updateById(caseInfo);
         caseInfoService.submitCase(caseInfo.getId(), new CaseSubmitRequest(OPERATOR_ID, OPERATOR_NAME, "发起 " + taskName), OPERATOR_ID, OPERATOR_NAME);
         return caseInfo.getId();
@@ -221,7 +221,7 @@ class RejectAcceptanceBranchVerificationTest {
         data.put("initiatorName", "管理员");
         data.put("initiatedDate", "2026-06-23");
         data.put("receivedDate", "2026-06-23");
-        data.put("caseNo", "场景1：不予受理流程");
+        data.put("caseNo", "场景1：不予受理流程-" + System.currentTimeMillis());
         data.put("entrustUnit", "深圳市罗湖区人民法院");
         data.put("entrustDate", "2026-06-23");
         data.put("appraisalCategory", "工程造价");
@@ -295,10 +295,15 @@ class RejectAcceptanceBranchVerificationTest {
                     .eq(SysUserRole::getUserId, OPERATOR_ID)
                     .eq(SysUserRole::getRoleId, role.getId()));
             if (existingUserRole == null) {
+                Long count = sysUserRoleMapper.selectCount(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<SysUserRole>()
+                    .eq(SysUserRole::getUserId, OPERATOR_ID)
+                    .eq(SysUserRole::getRoleId, role.getId()));
+            if (count == null || count == 0L) {
                 SysUserRole userRole = new SysUserRole();
                 userRole.setUserId(OPERATOR_ID);
                 userRole.setRoleId(role.getId());
                 sysUserRoleMapper.insert(userRole);
+            }
             }
         }
     }

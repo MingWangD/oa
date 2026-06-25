@@ -77,7 +77,7 @@ class ScenarioThreeVerificationTest {
         String title = "场景3：大额现场勘验与征求意见反馈异议路径";
         CaseInfo caseInfo = caseInfoService.createDraft(new CaseCreateRequest(title, "工程造价", "深圳市盐田区人民法院", 1L));
         Long caseId = caseInfo.getId();
-        caseInfo.setCaseNo(title);
+        caseInfo.setCaseNo(title + "-" + System.currentTimeMillis());
         caseInfoMapper.updateById(caseInfo);
         System.out.println("1. 成功创建案件草稿, ID=" + caseId);
 
@@ -94,7 +94,7 @@ class ScenarioThreeVerificationTest {
                 Map.entry("initiatorName", "管理员"),
                 Map.entry("initiatedDate", "2026-06-23"),
                 Map.entry("receivedDate", "2026-06-23"),
-                Map.entry("caseNo", "场景3：大额现场勘验与征求意见反馈异议路径"),
+                Map.entry("caseNo", "场景3：大额现场勘验与征求意见反馈异议路径-" + System.currentTimeMillis()),
                 Map.entry("appraisalCategory", "工程造价"),
                 Map.entry("urgencyLevel", "普通"),
                 Map.entry("caseChannel", "线下"),

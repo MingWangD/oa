@@ -30,7 +30,8 @@ class CaseInfoServiceTests {
     private final CaseTaskMapper caseTaskMapper = mock(CaseTaskMapper.class);
     private final CaseTaskCandidateMapper caseTaskCandidateMapper = mock(CaseTaskCandidateMapper.class);
     private final CaseInfoMapper caseInfoMapper = mock(CaseInfoMapper.class);
-    private final CaseInfoService service = new CaseInfoService(workflowRuntimeService, caseTaskMapper, caseTaskCandidateMapper);
+    private final SerialNoGenerator serialNoGenerator = mock(SerialNoGenerator.class);
+    private final CaseInfoService service = new CaseInfoService(workflowRuntimeService, caseTaskMapper, caseTaskCandidateMapper, serialNoGenerator);
 
     CaseInfoServiceTests() {
         ReflectionTestUtils.setField(service, "baseMapper", caseInfoMapper);
@@ -52,7 +53,7 @@ class CaseInfoServiceTests {
                 .containsEntry("caseNo", "JA-20260626-001")
                 .containsEntry("accepted", true);
         assertThat(saved.getCaseNo()).isEqualTo("JA-20260626-001");
-        assertThat(saved.getCaseTitle()).isEqualTo("收到委托书验收");
+        assertThat(saved.getCaseTitle()).isEqualTo("[案件号]JA-20260626-001-[委托人]测试委托单位");
         assertThat(saved.getEntrustOrgName()).isEqualTo("测试委托单位");
         verify(caseInfoMapper).updateById(caseInfo);
     }

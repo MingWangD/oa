@@ -246,6 +246,20 @@ class QualityControlBranchVerificationTest {
         data.put("caseChannel", "线下");
         data.put("appraisalMatter", "9.4 编制内部质量控制文件分支验证");
         data.put("entrustAccepted", true);
+        data.put("filingDate", "2026-06-12");
+        data.put("undertakingLegalPerson", "测试承办人");
+        data.put("institutionSelectionMethod", "随机抽取");
+        data.put("institutionSelectionTime", "2026-06-12");
+        data.put("applicantName", "测试原告");
+        data.put("respondentName", "测试被告");
+        data.put("receivedDate", "2026-06-12");
+        data.put("clientName", "测试委托人");
+        data.put("caseNo", "JA-TEST-" + java.util.UUID.randomUUID().toString().substring(0,8));
+        data.put("appraisalCategory", "法医临床鉴定");
+        data.put("urgencyLevel", "普通");
+        data.put("caseChannel", "线下");
+        data.put("appraisalMatter", "测试鉴定事项");
+
         data.put("preliminarySurveyRequired", false);
         data.put("materialReceiveRequired", false);
         data.put("departmentHeadId", 2L);

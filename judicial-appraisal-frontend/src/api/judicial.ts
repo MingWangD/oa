@@ -474,6 +474,11 @@ export interface KnowledgeDocument {
   currentVersionNo: number;
   status: string;
   updatedTime: string | null;
+  attachments?: {
+    fileId: number;
+    fileName: string;
+    fileExt: string;
+  }[];
 }
 
 export interface FileUploadResponse {
@@ -906,6 +911,10 @@ export function fetchKnowledgeDocuments(params: {
 
 export function downloadKnowledgeDocument(documentId: number): Promise<{ blob: Blob; filename: string }> {
   return getBlob(`/knowledge/documents/${documentId}/download`);
+}
+
+export function downloadSysFile(fileId: number): Promise<{ blob: Blob; filename: string }> {
+  return getBlob(`/files/${fileId}/download`);
 }
 
 export function previewKnowledgeDocument(documentId: number): Promise<{ blob: Blob; filename: string }> {

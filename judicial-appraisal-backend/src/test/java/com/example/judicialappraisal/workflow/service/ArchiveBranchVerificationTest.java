@@ -170,9 +170,33 @@ class ArchiveBranchVerificationTest {
         CaseInfo caseInfo = createCase(taskName, "司法鉴定");
         startWorkflow(caseInfo.getId(), "received-entrust");
         
-        completeTask(caseInfo.getId(), "START", Map.of("projectLeaderId", OPERATOR_ID, "projectAssistantId", OPERATOR_ID, "departmentHeadId", OPERATOR_ID));
+        Map<String, Object> startData = new java.util.HashMap<>();
+        startData.put("projectLeaderId", OPERATOR_ID);
+        startData.put("projectAssistantId", OPERATOR_ID);
+        startData.put("departmentHeadId", OPERATOR_ID);
+        startData.put("filingDate", "2026-06-13");
+        startData.put("undertakingLegalPerson", "测试承办人");
+        startData.put("institutionSelectionMethod", "随机抽取");
+        startData.put("institutionSelectionTime", "2026-06-13");
+        startData.put("applicantName", "测试原告");
+        startData.put("respondentName", "测试被告");
+        startData.put("receivedDate", "2026-06-13");
+        startData.put("clientName", "测试委托人");
+        startData.put("caseNo", "JA-START-" + System.currentTimeMillis());
+        startData.put("appraisalCategory", "工程造价");
+        startData.put("urgencyLevel", "普通");
+        startData.put("caseChannel", "线下");
+        startData.put("appraisalMatter", "鉴定事项");
+        completeTask(caseInfo.getId(), "START", startData);
         completeTask(caseInfo.getId(), "INIT_FILL", Map.ofEntries(
-                Map.entry("clientName", "测试委托人"),
+                
+                Map.entry("filingDate", "2026-06-13"),
+                Map.entry("undertakingLegalPerson", "测试承办人"),
+                Map.entry("institutionSelectionMethod", "随机抽取"),
+                Map.entry("institutionSelectionTime", "2026-06-13"),
+                Map.entry("applicantName", "测试原告"),
+                Map.entry("respondentName", "测试被告"),
+Map.entry("clientName", "测试委托人"),
                 Map.entry("entrustOrgName", "测试法院"),
                 Map.entry("appraisalCategory", "工程造价"),
                 Map.entry("urgencyLevel", "普通"),

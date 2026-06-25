@@ -119,7 +119,7 @@ class ContractServiceTests {
         when(contractAttachmentMapper.selectList(any())).thenReturn(List.of(attachment));
         when(knowledgeService.archiveBusinessDocument(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(new KnowledgeDocumentDto(9001L, 5L, null, "合同归档", "CONTRACT-10",
-                        "archive", null, null, null, 3001L, 1, "active", LocalDateTime.now()));
+                        "archive", null, null, null, 3001L, 1, "active", LocalDateTime.now(), null));
 
         var response = service.approve(10L, new ContractReviewRequest("部门审核通过"), reviewer());
 

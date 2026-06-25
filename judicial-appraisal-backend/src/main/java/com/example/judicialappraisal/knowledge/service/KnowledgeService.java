@@ -58,6 +58,7 @@ public class KnowledgeService {
     private final AuditLogService auditLogService;
     private final ObjectMapper objectMapper;
     private final SysUserMapper sysUserMapper;
+    private final com.example.judicialappraisal.file.mapper.SysFileMapper sysFileMapper;
 
     public KnowledgeService(KnowledgeDirectoryMapper directoryMapper,
                             KnowledgeDocumentMapper documentMapper,
@@ -70,7 +71,8 @@ public class KnowledgeService {
                             FileStorageService fileStorageService,
                             AuditLogService auditLogService,
                             ObjectMapper objectMapper,
-                            SysUserMapper sysUserMapper) {
+                            SysUserMapper sysUserMapper,
+                            com.example.judicialappraisal.file.mapper.SysFileMapper sysFileMapper) {
         this.directoryMapper = directoryMapper;
         this.documentMapper = documentMapper;
         this.versionMapper = versionMapper;
@@ -83,6 +85,7 @@ public class KnowledgeService {
         this.auditLogService = auditLogService;
         this.objectMapper = objectMapper;
         this.sysUserMapper = sysUserMapper;
+        this.sysFileMapper = sysFileMapper;
     }
 
     public List<KnowledgeDirectoryDto> directories(Long caseId) {
@@ -762,6 +765,26 @@ public class KnowledgeService {
     }
 
     private KnowledgeDocumentDto toDocumentDto(KnowledgeDocument document) {
+        List<KnowledgeDocumentDto.DocumentAttachmentDto> attachments = new java.util.ArrayList<>();
+        if (document.getArchiveResultJson() != null && !document.getArchiveResultJson().trim().isEmpty()) {
+            try {
+                Map<String, Object> archiveResult = objectMapper.readValue(document.getArchiveResultJson(), new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
+                Object fileIdsObj = archiveResult.get("fileIds");
+                if (fileIdsObj instanceof List<?> list && !list.isEmpty()) {
+                    List<Long> fileIds = list.stream().map(v -> Long.parseLong(v.toString())).toList();
+                    List<com.example.judicialappraisal.file.entity.SysFile> sysFiles = sysFileMapper.selectBatchIds(fileIds);
+                    for (com.example.judicialappraisal.file.entity.SysFile sysFile : sysFiles) {
+                        attachments.add(new KnowledgeDocumentDto.DocumentAttachmentDto(
+                                sysFile.getId(),
+                                sysFile.getOriginalName(),
+                                sysFile.getFileExt()
+                        ));
+                    }
+                }
+            } catch (Exception e) {
+                // ignore parsing errors
+            }
+        }
         return new KnowledgeDocumentDto(
                 document.getId(),
                 document.getDirectoryId(),
@@ -775,7 +798,8 @@ public class KnowledgeService {
                 document.getCurrentFileId(),
                 document.getCurrentVersionNo(),
                 document.getStatus(),
-                document.getUpdatedTime()
+                document.getUpdatedTime(),
+                attachments
         );
     }
 
@@ -829,8 +853,11 @@ public class KnowledgeService {
         labelMap.put("receivedDate", "收件日期");
         labelMap.put("filingDate", "立案日期");
         labelMap.put("clientName", "委托人");
+        labelMap.put("entrustOrgName", "委托单位");
         labelMap.put("caseNo", "案件号");
         labelMap.put("caseTitle", "案件名称");
+        labelMap.put("caseType", "案件类型");
+        labelMap.put("caseStatus", "案件状态");
         labelMap.put("undertakingLegalPerson", "承办法人");
         labelMap.put("institutionSelectionMethod", "确定机构方式");
         labelMap.put("institutionSelectionTime", "确定机构时间");

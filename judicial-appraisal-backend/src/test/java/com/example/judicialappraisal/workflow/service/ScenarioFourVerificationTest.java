@@ -104,7 +104,7 @@ class ScenarioFourVerificationTest {
                 Map.entry("initiatorName", "管理员"),
                 Map.entry("initiatedDate", "2026-06-23"),
                 Map.entry("receivedDate", "2026-06-23"),
-                Map.entry("caseNo", "场景4主案件"),
+                Map.entry("caseNo", "场景4主案件-" + System.currentTimeMillis()),
                 Map.entry("appraisalCategory", "工程造价"),
                 Map.entry("urgencyLevel", "普通"),
                 Map.entry("caseChannel", "线下"),
@@ -148,7 +148,7 @@ class ScenarioFourVerificationTest {
         String withdrawTitle = "场景4：收到撤案退费终止归档";
         CaseInfo withdrawCase = caseInfoService.createDraft(new CaseCreateRequest(withdrawTitle, "收到撤案函", "深圳市龙岗区人民法院", 1L));
         Long withdrawCaseId = withdrawCase.getId();
-        withdrawCase.setCaseNo("场景4：收到撤案退费终止归档");
+        withdrawCase.setCaseNo("场景4：收到撤案退费终止归档-" + System.currentTimeMillis());
         withdrawCase.setCaseStatus(CaseStatus.PROCESSING.name());
         caseInfoMapper.updateById(withdrawCase);
         System.out.println("3. 成功创建撤案函件关联案件, ID=" + withdrawCaseId + ", 案号=" + withdrawCase.getCaseNo());

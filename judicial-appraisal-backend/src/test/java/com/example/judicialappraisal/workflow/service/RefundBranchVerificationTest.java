@@ -284,10 +284,15 @@ class RefundBranchVerificationTest {
                     .eq(SysUserRole::getUserId, OPERATOR_ID)
                     .eq(SysUserRole::getRoleId, role.getId()));
             if (existingUserRole == null) {
+                Long count = sysUserRoleMapper.selectCount(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<SysUserRole>()
+                    .eq(SysUserRole::getUserId, OPERATOR_ID)
+                    .eq(SysUserRole::getRoleId, role.getId()));
+            if (count == null || count == 0L) {
                 SysUserRole userRole = new SysUserRole();
                 userRole.setUserId(OPERATOR_ID);
                 userRole.setRoleId(role.getId());
                 sysUserRoleMapper.insert(userRole);
+            }
             }
         }
     }

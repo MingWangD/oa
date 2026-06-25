@@ -10,12 +10,14 @@ import {
   uploadManualDocument,
   deleteKnowledgeDocument,
   batchDeleteKnowledgeDocuments,
+  downloadSysFile,
   type KnowledgeDirectory,
   type KnowledgeDocument
 } from '../api/judicial';
 import { getAccessToken } from '../api/http';
 import { useAuthStore } from '../stores/auth';
-import { ElMessageBox } from 'element-plus';
+import { ElMessageBox, type ElTable } from 'element-plus';
+import { Document, Download, View as Reading, Share, Edit } from '@element-plus/icons-vue';
 
 interface TreeNode {
   label: string;
@@ -24,6 +26,7 @@ interface TreeNode {
   children?: TreeNode[];
 }
 
+const tableRef = ref<InstanceType<typeof ElTable>>();
 const authStore = useAuthStore();
 const loading = ref(false);
 const batchDownloading = ref(false);
@@ -147,6 +150,20 @@ async function download(row: KnowledgeDocument): Promise<void> {
   }
 }
 
+async function downloadAttachment(fileId: number, fileName: string): Promise<void> {
+  try {
+    const { blob } = await downloadSysFile(fileId);
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.click();
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '下载附件失败');
+  }
+}
+
 function formatDateTime(isoString: string | null | undefined): string {
   if (!isoString) return '';
   const date = new Date(isoString);
@@ -255,7 +272,16 @@ function onUploadError(error: any): void {
 }
 
 function handleRowClick(row: KnowledgeDocument, column: any, event: Event): void {
-  if (column.type === 'selection' || (event.target as HTMLElement).closest('.el-checkbox')) {
+  const target = event.target as HTMLElement;
+  if (
+    column?.type === 'selection' ||
+    target.closest('.el-checkbox') ||
+    target.closest('.el-table__expand-icon')
+  ) {
+    return;
+  }
+  if (column?.type === 'expand') {
+    tableRef.value?.toggleRowExpansion(row);
     return;
   }
   void openPreview(row);
@@ -337,6 +363,7 @@ onMounted(() => {
 
         <div class="table-frame">
           <el-table
+            ref="tableRef"
             v-loading="loading"
             :data="paginatedDocuments"
             border
@@ -344,6 +371,45 @@ onMounted(() => {
             @selection-change="handleSelectionChange"
             @row-click="handleRowClick"
           >
+            <el-table-column type="expand" label="附件详情" width="100">
+              <template #default="scope">
+                <div class="expand-attachments">
+                  <h4><el-icon><Document /></el-icon> 附件文档详情</h4>
+                  <ul class="attachment-list">
+                    <li v-if="scope.row.currentFileId" class="attachment-item">
+                      <div class="attachment-info">
+                        <el-icon class="file-icon html-icon"><Document /></el-icon>
+                        <span class="file-name">{{ scope.row.title }}.html</span>
+                        <el-tag size="small" type="info" class="file-tag">主归档快照</el-tag>
+                      </div>
+                      <div class="attachment-actions">
+                        <el-button link type="primary" @click.stop="download(scope.row)">
+                          <el-icon><Download /></el-icon> 下载
+                        </el-button>
+                        <el-button link type="primary" @click.stop="openPreview(scope.row)">
+                          <el-icon><Reading /></el-icon> 阅读
+                        </el-button>
+                      </div>
+                    </li>
+                    <li v-for="att in scope.row.attachments" :key="att.fileId" class="attachment-item">
+                      <div class="attachment-info">
+                        <el-icon class="file-icon"><Document /></el-icon>
+                        <span class="file-name">{{ att.fileName }}</span>
+                        <el-tag size="small" type="info" class="file-tag">流转附件</el-tag>
+                      </div>
+                      <div class="attachment-actions">
+                        <el-button link type="primary" @click.stop="downloadAttachment(att.fileId, att.fileName)">
+                          <el-icon><Download /></el-icon> 下载
+                        </el-button>
+                      </div>
+                    </li>
+                    <li v-if="!scope.row.currentFileId && (!scope.row.attachments || scope.row.attachments.length === 0)" class="no-attachment">
+                      暂无附件记录
+                    </li>
+                  </ul>
+                </div>
+              </template>
+            </el-table-column>
             <el-table-column type="selection" width="48" />
             <el-table-column prop="title" label="标题" min-width="280">
               <template #default="scope">
@@ -388,5 +454,70 @@ onMounted(() => {
 <style scoped>
 :deep(.el-table__row) {
   cursor: pointer;
+}
+
+.expand-attachments {
+  padding: 16px 32px;
+  background-color: #f8fafc;
+  border-radius: 4px;
+  margin: 8px 16px;
+}
+.expand-attachments h4 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  color: #334155;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.attachment-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.attachment-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
+}
+.attachment-item:hover {
+  border-color: #94a3b8;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+.attachment-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.file-icon {
+  font-size: 18px;
+  color: #64748b;
+}
+.html-icon {
+  color: #0ea5e9;
+}
+.file-name {
+  font-size: 13px;
+  color: #1e293b;
+  font-weight: 500;
+}
+.file-tag {
+  margin-left: 8px;
+}
+.attachment-actions {
+  display: flex;
+  gap: 12px;
+}
+.no-attachment {
+  color: #94a3b8;
+  font-size: 13px;
+  padding: 8px 0;
 }
 </style>

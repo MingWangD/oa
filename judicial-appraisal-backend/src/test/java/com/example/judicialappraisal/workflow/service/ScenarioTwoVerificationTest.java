@@ -82,7 +82,7 @@ class ScenarioTwoVerificationTest {
         String title = "场景2：F类质控文件审核与用章驳回退回";
         CaseInfo caseInfo = caseInfoService.createDraft(new CaseCreateRequest(title, "工程造价", "深圳市福田区人民法院", 1L));
         Long caseId = caseInfo.getId();
-        caseInfo.setCaseNo(title);
+        caseInfo.setCaseNo(title + "-" + System.currentTimeMillis());
         caseInfoMapper.updateById(caseInfo);
         System.out.println("1. 成功创建案件草稿, ID=" + caseId);
 
@@ -99,7 +99,7 @@ class ScenarioTwoVerificationTest {
                 Map.entry("initiatorName", "管理员"),
                 Map.entry("initiatedDate", "2026-06-23"),
                 Map.entry("receivedDate", "2026-06-23"),
-                Map.entry("caseNo", "场景2：F类质控文件审核与用章驳回退回"),
+                Map.entry("caseNo", "场景2：F类质控文件审核与用章驳回退回-" + System.currentTimeMillis()),
                 Map.entry("appraisalCategory", "工程造价"),
                 Map.entry("urgencyLevel", "普通"),
                 Map.entry("caseChannel", "线下"),

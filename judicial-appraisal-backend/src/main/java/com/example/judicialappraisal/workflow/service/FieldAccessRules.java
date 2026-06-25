@@ -24,6 +24,27 @@ final class FieldAccessRules {
             "caseChannel",
             "appraisalMatter"
     );
+    private static final Set<String> ENTRUST_REGISTRATION_OPTIONAL_WRITABLE_FIELDS = Set.of(
+            "expressNo",
+            "projectAmount"
+    );
+    private static final Set<String> ENTRUST_REGISTRATION_BASE_FIELDS = Set.of(
+            "expressNo",
+            "projectAmount",
+            "receivedDate",
+            "filingDate",
+            "clientName",
+            "caseNo",
+            "undertakingLegalPerson",
+            "institutionSelectionMethod",
+            "institutionSelectionTime",
+            "appraisalCategory",
+            "applicantName",
+            "respondentName",
+            "urgencyLevel",
+            "caseChannel",
+            "appraisalMatter"
+    );
 
     private FieldAccessRules() {
     }
@@ -122,11 +143,23 @@ final class FieldAccessRules {
         }
 
         // Clerk Register Defaults
+        String formCode = stringValue(merged.get("formCode"));
         if ("INIT_FILL".equals(nodeCode) || "CLERK_REGISTER".equals(nodeCode)) {
             ENTRUST_REGISTRATION_REQUIRED_FIELDS.forEach(fieldName -> {
                 Map<String, Object> auth = (Map<String, Object>) fieldAuth.computeIfAbsent(fieldName, k -> new HashMap<>());
-                auth.putIfAbsent("required", true);
+                auth.put("required", true);
                 auth.put("readonly", false); // They can always edit these
+            });
+            ENTRUST_REGISTRATION_OPTIONAL_WRITABLE_FIELDS.forEach(fieldName -> {
+                Map<String, Object> auth = (Map<String, Object>) fieldAuth.computeIfAbsent(fieldName, k -> new HashMap<>());
+                auth.put("required", false);
+                auth.put("readonly", false);
+            });
+        } else if ("received-entrust".equals(formCode)) {
+            ENTRUST_REGISTRATION_BASE_FIELDS.forEach(fieldName -> {
+                Map<String, Object> auth = (Map<String, Object>) fieldAuth.computeIfAbsent(fieldName, k -> new HashMap<>());
+                auth.put("required", false);
+                auth.put("readonly", true);
             });
         }
         if ("DEPT_REVIEW".equals(nodeCode)) {

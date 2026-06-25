@@ -84,7 +84,7 @@ class FinanceReimbursementBranchVerificationTest {
     void expenseReimbursement_independentFlow_toCompletion() {
         // 1. Independent Start
         CaseInfo caseInfo = createCase("场景5：财务报销流程", "财务报销");
-        caseInfo.setCaseNo("场景5：财务报销流程");
+        caseInfo.setCaseNo("场景5：财务报销流程-" + System.currentTimeMillis());
         caseInfoMapper.updateById(caseInfo);
         startWorkflow(caseInfo.getId(), "expense-reimbursement");
 

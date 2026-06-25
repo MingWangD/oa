@@ -48,6 +48,7 @@ class KnowledgeServiceTests {
     private final FileStorageService fileStorageService = mock(FileStorageService.class);
     private final AuditLogService auditLogService = mock(AuditLogService.class);
     private final com.example.judicialappraisal.organization.mapper.SysUserMapper sysUserMapper = mock(com.example.judicialappraisal.organization.mapper.SysUserMapper.class);
+    private final com.example.judicialappraisal.file.mapper.SysFileMapper sysFileMapper = mock(com.example.judicialappraisal.file.mapper.SysFileMapper.class);
     private final KnowledgeService service = new KnowledgeService(
             directoryMapper,
             documentMapper,
@@ -60,7 +61,8 @@ class KnowledgeServiceTests {
             fileStorageService,
             auditLogService,
             new ObjectMapper(),
-            sysUserMapper
+            sysUserMapper,
+            sysFileMapper
     );
 
     @AfterEach
@@ -72,7 +74,7 @@ class KnowledgeServiceTests {
     void archiveNodeCreatesDocumentVersionAndArchiveRecord() {
         CaseInfo caseInfo = new CaseInfo();
         caseInfo.setId(88L);
-        caseInfo.setCaseNo("JA-88");
+        caseInfo.setCaseNo("JA-88-" + System.currentTimeMillis());
         when(caseInfoMapper.selectById(88L)).thenReturn(caseInfo);
         when(directoryMapper.selectOne(any())).thenReturn((KnowledgeDirectory) null);
         when(documentMapper.selectOne(any())).thenReturn(null);
@@ -181,7 +183,7 @@ class KnowledgeServiceTests {
         authenticateCaseAcceptor();
         CaseInfo caseInfo = new CaseInfo();
         caseInfo.setId(201L);
-        caseInfo.setCaseNo("场景5：财务报销流程");
+        caseInfo.setCaseNo("场景5：财务报销流程-" + System.currentTimeMillis());
         caseInfo.setCaseTitle("场景5：财务报销流程");
         when(caseInfoMapper.selectRawById(201L)).thenReturn(caseInfo);
 

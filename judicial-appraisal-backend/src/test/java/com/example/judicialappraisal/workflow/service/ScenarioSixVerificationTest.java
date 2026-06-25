@@ -175,7 +175,7 @@ class ScenarioSixVerificationTest {
         System.out.println(">>> 开始运行场景六 B：案件暂停并决定终止鉴定 E2E 测试 <<<");
 
         // 1. 创建并推进主案件到现场勘验节点
-        Long caseId = createAndProgressCaseToFieldSurvey("场景6：案件暂停与恢复/终止");
+        Long caseId = createAndProgressCaseToFieldSurvey("场景6：案件暂停与恢复/终止-" + System.currentTimeMillis());
 
         // 2. 找到现场勘验的主任务 ASSISTANT_SURVEY
         CaseTask parentTask = caseTaskMapper.selectOne(new LambdaQueryWrapper<CaseTask>()
@@ -274,7 +274,7 @@ class ScenarioSixVerificationTest {
     private Long createAndProgressCaseToFieldSurvey(String title) {
         CaseInfo caseInfo = caseInfoService.createDraft(new CaseCreateRequest(title, "工程造价", "深圳市南山区人民法院", 1L));
         Long caseId = caseInfo.getId();
-        caseInfo.setCaseNo(title);
+        caseInfo.setCaseNo(title + "-" + System.currentTimeMillis());
         caseInfoMapper.updateById(caseInfo);
 
         CaseSubmitRequest submitRequest = new CaseSubmitRequest(OPERATOR_ID, OPERATOR_NAME, "发起流程");
