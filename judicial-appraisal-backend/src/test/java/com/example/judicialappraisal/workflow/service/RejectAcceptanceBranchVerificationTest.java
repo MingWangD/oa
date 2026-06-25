@@ -203,27 +203,38 @@ class RejectAcceptanceBranchVerificationTest {
         return caseInfo.getId();
     }
 
-    private Map<String, Object> baseFormData(boolean accepted) {
-        return Map.ofEntries(
-                Map.entry("clientName", "深圳市罗湖区人民法院"),
-                Map.entry("serialNo", "SC-1-123456"),
-                Map.entry("initiatorName", "管理员"),
-                Map.entry("initiatedDate", "2026-06-23"),
-                Map.entry("receivedDate", "2026-06-23"),
-                Map.entry("caseNo", "场景1：不予受理流程"),
-                Map.entry("entrustUnit", "深圳市罗湖区人民法院"),
-                Map.entry("entrustDate", "2026-06-23"),
-                Map.entry("appraisalCategory", "工程造价"),
-                Map.entry("urgencyLevel", "普通"),
-                Map.entry("caseChannel", "线下"),
-                Map.entry("appraisalMatter", "工程造价纠纷鉴定"),
-                Map.entry("entrustAccepted", accepted),
-                Map.entry("preliminarySurveyRequired", false),
-                Map.entry("materialReceiveRequired", false),
-                Map.entry("departmentHeadId", 2L),
-                Map.entry("projectLeaderId", 3L),
-                Map.entry("projectAssistantId", 4L)
-        );
+    private Map<String, Object> baseFormData(boolean isAccepted) {
+        Map<String, Object> data = new java.util.HashMap<>(Map.of(
+                "filingDate", "2026-06-25",
+                "undertakingLegalPerson", "张三",
+                "institutionSelectionMethod", "随机抽取",
+                "institutionSelectionTime", "2026-06-25",
+                "applicantName", "原告张三",
+                "respondentName", "被告李四"
+        ));
+        data.put("clientName", "测试法院");
+        data.put("caseType", "法医临床");
+        data.put("entrustMatters", "伤残等级鉴定");
+        data.put("appraisalRequirement", "按照国家标准");
+        data.put("isAccepted", isAccepted);
+        data.put("serialNo", "SC-1-123456");
+        data.put("initiatorName", "管理员");
+        data.put("initiatedDate", "2026-06-23");
+        data.put("receivedDate", "2026-06-23");
+        data.put("caseNo", "场景1：不予受理流程");
+        data.put("entrustUnit", "深圳市罗湖区人民法院");
+        data.put("entrustDate", "2026-06-23");
+        data.put("appraisalCategory", "工程造价");
+        data.put("urgencyLevel", "普通");
+        data.put("caseChannel", "线下");
+        data.put("appraisalMatter", "工程造价纠纷鉴定");
+        data.put("entrustAccepted", isAccepted);
+        data.put("preliminarySurveyRequired", false);
+        data.put("materialReceiveRequired", false);
+        data.put("departmentHeadId", 2L);
+        data.put("projectLeaderId", 3L);
+        data.put("projectAssistantId", 4L);
+        return data;
     }
 
     private void completeTask(Long caseId, String nodeCode, Map<String, Object> formData) {

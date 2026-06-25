@@ -115,7 +115,13 @@ class ScenarioFourVerificationTest {
                 Map.entry("departmentHeadId", 2L),
                 Map.entry("projectLeaderId", 3L),
                 Map.entry("projectAssistantId", 4L),
-                Map.entry("materialReceiveRequired", false)
+                Map.entry("materialReceiveRequired", false),
+                Map.entry("filingDate", "2026-06-25"),
+                Map.entry("undertakingLegalPerson", "张三"),
+                Map.entry("institutionSelectionMethod", "随机抽取"),
+                Map.entry("institutionSelectionTime", "2026-06-25"),
+                Map.entry("applicantName", "原告张三"),
+                Map.entry("respondentName", "被告李四")
         );
         completeTask(mainCaseId, "INIT_FILL", initFormData);
         completeTask(mainCaseId, "CLERK_REGISTER", Map.of());
