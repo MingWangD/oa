@@ -217,9 +217,33 @@ const formRule = computed(() => {
       'caseChannel',
       'appraisalMatter'
     ];
-    const nodeOverrides: Record<string, Record<string, unknown>> = activeNodeCode.value === 'DEPT_REVIEW'
-      ? { entrustAccepted: { required: true } }
-      : {};
+    const deptDecisionFields = [
+      'entrustAccepted',
+      'departmentHeadId',
+      'projectLeaderId',
+      'projectAssistantId'
+    ];
+    
+    const projectDecisionFields = [
+      'preliminarySurveyRequired',
+      'materialReceiveRequired'
+    ];
+    
+    const nodeOverrides: Record<string, Record<string, unknown>> = {};
+    if (activeNodeCode.value === 'DEPT_REVIEW') {
+      nodeOverrides['entrustAccepted'] = { required: true };
+    } else {
+      deptDecisionFields.forEach((fieldName) => {
+        nodeOverrides[fieldName] = { readonly: true };
+      });
+    }
+
+    if (activeNodeCode.value !== 'PROJECT_DECISION') {
+      projectDecisionFields.forEach((fieldName) => {
+        nodeOverrides[fieldName] = { readonly: true };
+      });
+    }
+
     return mergeFieldAuthDefaults(
       parsed,
       {},
@@ -251,7 +275,7 @@ const dynamicFields = computed<DynamicFormField[]>(() => {
       if (isWorkflowFieldHidden(key, fieldAuth)) {
         return false;
       }
-      if (isDraftCase.value && (field.group === '流程基础' || field.group === '受理决策')) {
+      if (isDraftCase.value && (field.group === '流程基础' || field.group === '受理决策' || field.group === '项目决策')) {
         return false;
       }
       // 如果选择不予受理，则隐藏受理并指定项目负责人、指定项目辅助人等相关字段，不作必填校验

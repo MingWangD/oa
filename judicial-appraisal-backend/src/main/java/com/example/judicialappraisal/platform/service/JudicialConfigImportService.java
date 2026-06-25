@@ -311,11 +311,11 @@ public class JudicialConfigImportService {
                 field("projectAmount", "项目金额", "number", "案件信息", false, false),
                 field("appraisalMatter", "鉴定事项", "textarea", "案件信息", true, false),
                 field("entrustAccepted", "委托审查是否受理", "boolean", "受理决策", false, false),
-                field("preliminarySurveyRequired", "是否进行初步勘验", "boolean", "受理决策", false, false),
-                field("materialReceiveRequired", "是否同步收案员材料接收", "boolean", "受理决策", false, false),
                 field("departmentHeadId", "部门负责人", "user", "受理决策", false, false),
                 field("projectLeaderId", "指定项目负责人", "user", "受理决策", false, false),
-                field("projectAssistantId", "指定项目辅助人", "user", "受理决策", false, false)
+                field("projectAssistantId", "指定项目辅助人", "user", "受理决策", false, false),
+                field("preliminarySurveyRequired", "是否进行初步勘验", "boolean", "项目决策", false, false),
+                field("materialReceiveRequired", "是否同步收案员材料接收", "boolean", "项目决策", false, false)
         );
         return new FormDesignRequest(
                 form.code(),
@@ -327,7 +327,7 @@ public class JudicialConfigImportService {
                 toJson(fields),
                 toJson(Map.of(
                         "layout", "grouped",
-                        "groups", List.of("流程基础", "委托信息", "案件信息", "附件", "受理决策", "办理意见")
+                        "groups", List.of("流程基础", "委托信息", "案件信息", "附件", "受理决策", "项目决策", "办理意见")
                 )),
                 toJson(Map.of(
                         "requiredFields", fields.stream().filter(item -> Boolean.TRUE.equals(item.get("required"))).map(item -> item.get("field")).toList(),
@@ -337,7 +337,8 @@ public class JudicialConfigImportService {
                 toJson(Map.of(
                         "groups", Map.of(
                                 "流程基础", Map.of("readOnly", true),
-                                "受理决策", Map.of("roles", List.of("部门负责人", "项目负责人"))
+                                "受理决策", Map.of("roles", List.of("部门负责人")),
+                                "项目决策", Map.of("roles", List.of("项目负责人"))
                         )
                 )),
                 toJson(Map.of(
