@@ -54,6 +54,13 @@
    brew services start redis
    ```
 
+7. **安装并启动 MinIO**:
+   ```bash
+   brew install minio/stable/minio
+   # 启动 MinIO 服务，指定数据存储目录（例如 ~/minio-data）
+   minio server ~/minio-data --console-address ":9001"
+   ```
+
 ### Windows 环境配置
 
 在 Windows 上，推荐通过官方安装包或包管理工具（如 Scoop / winget）进行安装。
@@ -79,6 +86,14 @@
 5. **安装 Redis**:
    - 官方 Redis 不直接支持 Windows。推荐通过 [Memurai](https://github.com/microsoft/Memurai-Developer) 或适用于 Windows 的 [Redis 移植版 (如 tporadowski/redis)](https://github.com/tporadowski/redis/releases) 安装。
    - 或者，如果你开启了 WSL2 (Windows Subsystem for Linux)，可以在 Linux 终端中运行：`sudo apt-get install redis-server` 并启动它。
+
+6. **安装并启动 MinIO**:
+   - 访问 [MinIO 下载页面](https://min.io/download#/windows) 下载 `minio.exe`。
+   - 在本地新建一个文件夹作为数据存储目录（例如 `C:\minio-data`）。
+   - 打开命令行（CMD/PowerShell），切换到 `minio.exe` 所在目录并运行：
+     ```cmd
+     minio.exe server C:\minio-data --console-address ":9001"
+     ```
 
 ---
 
@@ -116,7 +131,24 @@
 
    项目不再维护拆分版迁移脚本；如需重置数据库，请重新执行本节的 `DROP DATABASE`、`CREATE DATABASE` 和导入命令。
 
-### 2. 后端启动 (Spring Boot)
+### 2. MinIO 对象存储配置 (必需)
+
+系统在业务流转中依赖 MinIO 存储附件材料与生成的 PDF 文书，必须启动并完成以下配置：
+
+1. **访问后台**：在浏览器中打开 `http://localhost:9001` (上方命令启动时指定的 console 端口)。
+2. **登录账号**：默认 Username 和 Password 均为 `minioadmin`（若为较新版本的 MinIO，控制台启动时会输出生成的临时账号密码 `RootUser` / `RootPass`，请注意查阅终端日志）。
+3. **创建 Bucket**：登录后，在界面中选择 **Buckets**，点击 **Create Bucket**。名称必须填写为 **`judicial-appraisal`**。
+4. **验证代码配置**：打开 `judicial-appraisal-backend/src/main/resources/application.yml`，核对 `app.minio` 下的账号密码。如果你本地 MinIO 使用的不是 `minioadmin`，请修改它：
+   ```yaml
+   app:
+     minio:
+       endpoint: http://localhost:9000
+       access-key: 你的MinIO账号
+       secret-key: 你的MinIO密码
+       bucket: judicial-appraisal
+   ```
+
+### 3. 后端启动 (Spring Boot)
 
 打开你的终端（Windows 下使用 CMD/PowerShell，macOS 下使用 Terminal）：
 
@@ -130,7 +162,7 @@ mvn spring-boot:run
 后端服务默认运行在 `http://localhost:8080`。
 你可以访问 `http://localhost:8080/swagger-ui.html` 查看接口文档。
 
-### 3. 前端启动 (Vue 3 + Vite)
+### 4. 前端启动 (Vue 3 + Vite)
 
 新开一个终端窗口：
 
