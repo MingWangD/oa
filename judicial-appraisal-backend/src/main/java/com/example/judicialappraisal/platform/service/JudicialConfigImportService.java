@@ -308,7 +308,6 @@ public class JudicialConfigImportService {
                         List.of("普通", "紧急", "特急")),
                 field("caseChannel", "线上/线下", "select", "案件信息", true, false,
                         List.of("线上", "线下")),
-                field("projectAmount", "项目金额", "number", "案件信息", false, false),
                 field("appraisalMatter", "鉴定事项", "textarea", "案件信息", true, false),
                 field("entrustAccepted", "委托审查是否受理", "boolean", "受理决策", false, false),
                 field("departmentHeadId", "部门负责人", "user", "受理决策", false, false),
