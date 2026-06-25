@@ -544,6 +544,7 @@ public class JudicialConfigImportService {
                 field("flowName", "流程名称", "text", "流程基础", false, true),
                 field("projectLeaderId", "项目负责人", "user", "流程基础", true, true),
                 field("projectAssistantId", "项目辅助人", "user", "流程基础", true, true),
+                field("projectAmount", "项目金额", "number", "函件编制", true, false),
                 field("letterDraftCompleted", "缴费函件草稿已编制", "boolean", "函件编制", true, false),
                 field("letterType", "函件类型", "select", "函件编制", true, false,
                         List.of("交费通知书", "补充函件", "情况说明函", "其他")),
