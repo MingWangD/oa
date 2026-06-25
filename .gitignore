@@ -28,3 +28,8 @@ exports/
 !.env.example
 docs/
 
+
+# Temporary plan files
+FORM_PERMISSION_FULL_ACCEPTANCE.md
+FORM_PERMISSION_REQUIRED_RULES.md
+update_forms.sql
