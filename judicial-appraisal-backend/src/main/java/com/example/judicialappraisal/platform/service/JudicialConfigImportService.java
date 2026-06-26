@@ -292,7 +292,7 @@ public class JudicialConfigImportService {
                 field("initiatedDate", "发起日期", "date", "流程基础", false, true),
                 field("projectNo", "项目编号", "text", "流程基础", false, false),
                 field("expressNo", "快递单号", "text", "委托信息", false, false),
-                field("projectAmount", "项目金额", "number", "委托信息", false, true),
+                field("projectAmount", "项目金额", "number", "委托信息", false, false),
                 field("receivedDate", "收件日期", "date", "委托信息", true, false),
                 field("filingDate", "立案日期", "date", "委托信息", true, false),
                 field("clientName", "委托人", "text", "委托信息", true, false),

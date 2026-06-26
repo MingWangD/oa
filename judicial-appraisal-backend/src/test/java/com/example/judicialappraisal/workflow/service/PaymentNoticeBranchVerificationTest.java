@@ -118,6 +118,28 @@ class PaymentNoticeBranchVerificationTest {
     }
 
     @Test
+    void paymentNoticeProjectAmount_shouldOverrideReceivedEntrustEstimate() {
+        Long caseId = createSubmittedReceivedEntrustCase("9.3-交费通知金额覆盖收案预估");
+        Map<String, Object> receivedData = new java.util.HashMap<>(receivedEntrustFormData());
+        receivedData.put("projectAmount", 10000);
+        completeTask(caseId, "INIT_FILL", ActionCode.APPROVE, receivedData, null);
+        assertThat(caseInfoService.getById(caseId).getFormData()).containsEntry("projectAmount", 10000);
+
+        completeTask(caseId, "CLERK_REGISTER", ActionCode.APPROVE, Map.of(), null);
+        completeTask(caseId, "DEPT_REVIEW", ActionCode.APPROVE, Map.of("entrustAccepted", true), null);
+        completeTask(caseId, "PROJECT_DECISION", ActionCode.APPROVE, Map.of(
+                "preliminarySurveyRequired", false,
+                "materialReceiveRequired", false
+        ), null);
+
+        Map<String, Object> paymentData = new java.util.HashMap<>(paymentNoticeFormData(false, true));
+        paymentData.put("projectAmount", 6000);
+        completeTask(caseId, "ASSISTANT_DRAFT", ActionCode.APPROVE, paymentData, null);
+
+        assertThat(caseInfoService.getById(caseId).getFormData()).containsEntry("projectAmount", 6000);
+    }
+
+    @Test
     void projectReviewReturn_shouldReturnToAssistantDraft() {
         Long caseId = createCaseAtPaymentProjectReview("9.3-审核退回辅助人分支", false, true);
 

@@ -195,7 +195,7 @@ const formRule = computed(() => {
       Object.fromEntries(requiredFields.map((fieldName) => [fieldName, { required: true, readonly: false }])),
       {
         expressNo: { required: false, readonly: false },
-        projectAmount: { required: false, readonly: true }
+        projectAmount: { required: false, readonly: false }
       }
     );
   }

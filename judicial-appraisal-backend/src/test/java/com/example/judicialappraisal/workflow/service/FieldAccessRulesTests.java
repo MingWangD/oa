@@ -87,7 +87,7 @@ class FieldAccessRulesTests {
         assertThat(FieldAccessRules.isRequired(optionalField("clientName"), formRule)).isTrue();
         assertThat(FieldAccessRules.isRequired(optionalField("expressNo"), formRule)).isFalse();
         assertThat(FieldAccessRules.isRequired(optionalField("projectAmount"), formRule)).isFalse();
-        assertThat(FieldAccessRules.isReadOnly(optionalField("projectAmount"), formRule)).isTrue();
+        assertThat(FieldAccessRules.isReadOnly(optionalField("projectAmount"), formRule)).isFalse();
         assertThat(FieldAccessRules.isRequired(optionalField("filingDate"), formRule)).isTrue();
         assertThat(FieldAccessRules.isRequired(optionalField("undertakingLegalPerson"), formRule)).isTrue();
         assertThat(FieldAccessRules.isRequired(optionalField("institutionSelectionMethod"), formRule)).isTrue();
