@@ -47,6 +47,16 @@ public class GlobalExceptionHandler {
         return ApiResponse.error(400, ex.getMessage());
     }
 
+    @ExceptionHandler(org.springframework.dao.DuplicateKeyException.class)
+    public ApiResponse<Void> handleDuplicateKeyException(org.springframework.dao.DuplicateKeyException ex) {
+        log.error("Duplicate key exception", ex);
+        String message = ex.getMessage();
+        if (message != null && message.contains("uk_case_info_case_no")) {
+            return ApiResponse.error(400, "案件号已被占用，请使用其他案件号");
+        }
+        return ApiResponse.error(400, "数据已存在，请勿重复提交");
+    }
+
     @ExceptionHandler(Exception.class)
     public ApiResponse<Void> handleException(Exception ex) {
         log.error("Unhandled request exception", ex);

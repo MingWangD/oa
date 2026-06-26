@@ -12,6 +12,7 @@ vendor/anthropic-skills/
 # Backend build and local result files
 judicial-appraisal-backend/target/
 judicial-appraisal-backend/.codex-result*.txt
+judicial-appraisal-backend/src/test/README.md
 
 # Frontend dependencies and build output
 judicial-appraisal-frontend/node_modules/
