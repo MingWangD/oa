@@ -321,6 +321,7 @@ class TerminateAppraisalBranchVerificationTest {
                 Map.entry("letterDraftCompleted", true),
                 Map.entry("letterType", "交费通知书"),
                 Map.entry("letterSummary", "未缴费终止鉴定上游触发验证"),
+                Map.entry("projectAmount", 120000),
                 Map.entry("sealRequired", false),
                 Map.entry("sealedDocumentUploaded", false),
                 Map.entry("sendDate", "2026-06-13"),

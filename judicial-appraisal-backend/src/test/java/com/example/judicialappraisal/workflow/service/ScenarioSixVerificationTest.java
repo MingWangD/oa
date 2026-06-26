@@ -316,6 +316,7 @@ class ScenarioSixVerificationTest {
                 "letterDraftCompleted", true,
                 "letterType", "交费通知书",
                 "letterSummary", "12万交费通知",
+                "projectAmount", 120000,
                 "sealRequired", false,
                 "sealedDocumentUploaded", true,
                 "paymentReceived", true,

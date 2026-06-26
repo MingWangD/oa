@@ -125,6 +125,7 @@ class ScenarioThreeVerificationTest {
                 Map.entry("letterDraftCompleted", true),
                 Map.entry("letterType", "交费通知书"),
                 Map.entry("letterSummary", "20万缴费通知"),
+                Map.entry("projectAmount", 120000),
                 Map.entry("sealRequired", false),
                 Map.entry("sealedDocumentUploaded", true),
                 Map.entry("paymentReceived", true),

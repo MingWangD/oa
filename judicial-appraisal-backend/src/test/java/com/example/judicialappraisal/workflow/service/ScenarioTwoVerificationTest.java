@@ -141,6 +141,7 @@ class ScenarioTwoVerificationTest {
                 Map.entry("letterDraftCompleted", true),
                 Map.entry("letterType", "交费通知书"),
                 Map.entry("letterSummary", "大额缴费通知书草稿已编制"),
+                Map.entry("projectAmount", 120000),
                 Map.entry("sealRequired", false),
                 Map.entry("sealedDocumentUploaded", true),
                 Map.entry("paymentReceived", true),

@@ -143,6 +143,7 @@ class FinalE2EWalkthroughVerificationTest {
                 "letterDraftCompleted", true,
                 "letterType", "交费通知书",
                 "letterSummary", "通知书草稿已编制",
+                "projectAmount", 120000,
                 "sealRequired", false,
                 "sealedDocumentUploaded", true,
                 "paymentReceived", true,

@@ -75,6 +75,7 @@ class FieldAccessRulesTests {
         assertThat(FieldAccessRules.isRequired(optionalField("expressNo"), formRule)).isFalse();
         assertThat(FieldAccessRules.isRequired(optionalField("projectAmount"), formRule)).isFalse();
         assertThat(FieldAccessRules.isRequired(optionalField("caseNo"), formRule)).isFalse();
+        assertThat(FieldAccessRules.isReadOnly(optionalField("projectAmount"), formRule)).isTrue();
         assertThat(FieldAccessRules.isReadOnly(optionalField("caseNo"), formRule)).isTrue();
     }
 
@@ -86,6 +87,7 @@ class FieldAccessRulesTests {
         assertThat(FieldAccessRules.isRequired(optionalField("clientName"), formRule)).isTrue();
         assertThat(FieldAccessRules.isRequired(optionalField("expressNo"), formRule)).isFalse();
         assertThat(FieldAccessRules.isRequired(optionalField("projectAmount"), formRule)).isFalse();
+        assertThat(FieldAccessRules.isReadOnly(optionalField("projectAmount"), formRule)).isTrue();
         assertThat(FieldAccessRules.isRequired(optionalField("filingDate"), formRule)).isTrue();
         assertThat(FieldAccessRules.isRequired(optionalField("undertakingLegalPerson"), formRule)).isTrue();
         assertThat(FieldAccessRules.isRequired(optionalField("institutionSelectionMethod"), formRule)).isTrue();
@@ -105,6 +107,7 @@ class FieldAccessRulesTests {
         assertThat(FieldAccessRules.isRequired(optionalField("clientName"), formRule)).isTrue();
         assertThat(FieldAccessRules.isRequired(optionalField("expressNo"), formRule)).isFalse();
         assertThat(FieldAccessRules.isRequired(optionalField("projectAmount"), formRule)).isFalse();
+        assertThat(FieldAccessRules.isReadOnly(optionalField("projectAmount"), formRule)).isTrue();
         assertThat(FieldAccessRules.isRequired(optionalField("urgencyLevel"), formRule)).isTrue();
         assertThat(FieldAccessRules.isRequired(optionalField("caseChannel"), formRule)).isTrue();
     }
@@ -124,6 +127,7 @@ class FieldAccessRulesTests {
 
         assertThat(FieldAccessRules.isRequired(optionalField("expressNo"), formRule)).isFalse();
         assertThat(FieldAccessRules.isRequired(optionalField("projectAmount"), formRule)).isFalse();
+        assertThat(FieldAccessRules.isReadOnly(optionalField("projectAmount"), formRule)).isTrue();
     }
 
     @Test
@@ -170,14 +174,14 @@ class FieldAccessRulesTests {
     void permissionSchemaDoesNotOverwriteExplicitReadonlyConfig() {
         Map<String, Object> formRule = FieldAccessRules.withNodeDefaults(
                 "CLERK_REGISTER",
-                Map.of("fieldAuth", Map.of("entrustAccepted", Map.of("readonly", false))),
+                Map.of("fieldAuth", Map.of("customOpinion", Map.of("readonly", false))),
                 "{\"roleName\":\"收案员\"}",
                 "{\"groups\":{\"部门负责人意见\":{\"roles\":[\"部门负责人\"]}}}",
-                List.of(Map.of("field", "entrustAccepted", "group", "部门负责人意见")),
+                List.of(Map.of("field", "customOpinion", "group", "部门负责人意见")),
                 new ObjectMapper()
         );
 
-        assertThat(FieldAccessRules.isReadOnly(optionalField("entrustAccepted"), formRule)).isFalse();
+        assertThat(FieldAccessRules.isReadOnly(optionalField("customOpinion"), formRule)).isFalse();
     }
 
     private Map<String, Object> optionalField(String fieldName) {

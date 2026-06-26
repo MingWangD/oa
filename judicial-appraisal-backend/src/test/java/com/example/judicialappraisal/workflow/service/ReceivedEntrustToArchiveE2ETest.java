@@ -176,6 +176,7 @@ class ReceivedEntrustToArchiveE2ETest {
                 Map.entry("letterDraftCompleted", true),
                 Map.entry("letterType", "交费通知书"),
                 Map.entry("letterSummary", "E2E交费通知"),
+                Map.entry("projectAmount", 120000),
                 Map.entry("sealRequired", false),
                 Map.entry("sealedDocumentUploaded", true), // satisfy validator for later nodes
                 Map.entry("paymentReceived", true),        // satisfy validator for later nodes

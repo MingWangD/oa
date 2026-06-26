@@ -365,6 +365,7 @@ class FieldSurveyBranchVerificationTest {
         data.put("letterDraftCompleted", true);
         data.put("letterType", "交费通知书");
         data.put("letterSummary", "已编制交费通知书。");
+        data.put("projectAmount", 120000);
         data.put("sealRequired", false);
         data.put("sealedDocumentUploaded", true);
         data.put("sendDate", "2026-06-13");

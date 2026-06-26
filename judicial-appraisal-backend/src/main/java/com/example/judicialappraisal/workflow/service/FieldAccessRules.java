@@ -26,7 +26,6 @@ final class FieldAccessRules {
     );
     private static final Set<String> ENTRUST_REGISTRATION_OPTIONAL_WRITABLE_FIELDS = Set.of(
             "expressNo",
-            "projectAmount",
             "departmentHeadId"
     );
     private static final Set<String> ENTRUST_REGISTRATION_BASE_FIELDS = Set.of(
@@ -162,6 +161,9 @@ final class FieldAccessRules {
                 auth.put("required", "CLERK_REGISTER".equals(nodeCode) && "departmentHeadId".equals(fieldName));
                 auth.put("readonly", false);
             });
+            Map<String, Object> projectAmountAuth = (Map<String, Object>) fieldAuth.computeIfAbsent("projectAmount", k -> new HashMap<>());
+            projectAmountAuth.put("required", false);
+            projectAmountAuth.put("readonly", true);
             if ("INIT_FILL".equals(nodeCode)) {
                 Map<String, Object> auth = (Map<String, Object>) fieldAuth.computeIfAbsent("departmentHeadId", k -> new HashMap<>());
                 auth.put("required", false);

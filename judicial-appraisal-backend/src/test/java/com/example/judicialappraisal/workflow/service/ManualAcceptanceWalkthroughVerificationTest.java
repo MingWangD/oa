@@ -56,6 +56,10 @@ class ManualAcceptanceWalkthroughVerificationTest {
         String acceptorToken = getToken("case_acceptor1", "123456");
         Long acceptorId = getUserId("case_acceptor1");
         Long acceptorDeptId = getDeptId("case_acceptor1");
+        Long leaderId = getUserId("dept_leader1");
+        Long projectLeaderId = getUserId("project_leader1");
+        // 关键：确保 dept_leader 也在该部门，以符合 DEPT 数据权限
+        jdbcTemplate.update("UPDATE sys_user SET dept_id = ? WHERE username = 'dept_leader1'", acceptorDeptId);
 
         // --- 2. 验证“新建工作”权限过滤 ---
         MvcResult availableResult = mockMvc.perform(get("/api/platform/judicial-catalog/available")
@@ -129,7 +133,15 @@ class ManualAcceptanceWalkthroughVerificationTest {
 
         // --- 6. case_acceptor 完成 CLERK_REGISTER 节点 ---
         taskId = getTaskId(caseId, "CLERK_REGISTER");
-        WorkflowActionRequest clerkRegReq = new WorkflowActionRequest(taskId, ActionCode.APPROVE, "登记完成", null, null, null, Map.of(), null);
+        WorkflowActionRequest clerkRegReq = new WorkflowActionRequest(
+                taskId,
+                ActionCode.APPROVE,
+                "登记完成",
+                null,
+                null,
+                null,
+                Map.of("departmentHeadId", leaderId),
+                null);
         mockMvc.perform(post("/api/cases/" + caseId + "/actions")
                 .header("Authorization", "Bearer " + acceptorToken)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -137,11 +149,7 @@ class ManualAcceptanceWalkthroughVerificationTest {
                 .andExpect(status().isOk());
 
         // --- 7. 换 dept_leader 登录验证待办 ---
-        // 关键：确保 dept_leader 也在该部门，以符合 DEPT 数据权限
-        jdbcTemplate.update("UPDATE sys_user SET dept_id = ? WHERE username = 'dept_leader1'", acceptorDeptId);
-
         String leaderToken = getToken("dept_leader1", "123456");
-        Long leaderId = getUserId("dept_leader1");
 
         MvcResult todoResult = mockMvc.perform(get("/api/workbench/todo?assigneeId=" + leaderId)
                 .header("Authorization", "Bearer " + leaderToken))
@@ -153,7 +161,7 @@ class ManualAcceptanceWalkthroughVerificationTest {
         // --- 8. dept_leader 办理 DEPT_REVIEW ---
         taskId = getTaskId(caseId, "DEPT_REVIEW");
         WorkflowActionRequest deptReviewReq = new WorkflowActionRequest(taskId, ActionCode.APPROVE, "准予受理", null, null, null, 
-                Map.of("entrustAccepted", true, "projectLeaderId", 7L, "projectAssistantId", 6L), null);
+                Map.of("entrustAccepted", true, "projectLeaderId", projectLeaderId), null);
         mockMvc.perform(post("/api/cases/" + caseId + "/actions")
                 .header("Authorization", "Bearer " + leaderToken)
                 .contentType(MediaType.APPLICATION_JSON)
