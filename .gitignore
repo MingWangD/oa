@@ -6,6 +6,7 @@
 # Codex and local tooling
 .codex_read/
 .omc/
+AGENT.md
 vendor/anthropic-skills/
 
 # Backend build and local result files
