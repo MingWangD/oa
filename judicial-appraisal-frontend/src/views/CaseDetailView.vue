@@ -288,8 +288,10 @@ const dynamicFields = computed<DynamicFormField[]>(() => {
       if (isDraftCase.value && (field.group === '流程基础' || field.group === '受理决策' || field.group === '项目决策')) {
         return false;
       }
-      // 如果选择不予受理，则隐藏受理并指定项目负责人、指定项目辅助人等相关字段，不作必填校验
-      if (formData.value?.entrustAccepted === false &&
+      // 如果部门负责人明确选择不予受理，则隐藏后续指定人和项目决策字段，不作必填校验。
+      // 布尔开关未选择时不能按 false 处理，否则收案员节点会误隐藏“指定部门负责人”。
+      if (activeNodeCode.value === 'DEPT_REVIEW' &&
+          formData.value?.entrustAccepted === false &&
           (key === 'preliminarySurveyRequired' ||
            key === 'materialReceiveRequired' ||
            key === 'projectLeaderId' ||
@@ -536,7 +538,7 @@ function buildDefaultFormData(fields: DynamicFormField[]): Record<string, unknow
     if (defaults[field.key] !== undefined) {
       return;
     }
-    defaults[field.key] = field.type === 'boolean' ? false : '';
+    defaults[field.key] = field.type === 'boolean' ? null : '';
   });
   return defaults;
 }
