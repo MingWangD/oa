@@ -34,7 +34,9 @@ import com.example.judicialappraisal.workflow.mapper.WfDefinitionMapper;
 import com.example.judicialappraisal.workflow.mapper.WfNodeDefMapper;
 import com.example.judicialappraisal.workflow.mapper.WfTransitionDefMapper;
 import com.example.judicialappraisal.organization.entity.SysRole;
+import com.example.judicialappraisal.organization.entity.SysUser;
 import com.example.judicialappraisal.organization.mapper.SysRoleMapper;
+import com.example.judicialappraisal.organization.mapper.SysUserMapper;
 import com.example.judicialappraisal.organization.mapper.SysUserRoleMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
@@ -54,6 +56,7 @@ class WorkflowRuntimeServiceTests {
     private final FormVersionMapper formVersionMapper = mock(FormVersionMapper.class);
     private final CaseTaskCandidateMapper caseTaskCandidateMapper = mock(CaseTaskCandidateMapper.class);
     private final SysRoleMapper sysRoleMapper = mock(SysRoleMapper.class);
+    private final SysUserMapper sysUserMapper = mock(SysUserMapper.class);
     private final SysUserRoleMapper sysUserRoleMapper = mock(SysUserRoleMapper.class);
     private final KnowledgeService knowledgeService = mock(KnowledgeService.class);
 
@@ -69,6 +72,7 @@ class WorkflowRuntimeServiceTests {
             formVersionMapper,
             caseTaskCandidateMapper,
             sysRoleMapper,
+            sysUserMapper,
             sysUserRoleMapper,
             knowledgeService,
             new ObjectMapper()
@@ -274,6 +278,93 @@ class WorkflowRuntimeServiceTests {
         verify(caseTaskCandidateMapper).insert(candidateCaptor.capture());
         assertThat(candidateCaptor.getValue().getCandidateUserId()).isEqualTo(18L);
         assertThat(candidateCaptor.getValue().getCandidateRoleId()).isEqualTo(22L);
+    }
+
+    @Test
+    void formSelectedProjectLeaderIsAssignedToProjectDecisionTask() {
+        CaseInfo caseInfo = new CaseInfo();
+        caseInfo.setId(88L);
+        caseInfo.setCaseTitle("指定项目负责人测试");
+        caseInfo.setCaseStatus(CaseStatus.PROCESSING.name());
+
+        CaseTask currentTask = new CaseTask();
+        currentTask.setId(701L);
+        currentTask.setCaseId(88L);
+        currentTask.setWfInstanceId(501L);
+        currentTask.setNodeInstanceId(601L);
+        currentTask.setNodeCode("DEPT_REVIEW");
+        currentTask.setNodeName("部门负责人审阅");
+        currentTask.setAssigneeId(9L);
+        currentTask.setStatus("pending");
+
+        CaseNodeInstance currentNode = new CaseNodeInstance();
+        currentNode.setId(601L);
+        currentNode.setCaseId(88L);
+        currentNode.setStatus("running");
+
+        CaseWfInstance wfInstance = new CaseWfInstance();
+        wfInstance.setId(501L);
+        wfInstance.setCaseId(88L);
+        wfInstance.setWfId(77L);
+        wfInstance.setStatus("running");
+
+        WfTransitionDef transition = new WfTransitionDef();
+        transition.setToNodeCode("PROJECT_DECISION");
+        transition.setActionCode("APPROVE");
+        transition.setConditionExpression("form.entrustAccepted == true");
+
+        WfNodeDef targetNode = new WfNodeDef();
+        targetNode.setNodeCode("PROJECT_DECISION");
+        targetNode.setNodeName("项目负责人决策");
+        targetNode.setNodeType("task");
+        targetNode.setHandlerRoleRule("PROJECT_LEADER");
+        targetNode.setEnabled(1);
+
+        SysRole projectLeaderRole = new SysRole();
+        projectLeaderRole.setId(22L);
+        projectLeaderRole.setRoleCode("PROJECT_LEADER");
+
+        SysUser projectLeader = new SysUser();
+        projectLeader.setId(18L);
+        projectLeader.setUsername("project_leader2");
+        projectLeader.setRealName("项目负责人2");
+
+        when(caseInfoMapper.selectRawById(88L)).thenReturn(caseInfo);
+        when(caseTaskMapper.selectById(701L)).thenReturn(currentTask);
+        when(caseNodeInstanceMapper.selectById(601L)).thenReturn(currentNode);
+        when(caseWfInstanceMapper.selectOne(any())).thenReturn(wfInstance);
+        when(wfTransitionDefMapper.selectList(any())).thenReturn(java.util.List.of(transition));
+        when(wfNodeDefMapper.selectOne(any())).thenReturn(targetNode);
+        when(sysRoleMapper.selectList(any())).thenReturn(java.util.List.of(projectLeaderRole));
+        when(sysUserRoleMapper.selectEnabledRoleIdsByUserId(18L)).thenReturn(java.util.List.of(22L));
+        when(sysUserMapper.selectById(18L)).thenReturn(projectLeader);
+        doAnswer(invocation -> {
+            CaseNodeInstance node = invocation.getArgument(0);
+            node.setId(602L);
+            return 1;
+        }).when(caseNodeInstanceMapper).insert(any(CaseNodeInstance.class));
+        doAnswer(invocation -> {
+            CaseTask task = invocation.getArgument(0);
+            task.setId(702L);
+            return 1;
+        }).when(caseTaskMapper).insert(any(CaseTask.class));
+
+        complete(new WorkflowActionRequest(
+                701L,
+                ActionCode.APPROVE,
+                "受理",
+                null,
+                9L,
+                "部门负责人",
+                Map.of("entrustAccepted", true, "projectLeaderId", 18L),
+                null));
+
+        ArgumentCaptor<CaseTask> taskCaptor = ArgumentCaptor.forClass(CaseTask.class);
+        verify(caseTaskMapper).insert(taskCaptor.capture());
+        assertThat(taskCaptor.getValue().getNodeCode()).isEqualTo("PROJECT_DECISION");
+        assertThat(taskCaptor.getValue().getAssigneeId()).isEqualTo(18L);
+        assertThat(taskCaptor.getValue().getAssigneeName()).isEqualTo("项目负责人2");
+        verify(caseTaskCandidateMapper, org.mockito.Mockito.never()).insert(any(CaseTaskCandidate.class));
     }
 
     @Test

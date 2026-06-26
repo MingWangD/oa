@@ -26,7 +26,8 @@ final class FieldAccessRules {
     );
     private static final Set<String> ENTRUST_REGISTRATION_OPTIONAL_WRITABLE_FIELDS = Set.of(
             "expressNo",
-            "projectAmount"
+            "projectAmount",
+            "departmentHeadId"
     );
     private static final Set<String> ENTRUST_REGISTRATION_BASE_FIELDS = Set.of(
             "expressNo",
@@ -44,6 +45,12 @@ final class FieldAccessRules {
             "urgencyLevel",
             "caseChannel",
             "appraisalMatter"
+    );
+    private static final Set<String> ENTRUST_ASSIGNMENT_FIELDS = Set.of(
+            "entrustAccepted",
+            "departmentHeadId",
+            "projectLeaderId",
+            "projectAssistantId"
     );
 
     private FieldAccessRules() {
@@ -152,9 +159,14 @@ final class FieldAccessRules {
             });
             ENTRUST_REGISTRATION_OPTIONAL_WRITABLE_FIELDS.forEach(fieldName -> {
                 Map<String, Object> auth = (Map<String, Object>) fieldAuth.computeIfAbsent(fieldName, k -> new HashMap<>());
-                auth.put("required", false);
+                auth.put("required", "CLERK_REGISTER".equals(nodeCode) && "departmentHeadId".equals(fieldName));
                 auth.put("readonly", false);
             });
+            if ("INIT_FILL".equals(nodeCode)) {
+                Map<String, Object> auth = (Map<String, Object>) fieldAuth.computeIfAbsent("departmentHeadId", k -> new HashMap<>());
+                auth.put("required", false);
+                auth.put("hidden", true);
+            }
         } else if ("received-entrust".equals(formCode)) {
             ENTRUST_REGISTRATION_BASE_FIELDS.forEach(fieldName -> {
                 Map<String, Object> auth = (Map<String, Object>) fieldAuth.computeIfAbsent(fieldName, k -> new HashMap<>());
@@ -162,6 +174,24 @@ final class FieldAccessRules {
                 auth.put("readonly", true);
             });
         }
+        ENTRUST_ASSIGNMENT_FIELDS.forEach(fieldName -> {
+            Map<String, Object> auth = (Map<String, Object>) fieldAuth.computeIfAbsent(fieldName, k -> new HashMap<>());
+            if ("CLERK_REGISTER".equals(nodeCode)) {
+                auth.put("readonly", !"departmentHeadId".equals(fieldName));
+                auth.put("required", "departmentHeadId".equals(fieldName));
+                auth.put("hidden", false);
+            } else if ("DEPT_REVIEW".equals(nodeCode)) {
+                auth.put("readonly", !("entrustAccepted".equals(fieldName) || "projectLeaderId".equals(fieldName)));
+                auth.put("required", "entrustAccepted".equals(fieldName) || "projectLeaderId".equals(fieldName));
+                auth.put("hidden", "projectAssistantId".equals(fieldName));
+            } else if ("PROJECT_DECISION".equals(nodeCode)) {
+                auth.put("readonly", !"projectAssistantId".equals(fieldName));
+                auth.put("required", "projectAssistantId".equals(fieldName));
+                auth.put("hidden", false);
+            } else if (!"INIT_FILL".equals(nodeCode)) {
+                auth.putIfAbsent("readonly", true);
+            }
+        });
         if ("DEPT_REVIEW".equals(nodeCode)) {
             Map<String, Object> auth = (Map<String, Object>) fieldAuth.computeIfAbsent("entrustAccepted", k -> new HashMap<>());
             auth.putIfAbsent("required", true);

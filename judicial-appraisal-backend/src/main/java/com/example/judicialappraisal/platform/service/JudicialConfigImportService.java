@@ -310,7 +310,7 @@ public class JudicialConfigImportService {
                         List.of("线上", "线下")),
                 field("appraisalMatter", "鉴定事项", "textarea", "案件信息", true, false),
                 field("entrustAccepted", "委托审查是否受理", "boolean", "受理决策", false, false),
-                field("departmentHeadId", "部门负责人", "user", "受理决策", false, false),
+                field("departmentHeadId", "指定部门负责人", "user", "受理决策", false, false),
                 field("projectLeaderId", "指定项目负责人", "user", "受理决策", false, false),
                 field("projectAssistantId", "指定项目辅助人", "user", "受理决策", false, false),
                 field("preliminarySurveyRequired", "是否进行初步勘验", "boolean", "项目决策", false, false),
@@ -336,7 +336,7 @@ public class JudicialConfigImportService {
                 toJson(Map.of(
                         "groups", Map.of(
                                 "流程基础", Map.of("readOnly", true),
-                                "受理决策", Map.of("roles", List.of("部门负责人")),
+                                "受理决策", Map.of("roles", List.of("收案员", "部门负责人", "项目负责人")),
                                 "项目决策", Map.of("roles", List.of("项目负责人"))
                         )
                 )),
@@ -372,16 +372,31 @@ public class JudicialConfigImportService {
             Map.entry("projectLeaderId", Map.of("required", false, "hidden", true)),
             Map.entry("projectAssistantId", Map.of("required", false, "hidden", true))
         );
+        Map<String, Object> clerkRegisterFieldAuth = Map.of(
+                "departmentHeadId", Map.of("required", true, "readonly", false, "hidden", false),
+                "entrustAccepted", Map.of("required", false, "readonly", true),
+                "projectLeaderId", Map.of("required", false, "readonly", true),
+                "projectAssistantId", Map.of("required", false, "readonly", true)
+        );
         Map<String, Object> deptReviewFieldAuth = Map.of(
-                "entrustAccepted", Map.of("required", true)
+                "entrustAccepted", Map.of("required", true, "readonly", false),
+                "departmentHeadId", Map.of("required", false, "readonly", true),
+                "projectLeaderId", Map.of("required", true, "readonly", false),
+                "projectAssistantId", Map.of("required", false, "hidden", true)
+        );
+        Map<String, Object> projectDecisionFieldAuth = Map.of(
+                "entrustAccepted", Map.of("required", false, "readonly", true),
+                "departmentHeadId", Map.of("required", false, "readonly", true),
+                "projectLeaderId", Map.of("required", false, "readonly", true),
+                "projectAssistantId", Map.of("required", true, "readonly", false)
         );
 
         List<WorkflowNodeRequest> nodes = List.of(
                 node("START", "开始", "start", "single", null, 0, 0, false, null, 0),
                 nodeWithFieldAuth("INIT_FILL", "发起者填写委托信息", "task", "candidate", "收案员", 1, 24, true, workflow.formCode(), 10, initFieldAuth),
-                nodeWithFieldAuth("CLERK_REGISTER", "收案员登记", "task", "candidate", "收案员", 1, 24, true, workflow.formCode(), 20, initFieldAuth),
+                nodeWithFieldAuth("CLERK_REGISTER", "收案员登记并指定部门负责人", "task", "candidate", "收案员", 1, 24, true, workflow.formCode(), 20, clerkRegisterFieldAuth),
                 nodeWithFieldAuth("DEPT_REVIEW", "部门负责人审阅", "task", "candidate", "部门负责人", 1, 48, true, workflow.formCode(), 30, deptReviewFieldAuth),
-                node("PROJECT_DECISION", "项目负责人决策", "task", "candidate", "项目负责人", 1, 48, true, workflow.formCode(), 40),
+                nodeWithFieldAuth("PROJECT_DECISION", "项目负责人决策并指定项目辅助人", "task", "candidate", "项目负责人", 1, 48, true, workflow.formCode(), 40, projectDecisionFieldAuth),
                 node("ASSISTANT_NOTICE", "告知项目辅助人", "task", "candidate", "项目辅助人", 0, 24, true, workflow.formCode(), 50),
                 node("MATERIAL_RECEIVE", "收案员材料接收", "task", "candidate", "收案员", 1, 24, true, workflow.formCode(), 60),
                 node("PRELIMINARY_SURVEY", "进入初步勘验", "task", "candidate", "项目负责人", 1, 24, true, "preliminary-survey", 70),

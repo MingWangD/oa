@@ -217,7 +217,7 @@ const formRule = computed(() => {
       'caseChannel',
       'appraisalMatter'
     ];
-    const deptDecisionFields = [
+    const assignmentFields = [
       'entrustAccepted',
       'departmentHeadId',
       'projectLeaderId',
@@ -230,12 +230,22 @@ const formRule = computed(() => {
     ];
     
     const nodeOverrides: Record<string, Record<string, unknown>> = {};
-    if (activeNodeCode.value === 'DEPT_REVIEW') {
-      nodeOverrides['entrustAccepted'] = { required: true };
+    assignmentFields.forEach((fieldName) => {
+      nodeOverrides[fieldName] = { readonly: true };
+    });
+    if (activeNodeCode.value === 'CLERK_REGISTER') {
+      nodeOverrides['departmentHeadId'] = { required: true, readonly: false, hidden: false };
+    } else if (activeNodeCode.value === 'DEPT_REVIEW') {
+      nodeOverrides['entrustAccepted'] = { required: true, readonly: false };
+      nodeOverrides['departmentHeadId'] = { required: false, readonly: true };
+      nodeOverrides['projectLeaderId'] = { required: true, readonly: false };
+      nodeOverrides['projectAssistantId'] = { required: false, readonly: true, hidden: true };
+    } else if (activeNodeCode.value === 'PROJECT_DECISION') {
+      nodeOverrides['departmentHeadId'] = { required: false, readonly: true };
+      nodeOverrides['projectLeaderId'] = { required: false, readonly: true };
+      nodeOverrides['projectAssistantId'] = { required: true, readonly: false };
     } else {
-      deptDecisionFields.forEach((fieldName) => {
-        nodeOverrides[fieldName] = { readonly: true };
-      });
+      nodeOverrides['projectAssistantId'] = { required: false, readonly: true };
     }
 
     if (activeNodeCode.value !== 'PROJECT_DECISION') {
@@ -293,11 +303,13 @@ const dynamicFields = computed<DynamicFormField[]>(() => {
       const key = getWorkflowFieldKey(field, `field_${index + 1}`);
       const auth = getWorkflowFieldAuth(key, fieldAuth);
       let isReadonly = resolveWorkflowFieldReadonly(field, auth, formRule.value?.readonly);
+      const fieldAuthAllowsEdit = auth.readonly === false || auth.readOnly === false;
+      const isAssignmentField = key === 'departmentHeadId' || key === 'projectLeaderId' || key === 'projectAssistantId';
 
       // Check group-level permissions (e.g., role restrictions)
       const groupName = String(field.group || '');
       const groupConfig = permissionSchema?.groups?.[groupName];
-      if (groupConfig) {
+      if (groupConfig && !(isAssignmentField && fieldAuthAllowsEdit)) {
         if (groupConfig.readOnly) {
           isReadonly = true;
         }

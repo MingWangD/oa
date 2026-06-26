@@ -12,7 +12,9 @@ import com.example.judicialappraisal.common.exception.BusinessException;
 import com.example.judicialappraisal.knowledge.dto.ArchiveNodeRequest;
 import com.example.judicialappraisal.knowledge.service.KnowledgeService;
 import com.example.judicialappraisal.organization.entity.SysRole;
+import com.example.judicialappraisal.organization.entity.SysUser;
 import com.example.judicialappraisal.organization.mapper.SysRoleMapper;
+import com.example.judicialappraisal.organization.mapper.SysUserMapper;
 import com.example.judicialappraisal.organization.mapper.SysUserRoleMapper;
 import com.example.judicialappraisal.workflow.design.FormVersion;
 import com.example.judicialappraisal.workflow.design.FormVersionMapper;
@@ -94,6 +96,7 @@ public class WorkflowRuntimeService {
     private final FormVersionMapper formVersionMapper;
     private final CaseTaskCandidateMapper caseTaskCandidateMapper;
     private final SysRoleMapper sysRoleMapper;
+    private final SysUserMapper sysUserMapper;
     private final SysUserRoleMapper sysUserRoleMapper;
     private final KnowledgeService knowledgeService;
     private final ObjectMapper objectMapper;
@@ -110,6 +113,7 @@ public class WorkflowRuntimeService {
             FormVersionMapper formVersionMapper,
             CaseTaskCandidateMapper caseTaskCandidateMapper,
             SysRoleMapper sysRoleMapper,
+            SysUserMapper sysUserMapper,
             SysUserRoleMapper sysUserRoleMapper,
             KnowledgeService knowledgeService,
             ObjectMapper objectMapper) {
@@ -124,6 +128,7 @@ public class WorkflowRuntimeService {
         this.formVersionMapper = formVersionMapper;
         this.caseTaskCandidateMapper = caseTaskCandidateMapper;
         this.sysRoleMapper = sysRoleMapper;
+        this.sysUserMapper = sysUserMapper;
         this.sysUserRoleMapper = sysUserRoleMapper;
         this.knowledgeService = knowledgeService;
         this.objectMapper = objectMapper;
@@ -424,7 +429,7 @@ public class WorkflowRuntimeService {
                     boolean isReadOnly = FieldAccessRules.isReadOnly(field, finalFormRule);
                     return !isReadOnly;
                 })
-                .filter(field -> isFieldWritableForUser(field, finalPermissionSchema, finalUserId))
+                .filter(field -> isAssignmentField(stringValue(field.get("field"))) || isFieldWritableForUser(field, finalPermissionSchema, finalUserId))
                 .filter(field -> isMissingFormValue(formData, stringValue(field.get("field"))))
                 .map(field -> {
                     String label = stringValue(field.get("label"));
@@ -435,6 +440,12 @@ public class WorkflowRuntimeService {
         if (!missingFields.isEmpty()) {
             throw new BusinessException("必填字段未填写：" + String.join("、", missingFields));
         }
+    }
+
+    private boolean isAssignmentField(String fieldName) {
+        return "departmentHeadId".equals(fieldName)
+                || "projectLeaderId".equals(fieldName)
+                || "projectAssistantId".equals(fieldName);
     }
 
     private boolean shouldValidateRequiredFormFields(ActionCode actionCode) {
@@ -1601,6 +1612,12 @@ public class WorkflowRuntimeService {
             LocalDateTime now) {
         WfNodeDef nodeDef = findNodeDef(activeWfId, nodeCode);
         if (nodeDef != null && !isBlank(nodeDef.getHandlerRoleRule())) {
+            Long formSelectedAssigneeId = resolveFormSelectedAssigneeId(nodeCode, request);
+            if (formSelectedAssigneeId != null) {
+                validateManualAssigneeMatchesNodeRole(nodeDef, formSelectedAssigneeId);
+                return createTask(caseInfo, wfInstance.getId(), subflowInstanceId, nodeInstanceId, nodeCode, nodeName,
+                        formSelectedAssigneeId, resolveUserDisplayName(formSelectedAssigneeId), now);
+            }
             Long requestedNextAssigneeId = request.resolvedNextAssigneeId();
             if (requestedNextAssigneeId != null && Boolean.TRUE.equals(toBoolean(nodeDef.getAllowManualAssign()))) {
                 validateManualAssigneeMatchesNodeRole(nodeDef, requestedNextAssigneeId);
@@ -1615,6 +1632,51 @@ public class WorkflowRuntimeService {
         String targetAssigneeName = targetAssigneeId == null ? null : defaultName(request.resolvedNextAssigneeName());
 
         return createTask(caseInfo, wfInstance.getId(), subflowInstanceId, nodeInstanceId, nodeCode, nodeName, targetAssigneeId, targetAssigneeName, now);
+    }
+
+    private Long resolveFormSelectedAssigneeId(String targetNodeCode, WorkflowActionRequest request) {
+        Map<String, Object> formData = request.formData();
+        if (formData == null || formData.isEmpty()) {
+            return null;
+        }
+        String assigneeField = switch (targetNodeCode) {
+            case "DEPT_REVIEW" -> "departmentHeadId";
+            case "PROJECT_DECISION" -> "projectLeaderId";
+            case "ASSISTANT_NOTICE" -> "projectAssistantId";
+            default -> null;
+        };
+        if (isBlank(assigneeField)) {
+            return null;
+        }
+        return longValue(formData.get(assigneeField));
+    }
+
+    private Long longValue(Object value) {
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
+        if (value == null || isBlank(String.valueOf(value))) {
+            return null;
+        }
+        try {
+            return Long.valueOf(String.valueOf(value).trim());
+        } catch (NumberFormatException ignored) {
+            return null;
+        }
+    }
+
+    private String resolveUserDisplayName(Long userId) {
+        if (userId == null) {
+            return null;
+        }
+        SysUser user = sysUserMapper.selectById(userId);
+        if (user == null) {
+            return null;
+        }
+        if (!isBlank(user.getRealName())) {
+            return user.getRealName();
+        }
+        return user.getUsername();
     }
 
     private WfNodeDef findNodeDef(Long wfId, String nodeCode) {
