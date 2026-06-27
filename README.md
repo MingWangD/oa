@@ -127,7 +127,7 @@
    # 请根据实际端口和密码情况调整命令
    mysql -h localhost -P 3307 -u root -p judicial_appraisal < judicial-appraisal-backend/src/main/resources/db/judicial_appraisal_full_dump.sql
    ```
-   该文件包含完整表结构、流程定义、案件样例、部门、岗位、角色、菜单权限和默认测试账号。导入后默认账号密码统一为 `123456`。
+    该文件包含完整表结构、流程定义、部门、岗位、角色、菜单权限和默认测试账号（已排除历史和样例案件数据，保持纯净初始化）。导入后默认账号密码统一为 `123456`。
 
    项目不再维护拆分版迁移脚本；如需重置数据库，请重新执行本节的 `DROP DATABASE`、`CREATE DATABASE` 和导入命令。
 
